@@ -17,6 +17,7 @@ namespace throwback {
 namespace {
 
 constexpr wchar_t kClassName[] = L"ThrowbackStartMenu";
+constexpr UINT kIconsReady = WM_APP + 1;
 // The program list is read again when the menu opens after this long, so
 // newly installed programs show up.
 constexpr ULONGLONG kCatalogMaxAgeMs = 30'000;
@@ -44,6 +45,7 @@ StartMenu::StartMenu(HINSTANCE instance, HWND owner, std::function<void()> onClo
                           owner, nullptr, instance, this);
   if (!hwnd_) throw std::runtime_error("CreateWindowEx failed for the start menu");
   canvas_ = std::make_unique<ui::Canvas>(hwnd_);
+  icons_ = std::make_unique<shell::AsyncIconCache>(hwnd_, kIconsReady);
   ui::EnableGlass(hwnd_, ui::GlassCorners::Round);
 }
 
@@ -70,6 +72,9 @@ LRESULT StartMenu::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam) {
       return 0;
     case WM_ERASEBKGND:
       return 1;
+    case kIconsReady:
+      if (IsOpen()) InvalidateRect(hwnd_, nullptr, FALSE);
+      return 0;
     case WM_ACTIVATE:
       // Clicking anywhere else closes the menu, like the real one.
       if (LOWORD(wParam) == WA_INACTIVE && !keepOpen_) Hide(/*restoreFocus=*/false);
@@ -252,7 +257,7 @@ void StartMenu::Paint() {
   for (int i = scroll_; i < last; ++i) {
     const Row& row = rows_[static_cast<size_t>(i)];
     model.rows.push_back(
-        {row.name, icons_.Get(row.target, model.iconSize), row.folder != nullptr, i == selected_});
+        {row.name, icons_->Get(row.target, model.iconSize), row.folder != nullptr, i == selected_});
   }
   model.showBack = mode_ != Mode::Home;
   model.allProgramsHovered = hover_.kind == Hit::Kind::AllPrograms;

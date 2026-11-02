@@ -52,6 +52,7 @@ target_link_libraries(throwback_ui
   PRIVATE throwback_options)
 
 add_executable(throwback WIN32
+  src/shell/async_icons.cpp
   src/shell/launch.cpp
   src/shell/settings_store.cpp
   src/shell/shell_icons.cpp

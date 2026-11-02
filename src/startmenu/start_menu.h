@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "core/start_menu_layout.h"
-#include "shell/shell_icons.h"
+#include "shell/async_icons.h"
 #include "startmenu/frequent.h"
 #include "startmenu/places.h"
 #include "startmenu/programs.h"
@@ -85,7 +85,7 @@ class StartMenu {
   std::vector<FrequentProgram> frequent_;
   std::vector<Place> places_;
   Account account_;
-  shell::IconCache icons_;
+  std::unique_ptr<shell::AsyncIconCache> icons_;
 
   Mode mode_ = Mode::Home;
   std::vector<const Program*> folders_;  // All Programs: the open folder path
