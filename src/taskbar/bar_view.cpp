@@ -70,6 +70,11 @@ void DrawBar(ui::Canvas& canvas, const BarModel& model) {
 
   for (const auto& button : model.buttons) DrawTaskButton(canvas, button);
 
+  for (const auto& icon : model.trayIcons) {
+    canvas.Button(icon.slot, ui::ButtonVariant::GlassItem, icon.hovered);
+    canvas.Icon(icon.icon, icon.handle);
+  }
+
   const Rect& clock = model.clock;
   const int middle = (clock.top + clock.bottom) / 2;
   canvas.Text({clock.left, clock.top, clock.right, middle + canvas.Scale(ui::kSpace2)}, model.time,

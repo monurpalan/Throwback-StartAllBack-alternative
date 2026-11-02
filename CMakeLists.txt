@@ -25,6 +25,7 @@ target_compile_options(throwback_options INTERFACE /W4 /WX /permissive- /utf-8)
 add_library(throwback_core STATIC
   src/core/layout.cpp
   src/core/monitor_diff.cpp
+  src/core/notify_icon.cpp
   src/core/options.cpp
   src/core/program_menu.cpp
   src/core/search.cpp
@@ -75,18 +76,21 @@ add_executable(throwback WIN32
   src/taskbar/appbar.cpp
   src/taskbar/bar_manager.cpp
   src/taskbar/bar_view.cpp
+  src/taskbar/explorer_tray.cpp
   src/taskbar/main.cpp
   src/taskbar/system_taskbar.cpp
   src/taskbar/settings_dialog.cpp
   src/taskbar/task_status.cpp
   src/taskbar/taskband_hook.cpp
   src/taskbar/taskbar_settings.cpp
+  src/taskbar/taskbar_tray.cpp
   src/taskbar/taskbar_window.cpp
   src/taskbar/thumbnail_popup.cpp
+  src/taskbar/tray_host.cpp
   src/taskbar/window_actions.cpp
   src/taskbar/window_tracker.cpp)
 target_link_libraries(throwback PRIVATE
-  throwback_ui throwback_options dwmapi shell32 ole32 secur32 powrprof)
+  throwback_ui throwback_options dwmapi shell32 shlwapi ole32 secur32 powrprof)
 
 if(THROWBACK_BUILD_TESTS)
   enable_testing()

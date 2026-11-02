@@ -5,6 +5,7 @@
 
 #include "core/window_menu.h"
 #include "shell/launch.h"
+#include "taskbar/explorer_tray.h"
 
 namespace throwback {
 namespace {
@@ -169,7 +170,7 @@ void ShowWindowMenu(HWND owner, HWND task, POINT screenPoint) {
 }
 
 void ToggleDesktop() {
-  if (HWND tray = FindWindowW(L"Shell_TrayWnd", nullptr)) {
+  if (HWND tray = ExplorerTray()) {
     PostMessageW(tray, WM_COMMAND, kShowDesktopCommand, 0);
   } else {
     PressWinD();

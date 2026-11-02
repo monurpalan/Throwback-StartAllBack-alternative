@@ -1,5 +1,7 @@
 #include "taskbar/taskband_hook.h"
 
+#include "taskbar/explorer_tray.h"
+
 namespace throwback {
 namespace {
 
@@ -13,7 +15,7 @@ TaskbandHook::~TaskbandHook() { Restore(); }
 
 void TaskbandHook::Reapply() {
   Restore();
-  tray_ = FindWindowW(L"Shell_TrayWnd", nullptr);
+  tray_ = ExplorerTray();
   if (!tray_) return;
   previous_ = GetPropW(tray_, kProperty);
   SetPropW(tray_, kProperty, receiver_);

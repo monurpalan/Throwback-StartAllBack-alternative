@@ -34,6 +34,14 @@ TEST(LayoutTest, ShowDesktopSitsAtTheFarEndAndPushesTheClock) {
   EXPECT_LE(layout.taskButtons.back().right, layout.clock.left - metrics.spacing);
 }
 
+TEST(LayoutTest, TraySitsLeftOfTheClockAndPushesButtons) {
+  BarMetrics metrics = TestMetrics();
+  metrics.trayWidth = 96;
+  const BarLayout layout = ComputeLayout(metrics, 50);
+  EXPECT_EQ(layout.tray, (Rect{804, 0, 900, 40}));
+  EXPECT_LE(layout.taskButtons.back().right, layout.tray.left - metrics.spacing);
+}
+
 TEST(LayoutTest, FewButtonsUseMaxWidth) {
   const BarLayout layout = ComputeLayout(TestMetrics(), 2);
   ASSERT_EQ(layout.taskButtons.size(), 2u);

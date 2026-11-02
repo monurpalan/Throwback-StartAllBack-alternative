@@ -24,6 +24,7 @@ struct BarMetrics {
   int startButtonWidth = 0;
   int clockWidth = 0;
   int showDesktopWidth = 0;  // the slim button at the far end of the bar
+  int trayWidth = 0;         // notification icons, left of the clock
   int minButtonWidth = 0;
   int maxButtonWidth = 0;
   int spacing = 0;
@@ -33,6 +34,7 @@ struct BarMetrics {
 struct BarLayout {
   Rect startButton;
   Rect clock;
+  Rect tray;
   Rect showDesktop;
   // May hold fewer rects than requested when the buttons don't fit.
   std::vector<Rect> taskButtons;

@@ -24,6 +24,15 @@ public static class SmokeNative {
   [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr hwnd);
   [DllImport("user32.dll")] public static extern void mouse_event(uint flags, int x, int y, uint data, UIntPtr extra);
   [DllImport("user32.dll")] public static extern void keybd_event(byte vk, byte scan, uint flags, UIntPtr extra);
+  public delegate bool EnumProc(IntPtr hwnd, IntPtr param);
+  [DllImport("user32.dll")] public static extern bool EnumWindows(EnumProc proc, IntPtr param);
+  [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern int GetClassName(IntPtr hwnd, System.Text.StringBuilder name, int size);
+  // Any popup menu on screen; a hidden one always exists.
+  public static bool MenuOpen() {
+    bool open = false;
+    EnumWindows((h, p) => { var n = new System.Text.StringBuilder(16); GetClassName(h, n, 16); if (n.ToString() == "#32768" && IsWindowVisible(h)) open = true; return true; }, IntPtr.Zero);
+    return open;
+  }
   public static RECT WorkArea() { var r = new RECT(); SystemParametersInfo(0x30, 0, ref r, 0); return r; }
 }
 '@
@@ -52,7 +61,8 @@ foreach ($theme in "dark", "light") {
   foreach ($lang in "en", "tr") {
     $name = "$theme-$lang"
     $process = Start-Process $Exe -ArgumentList "--profile=smoke", "--theme=$theme", "--lang=$lang" -PassThru
-    Start-Sleep -Seconds 3
+    # Programs re-add their notification icons at start; let that settle.
+    Start-Sleep -Seconds 5
     $bar = Find-Bar
     if (-not $bar) { $failures += "${name}: bar window not found"; continue }
 
@@ -70,20 +80,36 @@ foreach ($theme in "dark", "light") {
     [void][SmokeNative]::SetCursorPos($clockX, $rect.Top + [int]($height / 2))
     [SmokeNative]::mouse_event(0x8, 0, 0, 0, [UIntPtr]::Zero)
     [SmokeNative]::mouse_event(0x10, 0, 0, 0, [UIntPtr]::Zero)
-    Start-Sleep -Milliseconds 700
-    Save-Screen "$OutDir\$name-menu.png" ($clockX - 300) $rect.Top 420 ($height + 80)
-    [SmokeNative]::keybd_event(0x1B, 0, 0, [UIntPtr]::Zero)
-    [SmokeNative]::keybd_event(0x1B, 0, 2, [UIntPtr]::Zero)
+    # Under load the menu can take a moment; a late one would eat the next click.
+    $deadline = (Get-Date).AddSeconds(3)
+    while (-not [SmokeNative]::MenuOpen() -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 50 }
+    if (-not [SmokeNative]::MenuOpen()) { $failures += "${name}: bar menu did not open" }
     Start-Sleep -Milliseconds 300
+    Save-Screen "$OutDir\$name-menu.png" ($clockX - 300) $rect.Top 420 ($height + 80)
+    # Close the menu, and make sure it is gone before clicking anything else.
+    foreach ($try in 1..5) {
+      if (-not [SmokeNative]::MenuOpen()) { break }
+      [SmokeNative]::keybd_event(0x1B, 0, 0, [UIntPtr]::Zero)
+      [SmokeNative]::keybd_event(0x1B, 0, 2, [UIntPtr]::Zero)
+      Start-Sleep -Milliseconds 300
+    }
 
     # Click the orb: the start menu opens next to the bar.
     [void][SmokeNative]::SetCursorPos($rect.Left + [int]($height * 0.7), $rect.Top + [int]($height / 2))
     [SmokeNative]::mouse_event(0x2, 0, 0, 0, [UIntPtr]::Zero)
     [SmokeNative]::mouse_event(0x4, 0, 0, 0, [UIntPtr]::Zero)
-    Start-Sleep -Milliseconds 2000
-    $menu = [SmokeNative]::FindWindow("ThrowbackStartMenu", [NullString]::Value)
+    # The first open reads every program; wait for it rather than a fixed time.
+    $menu = [IntPtr]::Zero
+    $deadline = (Get-Date).AddSeconds(8)
+    while ((Get-Date) -lt $deadline) {
+      $menu = [SmokeNative]::FindWindow("ThrowbackStartMenu", [NullString]::Value)
+      if ($menu -ne [IntPtr]::Zero -and [SmokeNative]::IsWindowVisible($menu)) { break }
+      Start-Sleep -Milliseconds 100
+    }
+    Start-Sleep -Milliseconds 300
     if ($menu -eq [IntPtr]::Zero -or -not [SmokeNative]::IsWindowVisible($menu)) {
       $failures += "${name}: start menu did not open"
+      Save-Screen "$OutDir\$name-start-failed.png" 0 $rect.Top 700 600
     } else {
       $menuRect = New-Object SmokeNative+RECT
       [void][SmokeNative]::GetWindowRect($menu, [ref]$menuRect)

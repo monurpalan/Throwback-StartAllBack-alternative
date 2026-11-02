@@ -4,6 +4,8 @@
 
 #include <vector>
 
+#include "taskbar/explorer_tray.h"
+
 namespace throwback {
 namespace {
 
@@ -12,7 +14,7 @@ constexpr wchar_t kRecoveryValue[] = L"SystemTaskbarState";
 
 std::vector<HWND> ExplorerTaskbars() {
   std::vector<HWND> bars;
-  if (HWND main = FindWindowW(L"Shell_TrayWnd", nullptr)) bars.push_back(main);
+  if (HWND main = ExplorerTray()) bars.push_back(main);
   HWND secondary = nullptr;
   while ((secondary = FindWindowExW(nullptr, secondary, L"Shell_SecondaryTrayWnd", nullptr))) {
     bars.push_back(secondary);
@@ -48,14 +50,14 @@ void WriteRecovery(LPARAM state) {
 void ClearRecovery() { RegDeleteKeyValueW(HKEY_CURRENT_USER, kRecoveryKey, kRecoveryValue); }
 
 void Restore(LPARAM state) {
-  if (HWND tray = FindWindowW(L"Shell_TrayWnd", nullptr)) SetState(tray, state);
+  if (HWND tray = ExplorerTray()) SetState(tray, state);
   ShowAll(true);
 }
 
 }  // namespace
 
 SystemTaskbar::SystemTaskbar() {
-  HWND tray = FindWindowW(L"Shell_TrayWnd", nullptr);
+  HWND tray = ExplorerTray();
   if (!tray) return;  // no Explorer shell: nothing to hide
   originalState_ = GetState(tray);
   WriteRecovery(originalState_);
@@ -71,7 +73,7 @@ SystemTaskbar::~SystemTaskbar() {
 
 void SystemTaskbar::Enforce() {
   if (!applied_) return;
-  HWND tray = FindWindowW(L"Shell_TrayWnd", nullptr);
+  HWND tray = ExplorerTray();
   if (!tray) return;
   // Auto-hide makes Explorer release the screen edge it reserved.
   if ((GetState(tray) & ABS_AUTOHIDE) == 0) SetState(tray, originalState_ | ABS_AUTOHIDE);

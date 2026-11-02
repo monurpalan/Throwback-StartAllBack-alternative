@@ -23,6 +23,13 @@ struct TaskButtonModel {
   HICON overlay = nullptr;  // a small status icon over the button's icon
 };
 
+struct TrayIconModel {
+  Rect slot;  // the hover highlight
+  Rect icon;
+  HICON handle = nullptr;
+  bool hovered = false;
+};
+
 // Everything shown on the bar for one frame.
 struct BarModel {
   Rect bounds;
@@ -31,6 +38,7 @@ struct BarModel {
   bool startHovered = false;
   bool startOpen = false;
   std::vector<TaskButtonModel> buttons;
+  std::vector<TrayIconModel> trayIcons;
   Rect clock;
   std::wstring_view time;
   std::wstring_view date;

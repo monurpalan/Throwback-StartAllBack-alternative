@@ -11,6 +11,7 @@
 
 #include "taskbar/bar_manager.h"
 #include "taskbar/bar_view.h"
+#include "taskbar/explorer_tray.h"
 #include "taskbar/window_actions.h"
 #include "ui/glass.h"
 #include "ui/strings.h"
@@ -104,11 +105,13 @@ TaskbarWindow::TaskbarWindow(HINSTANCE instance, BarManager& manager, HMONITOR m
   if (IsMain()) {
     SystemTaskbar::RecoverFromCrash();
     taskbandHook_ = std::make_unique<TaskbandHook>(hwnd_);
+    tray_ = std::make_unique<TrayHost>(instance, hwnd_, [this] { UpdateLayout(); });
   }
   ApplySystemTaskbar();
 
   shellHookMessage_ = RegisterWindowMessageW(L"SHELLHOOK");
   taskbarCreatedMessage_ = RegisterWindowMessageW(L"TaskbarCreated");
+  explorerTray_ = ExplorerTray();
   RegisterShellHookWindow(hwnd_);
   // Store apps and virtual desktop switches cloak and uncloak windows
   // without any shell hook message.
@@ -177,10 +180,15 @@ void TaskbarWindow::SetMonitor(HMONITOR monitor) {
 }
 
 void TaskbarWindow::OnTaskbarCreated() {
-  // Explorer restarted and forgot every AppBar.
+  // Our own notification area announces itself with this message too; only
+  // a new Explorer taskbar means Explorer restarted and forgot every AppBar.
+  const HWND explorer = ExplorerTray();
+  if (explorer == explorerTray_) return;
+  explorerTray_ = explorer;
   RegisterAppBar();
   if (systemTaskbar_) systemTaskbar_->Enforce();
   if (taskbandHook_) taskbandHook_->Reapply();
+  PlaceTray();  // stay above the new Explorer taskbar
   RefreshTasks();
 }
 
@@ -279,6 +287,7 @@ LRESULT TaskbarWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam)
       DeregisterShellHookWindow(hwnd_);
       appBar_.reset();  // gives the reserved screen space back
       taskbandHook_.reset();
+      tray_.reset();
       systemTaskbar_.reset();
       if (IsMain()) PostQuitMessage(0);
       return 0;
@@ -342,6 +351,10 @@ void TaskbarWindow::OnTimer(UINT_PTR timer) {
   RefreshTasks();
   if (systemTaskbar_) systemTaskbar_->Enforce();
   if (IsMain()) manager_.PruneStatus();
+  if (tray_) {
+    tray_->Prune();
+    PlaceTray();  // Explorer's taskbar may have come above ours
+  }
   if (thumbnail_->Task() && !tracker_->ButtonOwner(thumbnail_->Task())) HideThumbnail();
 }
 
@@ -371,7 +384,9 @@ void TaskbarWindow::UpdateLayout() {
   BarMetrics metrics = ScaleMetrics(kBaseMetrics, dpi_);
   metrics.barWidth = client.right - client.left;
   metrics.barHeight = client.bottom - client.top;
+  metrics.trayWidth = TrayWidth();
   layout_ = ComputeLayout(metrics, tracker_->Items().size());
+  PlaceTray();
   InvalidateRect(hwnd_, nullptr, FALSE);
 }
 
@@ -413,6 +428,7 @@ void TaskbarWindow::Paint() {
       model.buttons.back().overlay = status->overlay;
     }
   }
+  AddTrayIcons(model);
   canvas_->BeginFrame();
   DrawBar(*canvas_, model);
   canvas_->EndFrame();
@@ -422,6 +438,7 @@ void TaskbarWindow::Paint() {
 
 int TaskbarWindow::HitTest(int x, int y) const {
   if (layout_.startButton.Contains(x, y)) return kHitStart;
+  if (const int tray = TrayHit(x, y); tray != kHitNone) return tray;
   if (layout_.showDesktop.Contains(x, y)) return kHitShowDesktop;
   const size_t count = std::min(layout_.taskButtons.size(), tracker_->Items().size());
   for (size_t i = 0; i < count; ++i) {
@@ -456,6 +473,7 @@ void TaskbarWindow::OnMouseMove(int x, int y) {
   hovered_ = hit;
   InvalidateRect(hwnd_, nullptr, FALSE);
 
+  if (IsTrayHit(hit)) SendTrayMouse(hit, TrayHost::Mouse::Move);
   if (hit < 0) {
     HideThumbnail();
   } else if (thumbnail_->Task()) {
@@ -487,7 +505,9 @@ void TaskbarWindow::OnButtonUp(int x, int y) {
   const int pressed = std::exchange(pressedHit_, kHitNone);
   if (hit != pressed) return;  // released somewhere else: cancel
 
-  if (hit == kHitStart) {
+  if (IsTrayHit(hit)) {
+    SendTrayMouse(hit, TrayHost::Mouse::LeftClick);
+  } else if (hit == kHitStart) {
     ToggleStartMenu();
   } else if (hit == kHitShowDesktop) {
     ToggleDesktop();
@@ -502,6 +522,10 @@ void TaskbarWindow::OnContextMenu(int x, int y) {
   ClientToScreen(hwnd_, &point);
 
   const int hit = HitTest(x, y);
+  if (IsTrayHit(hit)) {
+    SendTrayMouse(hit, TrayHost::Mouse::RightClick);
+    return;
+  }
   if (hit >= 0) {
     ShowWindowMenu(hwnd_, tracker_->Items()[static_cast<size_t>(hit)].hwnd, point);
     return;

@@ -10,9 +10,11 @@
 #include "startmenu/start_menu.h"
 #include "startmenu/win_key_hook.h"
 #include "taskbar/appbar.h"
+#include "taskbar/bar_view.h"
 #include "taskbar/system_taskbar.h"
 #include "taskbar/taskband_hook.h"
 #include "taskbar/thumbnail_popup.h"
+#include "taskbar/tray_host.h"
 #include "taskbar/window_tracker.h"
 #include "ui/canvas.h"
 #include "ui/theme.h"
@@ -40,6 +42,9 @@ class TaskbarWindow {
   static constexpr int kHitNone = -3;
   static constexpr int kHitShowDesktop = -2;
   static constexpr int kHitStart = -1;
+  // Notification icons hit as kHitTrayFirst - index.
+  static constexpr int kHitTrayFirst = -100;
+  static bool IsTrayHit(int hit) { return hit <= kHitTrayFirst; }
   // Posted by the Windows key hook.
   static constexpr UINT kStartMenuRequest = WM_APP + 3;
 
@@ -74,6 +79,13 @@ class TaskbarWindow {
   void ShowThumbnail(int index);
   void HideThumbnail();
   void ToggleStartMenu();
+  // Notification area (main bar only), in taskbar_tray.cpp.
+  int TrayWidth() const;
+  Rect TrayIconRect(size_t index) const;
+  int TrayHit(int x, int y) const;
+  void SendTrayMouse(int hit, TrayHost::Mouse mouse);
+  void PlaceTray();
+  void AddTrayIcons(BarModel& model) const;
 
   // The WinEvent callback has no context parameter; the main bar hooks it.
   static TaskbarWindow* mainInstance_;
@@ -85,6 +97,7 @@ class TaskbarWindow {
   HWND hwnd_ = nullptr;
   UINT shellHookMessage_ = 0;
   UINT taskbarCreatedMessage_ = 0;
+  HWND explorerTray_ = nullptr;  // to tell an Explorer restart from our own tray
   HWINEVENTHOOK cloakHook_ = nullptr;
   bool refreshPending_ = false;
   unsigned dpi_ = 96;
@@ -105,6 +118,9 @@ class TaskbarWindow {
   std::unique_ptr<StartMenu> startMenu_;
   std::unique_ptr<WinKeyHook> winKeyHook_;
   std::unique_ptr<TaskbandHook> taskbandHook_;  // main bar only
+  std::unique_ptr<TrayHost> tray_;              // main bar only
+  int lastTrayClick_ = kHitNone;
+  DWORD lastTrayClickTime_ = 0;
 };
 
 }  // namespace throwback

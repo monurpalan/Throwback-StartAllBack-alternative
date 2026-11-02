@@ -17,7 +17,12 @@ inject into `explorer.exe` (see [ADR 0001](adr/0001-standalone-appbar.md)).
 
 | Component | Responsibility |
 |---|---|
-| `TaskbarWindow` | Owns the window and message loop handling; wires the rest together. |
+| `BarManager` | One bar per monitor; owns the shared settings and the windows' progress state. |
+| `TaskbarWindow` | Owns a bar's window and message handling; wires the rest together. |
+| `TrayHost` | Hosts the notification area (see below). |
+| `TaskbandHook` | Receives the progress and overlay icons programs set through ITaskbarList3. |
+| `SystemTaskbar` | Hides Explorer's taskbars on request and restores them, even after a crash. |
+| `SettingsStore` | Settings per profile under `HKCU\Software\Throwback\Profiles`. |
 | `AppBar` | Registers the window as a shell AppBar so maximized windows leave room for it. |
 | `WindowTracker` | Enumerates top-level windows, keeps a stable button order, caches icons. |
 | `DrawBar` | Turns a `BarModel` into UI kit calls; contains no drawing code of its own. |
@@ -107,7 +112,30 @@ A Windows 7 style menu (`src/startmenu`), drawn with the same UI kit:
 - Launches go through `ShellExecuteEx` with usage logging, so Windows keeps
   counting them and the frequent list stays accurate.
 
+- **Pinned programs and jump lists:** pins sit above the frequent list; a
+  program with recent documents (IApplicationDocumentLists, by app ID) shows
+  them in place of the right column while it is pointed at.
+- **Settings pages:** search also lists common pages of the Settings app.
+
+## Notification area
+
+Programs talk to "the taskbar" by finding the topmost `Shell_TrayWnd`.
+Throwback creates one of its own above Explorer's, so their
+`Shell_NotifyIcon` and `SHAppBarMessage` calls come to it first:
+
+- Every message is passed on to Explorer, so Explorer stays complete and
+  nothing is lost when Throwback exits or crashes.
+- AppBar requests that reply with a rect carry shared memory meant for the
+  `Shell_TrayWnd`'s process; Explorer gets a copy of its own and the reply is
+  copied back.
+- On start, programs are told a taskbar was created so they add their icons
+  again. Explorer and Windows' own shell UIs are left out: they rebuild their
+  windows on that message and briefly cover the screen.
+- Our own lookups of Explorer's taskbar skip our window (`ExplorerTray`).
+
 ## Known limitations
 
-- Primary monitor only.
-- The system taskbar stays visible; Throwback docks next to it.
+- Secondary monitor bars are untested on real hardware (written against a
+  single monitor).
+- Explorer's own icons (volume, network, battery) are part of its taskbar on
+  Windows 11, not notification icons, so they don't show up.
