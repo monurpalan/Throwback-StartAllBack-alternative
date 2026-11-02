@@ -9,4 +9,16 @@ Language SystemLanguage() {
                                                                    : Language::English;
 }
 
+Language LanguageFor(LanguageMode mode) {
+  switch (mode) {
+    case LanguageMode::English:
+      return Language::English;
+    case LanguageMode::Turkish:
+      return Language::Turkish;
+    case LanguageMode::System:
+      break;
+  }
+  return SystemLanguage();
+}
+
 }  // namespace throwback::ui

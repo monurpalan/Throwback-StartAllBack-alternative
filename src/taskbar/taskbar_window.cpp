@@ -20,7 +20,6 @@ namespace {
 constexpr wchar_t kClassName[] = L"ThrowbackTaskbar";
 constexpr UINT kAppBarCallback = WM_APP + 1;
 constexpr UINT kRefreshRequest = WM_APP + 2;
-constexpr UINT kStartMenuRequest = WM_APP + 3;
 constexpr UINT_PTR kRefreshTimer = 1;
 constexpr UINT_PTR kThumbnailTimer = 2;
 constexpr UINT kRefreshIntervalMs = 1000;
@@ -33,6 +32,7 @@ constexpr WPARAM kShellFullscreenEnter = 53;
 constexpr WPARAM kShellFullscreenExit = 54;
 
 constexpr UINT kMenuExit = 1;
+constexpr UINT kMenuProperties = 2;
 
 // At 96 DPI; width and height come from the window at layout time.
 constexpr BarMetrics kBaseMetrics = {
@@ -306,41 +306,8 @@ void TaskbarWindow::RegisterAppBar() {
   Dock();
 }
 
-void TaskbarWindow::SavePinned() {
-  // Only the pins are saved: settings_ also holds this run's command-line
-  // overrides, which must not become the saved settings.
-  Settings saved = store_.Load();
-  saved.pinned = settings_.pinned;
-  store_.Save(saved);
-}
-
-void TaskbarWindow::ApplyWindowsKey() {
-  // Without the hook the Windows key and Ctrl+Esc open Windows' own menu.
-  if (settings_.windowsKeyOpensMenu && !winKeyHook_) {
-    winKeyHook_ = std::make_unique<WinKeyHook>(hwnd_, kStartMenuRequest);
-  } else if (!settings_.windowsKeyOpensMenu) {
-    winKeyHook_.reset();
-  }
-}
-
-void TaskbarWindow::ApplySystemTaskbar() {
-  if (settings_.hideSystemTaskbar && !systemTaskbar_) {
-    systemTaskbar_ = std::make_unique<SystemTaskbar>();
-  } else if (!settings_.hideSystemTaskbar) {
-    systemTaskbar_.reset();
-  }
-}
-
 void TaskbarWindow::Dock() {
   if (appBar_) appBar_->Dock(settings_.edge, ScaleForDpi(kBarHeight, dpi_));
-}
-
-void TaskbarWindow::ApplyTheme() {
-  const bool light = settings_.theme == ThemeMode::Light ||
-                     (settings_.theme == ThemeMode::System && ui::SystemUsesLightTheme());
-  // The Aero glass looks the same either way; only native menus follow it.
-  ApplyMenuTheme(!light);
-  InvalidateRect(hwnd_, nullptr, FALSE);
 }
 
 void TaskbarWindow::RefreshTasks() {
@@ -489,6 +456,9 @@ void TaskbarWindow::OnContextMenu(int x, int y) {
   }
 
   HMENU menu = CreatePopupMenu();
+  AppendMenuW(menu, MF_STRING, kMenuProperties,
+              std::wstring(ui::Tr(ui::StringId::Properties)).c_str());
+  AppendMenuW(menu, MF_SEPARATOR, 0, nullptr);
   AppendMenuW(menu, MF_STRING, kMenuExit,
               std::wstring(ui::Tr(ui::StringId::ExitThrowback)).c_str());
   // Required for the menu to close when the user clicks elsewhere.
@@ -498,6 +468,7 @@ void TaskbarWindow::OnContextMenu(int x, int y) {
   PostMessageW(hwnd_, WM_NULL, 0, 0);
   DestroyMenu(menu);
   if (command == kMenuExit) DestroyWindow(hwnd_);
+  if (command == kMenuProperties) OpenSettings();
 }
 
 void TaskbarWindow::ShowThumbnail(int index) {

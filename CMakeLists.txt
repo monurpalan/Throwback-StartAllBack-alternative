@@ -74,6 +74,8 @@ add_executable(throwback WIN32
   src/taskbar/bar_view.cpp
   src/taskbar/main.cpp
   src/taskbar/system_taskbar.cpp
+  src/taskbar/settings_dialog.cpp
+  src/taskbar/taskbar_settings.cpp
   src/taskbar/taskbar_window.cpp
   src/taskbar/thumbnail_popup.cpp
   src/taskbar/window_actions.cpp

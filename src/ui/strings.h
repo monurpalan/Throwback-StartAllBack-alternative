@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <string_view>
 
+#include "core/options.h"
+
 namespace throwback::ui {
 
 enum class Language { English, Turkish };
@@ -31,6 +33,27 @@ enum class StringId {
   UnpinFromStartMenu,
   Properties,
   Recent,
+  // The properties dialog.
+  SettingsTitle,
+  TaskbarAppearance,
+  TaskbarLocation,
+  LocationTop,
+  LocationBottom,
+  HideWindowsTaskbar,
+  StartMenuGroup,
+  WindowsKeyOpensMenu,
+  LanguageAndTheme,
+  LanguageLabel,
+  LanguageSystem,
+  LanguageEnglish,
+  LanguageTurkish,
+  MenuTheme,
+  ThemeSystem,
+  ThemeLight,
+  ThemeDark,
+  Ok,
+  Cancel,
+  Apply,
   // Settings pages found by the start menu search.
   SettingsDisplay,
   SettingsNightLight,
@@ -87,5 +110,8 @@ std::wstring_view Tr(StringId id);
 
 // The Windows display language mapped to one we support (English otherwise).
 Language SystemLanguage();
+
+// The language a setting asks for, resolving "system".
+Language LanguageFor(LanguageMode mode);
 
 }  // namespace throwback::ui

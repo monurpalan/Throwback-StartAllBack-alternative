@@ -12,19 +12,14 @@
 #include "taskbar/taskbar_window.h"
 #include "ui/strings.h"
 
-namespace {
+// Themed common controls (version 6) for the properties dialog, as Windows
+// draws its own dialogs.
+#pragma comment(linker,                                                                          \
+                "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' "   \
+                "version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' " \
+                "language='*'\"")
 
-throwback::ui::Language ResolveLanguage(throwback::LanguageMode mode) {
-  switch (mode) {
-    case throwback::LanguageMode::English:
-      return throwback::ui::Language::English;
-    case throwback::LanguageMode::Turkish:
-      return throwback::ui::Language::Turkish;
-    case throwback::LanguageMode::System:
-      break;
-  }
-  return throwback::ui::SystemLanguage();
-}
+namespace {
 
 std::vector<std::wstring> CommandLineArgs() {
   int count = 0;
@@ -56,7 +51,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int) {
   const throwback::ParseResult parsed = throwback::ParseOptions(CommandLineArgs());
   const throwback::shell::SettingsStore store(parsed.options.profile);
   const throwback::Settings settings = throwback::WithOverrides(store.Load(), parsed.options);
-  throwback::ui::SetLanguage(ResolveLanguage(settings.language));
+  throwback::ui::SetLanguage(throwback::ui::LanguageFor(settings.language));
   if (!parsed.unknownArguments.empty()) {
     std::wstring text;
     for (const auto& arg : parsed.unknownArguments) {

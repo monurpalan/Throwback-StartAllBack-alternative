@@ -31,6 +31,8 @@ class TaskbarWindow {
   static constexpr int kHitNone = -3;
   static constexpr int kHitShowDesktop = -2;
   static constexpr int kHitStart = -1;
+  // Posted by the Windows key hook.
+  static constexpr UINT kStartMenuRequest = WM_APP + 3;
 
   static LRESULT CALLBACK WindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
   static void CALLBACK OnWinEvent(HWINEVENTHOOK hook, DWORD event, HWND hwnd, LONG object,
@@ -44,6 +46,8 @@ class TaskbarWindow {
   void ApplySystemTaskbar();
   void ApplyWindowsKey();
   void SavePinned();
+  void OpenSettings();
+  void ApplySettings(const Settings& edited);
   void ApplyTheme();
   void RefreshTasks();
   void UpdateLayout();
