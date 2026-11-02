@@ -60,6 +60,7 @@ add_executable(throwback WIN32
   src/startmenu/places.cpp
   src/startmenu/power.cpp
   src/startmenu/programs.cpp
+  src/startmenu/settings_pages.cpp
   src/startmenu/start_menu.cpp
   src/startmenu/start_menu_view.cpp
   src/startmenu/win_key_hook.cpp

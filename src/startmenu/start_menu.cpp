@@ -9,6 +9,7 @@
 #include "core/search.h"
 #include "shell/launch.h"
 #include "startmenu/power.h"
+#include "startmenu/settings_pages.h"
 #include "startmenu/start_menu_view.h"
 #include "ui/glass.h"
 #include "ui/strings.h"
@@ -25,6 +26,7 @@ constexpr int kCompactRowHeight = ui::kSpace24;
 constexpr int kLargeIcon = 32;
 constexpr int kSmallIcon = 16;
 constexpr size_t kMaxSearchResults = 200;
+constexpr size_t kMaxSettingsResults = 8;
 constexpr int kWheelRows = 3;
 
 bool KeyDown(int key) { return (GetKeyState(key) & 0x8000) != 0; }
@@ -198,11 +200,30 @@ void StartMenu::RebuildRows() {
         if (rows_.size() == kMaxSearchResults) break;
         rows_.push_back({program->name, program->target});
       }
+      AddSettingsResults();
       break;
     }
   }
   scroll_ = 0;
   selected_ = mode_ == Mode::Search && !rows_.empty() ? 0 : -1;
+}
+
+void StartMenu::AddSettingsResults() {
+  // Settings pages follow the programs, like the Control Panel group of the
+  // Windows 7 search. Keywords only count when a query word starts one.
+  std::vector<std::pair<int, const SettingsPage*>> matches;
+  for (const SettingsPage& page : SettingsPages()) {
+    const int byName = MatchScore(ui::Tr(page.name), query_);
+    const int byKeyword = MatchScore(page.keywords, query_) >= 2 ? 1 : 0;
+    if (const int score = std::max(byName, byKeyword)) matches.push_back({score, &page});
+  }
+  std::stable_sort(matches.begin(), matches.end(),
+                   [](const auto& a, const auto& b) { return a.first > b.first; });
+  for (size_t i = 0; i < matches.size() && i < kMaxSettingsResults; ++i) {
+    const SettingsPage& page = *matches[i].second;
+    rows_.push_back({std::wstring(ui::Tr(page.name)), std::wstring(page.uri), nullptr,
+                     std::wstring(kSettingsApp)});
+  }
 }
 
 int StartMenu::RowHeight() const {
@@ -257,7 +278,9 @@ void StartMenu::Paint() {
   for (int i = scroll_; i < last; ++i) {
     const Row& row = rows_[static_cast<size_t>(i)];
     model.rows.push_back(
-        {row.name, icons_->Get(row.target, model.iconSize), row.folder != nullptr, i == selected_});
+        {row.name,
+         icons_->Get(row.iconTarget.empty() ? row.target : row.iconTarget, model.iconSize),
+         row.folder != nullptr, i == selected_});
   }
   model.showBack = mode_ != Mode::Home;
   model.allProgramsHovered = hover_.kind == Hit::Kind::AllPrograms;

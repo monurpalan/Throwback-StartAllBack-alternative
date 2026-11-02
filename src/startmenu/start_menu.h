@@ -44,6 +44,7 @@ class StartMenu {
     std::wstring name;
     std::wstring target;
     const Program* folder = nullptr;
+    std::wstring iconTarget;  // when the icon comes from another item than target
   };
   // What the mouse is over.
   struct Hit {
@@ -55,6 +56,7 @@ class StartMenu {
   LRESULT HandleMessage(UINT message, WPARAM wParam, LPARAM lParam);
 
   void LoadData();
+  void AddSettingsResults();
   void SetMode(Mode mode);
   void RebuildRows();
   int RowHeight() const;
