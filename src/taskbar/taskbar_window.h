@@ -11,6 +11,7 @@
 #include "startmenu/win_key_hook.h"
 #include "taskbar/appbar.h"
 #include "taskbar/system_taskbar.h"
+#include "taskbar/taskband_hook.h"
 #include "taskbar/thumbnail_popup.h"
 #include "taskbar/window_tracker.h"
 #include "ui/canvas.h"
@@ -100,6 +101,7 @@ class TaskbarWindow {
   std::unique_ptr<ThumbnailPopup> thumbnail_;
   std::unique_ptr<StartMenu> startMenu_;
   std::unique_ptr<WinKeyHook> winKeyHook_;
+  std::unique_ptr<TaskbandHook> taskbandHook_;  // main bar only
 };
 
 }  // namespace throwback

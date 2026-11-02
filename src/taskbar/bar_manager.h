@@ -8,6 +8,7 @@
 
 #include "core/settings.h"
 #include "shell/settings_store.h"
+#include "taskbar/task_status.h"
 
 namespace throwback {
 
@@ -34,11 +35,16 @@ class BarManager {
   void SavePinned();
   // A window event every bar should refresh for.
   void RequestRefresh();
+  // ITaskbarList3 messages, which reach the main bar only; true if handled.
+  bool HandleTaskbarList(UINT message, WPARAM wParam, LPARAM lParam);
+  const TaskStatus* StatusOf(HWND window) const { return status_.Find(window); }
+  void PruneStatus() { status_.Prune(); }
 
  private:
   HINSTANCE instance_;
   Settings settings_;
   shell::SettingsStore store_;
+  TaskStatusStore status_;
   std::unique_ptr<TaskbarWindow> main_;
   std::map<std::wstring, std::unique_ptr<TaskbarWindow>> secondary_;
 };

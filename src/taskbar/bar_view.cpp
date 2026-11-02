@@ -7,6 +7,7 @@ namespace {
 // nearly fills the bar's height.
 constexpr int kIconSize = 24;
 constexpr int kOrbSize = 38;
+constexpr int kOverlaySize = 16;
 
 ui::ButtonVariant VariantFor(const TaskButtonModel& button) {
   if (button.flashing && !button.active) return ui::ButtonVariant::FlashingTask;
@@ -19,8 +20,28 @@ ui::OrbState OrbStateFor(const BarModel& model) {
   return model.startHovered ? ui::OrbState::Hot : ui::OrbState::Normal;
 }
 
+void DrawProgress(ui::Canvas& canvas, const TaskButtonModel& button) {
+  switch (button.progress) {
+    case ProgressState::None:
+      return;
+    case ProgressState::Indeterminate:
+      canvas.Progress(button.rect, ui::ProgressVariant::Indeterminate, 1.0f);
+      return;
+    case ProgressState::Normal:
+      canvas.Progress(button.rect, ui::ProgressVariant::Normal, button.progressFraction);
+      return;
+    case ProgressState::Paused:
+      canvas.Progress(button.rect, ui::ProgressVariant::Paused, button.progressFraction);
+      return;
+    case ProgressState::Error:
+      canvas.Progress(button.rect, ui::ProgressVariant::Error, button.progressFraction);
+      return;
+  }
+}
+
 void DrawTaskButton(ui::Canvas& canvas, const TaskButtonModel& button) {
   canvas.Button(button.rect, VariantFor(button), button.hovered);
+  DrawProgress(canvas, button);
 
   const int padding = canvas.Scale(ui::kSpace8);
   const int iconSize = canvas.Scale(kIconSize);
@@ -28,6 +49,13 @@ void DrawTaskButton(ui::Canvas& canvas, const TaskButtonModel& button) {
   const Rect icon{button.rect.left + padding, iconTop, button.rect.left + padding + iconSize,
                   iconTop + iconSize};
   canvas.Icon(icon, button.icon);
+  if (button.overlay) {
+    // Overlays sit on the icon's bottom right corner, as on Windows 7.
+    const int overlay = canvas.Scale(kOverlaySize);
+    canvas.Icon({icon.right - overlay + canvas.Scale(ui::kSpace4), icon.bottom - overlay,
+                 icon.right + canvas.Scale(ui::kSpace4), icon.bottom},
+                button.overlay);
+  }
 
   const Rect title{icon.right + padding, button.rect.top, button.rect.right - padding,
                    button.rect.bottom};

@@ -104,6 +104,32 @@ void Canvas::Button(const Rect& rect, ButtonVariant variant, bool hovered) {
   }
 }
 
+void Canvas::Progress(const Rect& rect, ProgressVariant variant, float fraction) {
+  const int line = std::max(1, Scale(1));
+  const Rect inner = Inset(rect, line);
+  switch (variant) {
+    case ProgressVariant::Indeterminate:
+      // Without a value, a faint fill says "busy" over the whole button.
+      FillGradient(inner, kCornerRadius - 1.0f, aero::kProgressTop.WithAlpha(0.30f),
+                   aero::kProgressBottom.WithAlpha(0.30f));
+      return;
+    case ProgressVariant::Normal:
+    case ProgressVariant::Paused:
+    case ProgressVariant::Error: {
+      const int width = static_cast<int>(static_cast<float>(inner.Width()) * fraction);
+      const Rect filled{inner.left, inner.top, inner.left + width, inner.bottom};
+      const Color top = variant == ProgressVariant::Normal   ? aero::kProgressTop
+                        : variant == ProgressVariant::Paused ? aero::kPausedTop
+                                                             : aero::kErrorTop;
+      const Color bottom = variant == ProgressVariant::Normal   ? aero::kProgressBottom
+                           : variant == ProgressVariant::Paused ? aero::kPausedBottom
+                                                                : aero::kErrorBottom;
+      FillGradient(filled, kCornerRadius - 1.0f, top, bottom);
+      return;
+    }
+  }
+}
+
 void Canvas::Separator(const Rect& rect, SeparatorVariant variant) {
   if (variant == SeparatorVariant::Pane) {
     Fill(rect, aero::kPaneSeparator);

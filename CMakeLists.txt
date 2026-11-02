@@ -30,6 +30,7 @@ add_library(throwback_core STATIC
   src/core/search.cpp
   src/core/settings.cpp
   src/core/start_menu_layout.cpp
+  src/core/task_progress.cpp
   src/core/task_click.cpp
   src/core/user_assist.cpp
   src/core/win_key.cpp
@@ -77,6 +78,8 @@ add_executable(throwback WIN32
   src/taskbar/main.cpp
   src/taskbar/system_taskbar.cpp
   src/taskbar/settings_dialog.cpp
+  src/taskbar/task_status.cpp
+  src/taskbar/taskband_hook.cpp
   src/taskbar/taskbar_settings.cpp
   src/taskbar/taskbar_window.cpp
   src/taskbar/thumbnail_popup.cpp

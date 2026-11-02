@@ -55,6 +55,15 @@ inline constexpr Color kHotGlow = FromRgb(0xC2E4FF, 0.45f);
 inline constexpr Color kFlashTop = FromRgb(0xFFC164, 0.95f);
 inline constexpr Color kFlashBottom = FromRgb(0xE8780C, 0.90f);
 
+// Progress fills a taskbar button from the left: green while running,
+// yellow when paused, red on error.
+inline constexpr Color kProgressTop = FromRgb(0x7CE37C, 0.65f);
+inline constexpr Color kProgressBottom = FromRgb(0x2E9E2E, 0.65f);
+inline constexpr Color kPausedTop = FromRgb(0xF7DC5C, 0.65f);
+inline constexpr Color kPausedBottom = FromRgb(0xC9A40E, 0.65f);
+inline constexpr Color kErrorTop = FromRgb(0xF27474, 0.65f);
+inline constexpr Color kErrorBottom = FromRgb(0xB52A2A, 0.65f);
+
 // The glossy push button (Shut down).
 inline constexpr Color kCommandBorder = FromRgb(0x1B2A3D, 0.80f);
 inline constexpr Color kCommandGlossTop = FromRgb(0xFBFCFD);

@@ -86,6 +86,16 @@ void BarManager::SavePinned() {
   store_.Save(saved);
 }
 
+bool BarManager::HandleTaskbarList(UINT message, WPARAM wParam, LPARAM lParam) {
+  bool changed = false;
+  if (!status_.Handle(message, wParam, lParam, &changed)) return false;
+  if (changed) {
+    if (main_) InvalidateRect(main_->Hwnd(), nullptr, FALSE);
+    for (const auto& [name, bar] : secondary_) InvalidateRect(bar->Hwnd(), nullptr, FALSE);
+  }
+  return true;
+}
+
 void BarManager::RequestRefresh() {
   if (main_) main_->RequestRefresh();
   for (const auto& [name, bar] : secondary_) bar->RequestRefresh();

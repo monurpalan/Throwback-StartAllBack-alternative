@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "core/layout.h"
+#include "core/task_progress.h"
 #include "ui/canvas.h"
 
 namespace throwback {
@@ -17,6 +18,9 @@ struct TaskButtonModel {
   bool active = false;
   bool flashing = false;
   bool hovered = false;
+  ProgressState progress = ProgressState::None;
+  float progressFraction = 0.0f;
+  HICON overlay = nullptr;  // a small status icon over the button's icon
 };
 
 // Everything shown on the bar for one frame.

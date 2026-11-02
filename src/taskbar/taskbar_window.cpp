@@ -101,7 +101,10 @@ TaskbarWindow::TaskbarWindow(HINSTANCE instance, BarManager& manager, HMONITOR m
   ApplyWindowsKey();
   ApplyTheme();
   RegisterAppBar();
-  if (IsMain()) SystemTaskbar::RecoverFromCrash();
+  if (IsMain()) {
+    SystemTaskbar::RecoverFromCrash();
+    taskbandHook_ = std::make_unique<TaskbandHook>(hwnd_);
+  }
   ApplySystemTaskbar();
 
   shellHookMessage_ = RegisterWindowMessageW(L"SHELLHOOK");
@@ -179,9 +182,12 @@ LRESULT TaskbarWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam)
     // Explorer restarted and forgot every AppBar.
     RegisterAppBar();
     if (systemTaskbar_) systemTaskbar_->Enforce();
+    if (taskbandHook_) taskbandHook_->Reapply();
     RefreshTasks();
     return 0;
   }
+
+  if (IsMain() && manager_.HandleTaskbarList(message, wParam, lParam)) return 0;
 
   switch (message) {
     case kAppBarCallback:
@@ -260,6 +266,7 @@ LRESULT TaskbarWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam)
       if (cloakHook_) UnhookWinEvent(cloakHook_);
       DeregisterShellHookWindow(hwnd_);
       appBar_.reset();  // gives the reserved screen space back
+      taskbandHook_.reset();
       systemTaskbar_.reset();
       if (IsMain()) PostQuitMessage(0);
       return 0;
@@ -322,6 +329,7 @@ void TaskbarWindow::OnTimer(UINT_PTR timer) {
   // Fallback for changes no event reports; also ticks the clock.
   RefreshTasks();
   if (systemTaskbar_) systemTaskbar_->Enforce();
+  if (IsMain()) manager_.PruneStatus();
   if (thumbnail_->Task() && !tracker_->ButtonOwner(thumbnail_->Task())) HideThumbnail();
 }
 
@@ -387,6 +395,11 @@ void TaskbarWindow::Paint() {
         .flashing = items[i].flashing,
         .hovered = hovered_ == static_cast<int>(i),
     });
+    if (const TaskStatus* status = manager_.StatusOf(items[i].hwnd)) {
+      model.buttons.back().progress = status->progress;
+      model.buttons.back().progressFraction = status->fraction;
+      model.buttons.back().overlay = status->overlay;
+    }
   }
   canvas_->BeginFrame();
   DrawBar(*canvas_, model);

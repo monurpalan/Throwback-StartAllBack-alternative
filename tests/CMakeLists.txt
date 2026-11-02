@@ -18,6 +18,7 @@ add_executable(throwback_tests
   start_menu_layout_test.cpp
   strings_test.cpp
   task_click_test.cpp
+  task_progress_test.cpp
   theme_test.cpp
   user_assist_test.cpp
   win_key_test.cpp

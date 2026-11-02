@@ -31,6 +31,7 @@ enum class ButtonVariant {
   ShowDesktop,   // the slim button at the end of the bar
 };
 enum class SeparatorVariant { Pane, Glass };
+enum class ProgressVariant { Normal, Paused, Error, Indeterminate };
 enum class TextTone {
   Dark,   // on the white pane and on push buttons
   Light,  // on glass: white with a dark glow
@@ -60,6 +61,8 @@ class Canvas {
   // The white pane of the start menu that holds the program list.
   void Panel(const Rect& rect);
   void Button(const Rect& rect, ButtonVariant variant, bool hovered);
+  // A taskbar button's progress, filling fraction of it from the left.
+  void Progress(const Rect& rect, ProgressVariant variant, float fraction);
   // A separator line; callers pass a one-pixel-thin rect.
   void Separator(const Rect& rect, SeparatorVariant variant);
   void Text(const Rect& rect, std::wstring_view text, TextStyle style, TextTone tone,
