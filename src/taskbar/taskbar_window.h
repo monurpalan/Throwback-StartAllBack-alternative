@@ -11,6 +11,7 @@
 #include "startmenu/start_menu.h"
 #include "startmenu/win_key_hook.h"
 #include "taskbar/appbar.h"
+#include "taskbar/system_taskbar.h"
 #include "taskbar/thumbnail_popup.h"
 #include "taskbar/window_tracker.h"
 #include "ui/canvas.h"
@@ -40,6 +41,7 @@ class TaskbarWindow {
 
   void RegisterAppBar();
   void Dock();
+  void ApplySystemTaskbar();
   void ApplyTheme();
   void RefreshTasks();
   void UpdateLayout();
@@ -79,6 +81,7 @@ class TaskbarWindow {
   std::unique_ptr<WindowTracker> tracker_;
   std::unique_ptr<ui::Canvas> canvas_;
   std::unique_ptr<AppBar> appBar_;
+  std::unique_ptr<SystemTaskbar> systemTaskbar_;
   std::unique_ptr<ThumbnailPopup> thumbnail_;
   std::unique_ptr<StartMenu> startMenu_;
   std::unique_ptr<WinKeyHook> winKeyHook_;

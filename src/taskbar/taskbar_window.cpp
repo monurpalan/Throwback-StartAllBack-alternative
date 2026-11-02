@@ -96,6 +96,8 @@ TaskbarWindow::TaskbarWindow(HINSTANCE instance, const Settings& settings,
   winKeyHook_ = std::make_unique<WinKeyHook>(hwnd_, kStartMenuRequest);
   ApplyTheme();
   RegisterAppBar();
+  SystemTaskbar::RecoverFromCrash();
+  ApplySystemTaskbar();
 
   shellHookMessage_ = RegisterWindowMessageW(L"SHELLHOOK");
   taskbarCreatedMessage_ = RegisterWindowMessageW(L"TaskbarCreated");
@@ -153,6 +155,7 @@ LRESULT TaskbarWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam)
   if (taskbarCreatedMessage_ != 0 && message == taskbarCreatedMessage_) {
     // Explorer restarted and forgot every AppBar.
     RegisterAppBar();
+    if (systemTaskbar_) systemTaskbar_->Enforce();
     RefreshTasks();
     return 0;
   }
@@ -229,6 +232,7 @@ LRESULT TaskbarWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam)
       if (cloakHook_) UnhookWinEvent(cloakHook_);
       DeregisterShellHookWindow(hwnd_);
       appBar_.reset();  // gives the reserved screen space back
+      systemTaskbar_.reset();
       PostQuitMessage(0);
       return 0;
     case WM_NCDESTROY: {
@@ -289,6 +293,7 @@ void TaskbarWindow::OnTimer(UINT_PTR timer) {
   }
   // Fallback for changes no event reports; also ticks the clock.
   RefreshTasks();
+  if (systemTaskbar_) systemTaskbar_->Enforce();
   if (thumbnail_->Task() && !tracker_->ButtonOwner(thumbnail_->Task())) HideThumbnail();
 }
 
@@ -298,6 +303,14 @@ void TaskbarWindow::RegisterAppBar() {
   appBar_.reset();
   appBar_ = std::make_unique<AppBar>(hwnd_, kAppBarCallback);
   Dock();
+}
+
+void TaskbarWindow::ApplySystemTaskbar() {
+  if (settings_.hideSystemTaskbar && !systemTaskbar_) {
+    systemTaskbar_ = std::make_unique<SystemTaskbar>();
+  } else if (!settings_.hideSystemTaskbar) {
+    systemTaskbar_.reset();
+  }
 }
 
 void TaskbarWindow::Dock() {
