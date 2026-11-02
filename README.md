@@ -1,4 +1,4 @@
-# Throwback
+﻿# Throwback
 
 A classic, no-nonsense taskbar for Windows 11, written from scratch in modern C++.
 
@@ -17,6 +17,7 @@ patching or injecting into Explorer.
 - Right-click a button to close the window
 - Clock and date, follows your locale
 - Light and dark themes, following Windows or forced with `--theme=light` / `--theme=dark`
+- English and Turkish, following the Windows display language or forced with `--lang=en` / `--lang=tr`
 - Per-monitor DPI aware, reserves screen space like the real taskbar
 - Steps aside for fullscreen apps
 
@@ -32,6 +33,12 @@ ctest --preset debug
 ```
 
 The binary ends up at `build/msvc/Debug/throwback.exe`.
+
+To check the running app end to end (every theme and language, with screenshots in `build/smoke`):
+
+```bash
+powershell -ExecutionPolicy Bypass -File tools/smoke-test.ps1
+```
 
 ## Project layout
 

@@ -8,8 +8,21 @@
 
 #include "core/options.h"
 #include "taskbar/taskbar_window.h"
+#include "ui/strings.h"
 
 namespace {
+
+throwback::ui::Language ResolveLanguage(throwback::LanguageMode mode) {
+  switch (mode) {
+    case throwback::LanguageMode::English:
+      return throwback::ui::Language::English;
+    case throwback::LanguageMode::Turkish:
+      return throwback::ui::Language::Turkish;
+    case throwback::LanguageMode::System:
+      break;
+  }
+  return throwback::ui::SystemLanguage();
+}
 
 std::vector<std::wstring> CommandLineArgs() {
   int count = 0;
@@ -36,11 +49,16 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int) {
   HANDLE singleInstance = CreateMutexW(nullptr, TRUE, L"Local\\Throwback.SingleInstance");
   if (GetLastError() == ERROR_ALREADY_EXISTS) return 0;
 
+  using throwback::ui::StringId;
+  using throwback::ui::Tr;
   const throwback::ParseResult parsed = throwback::ParseOptions(CommandLineArgs());
-  if (!parsed.errors.empty()) {
+  throwback::ui::SetLanguage(ResolveLanguage(parsed.options.language));
+  if (!parsed.unknownArguments.empty()) {
     std::wstring text;
-    for (const auto& error : parsed.errors) text += error + L"\n";
-    text += L"\nUsage: throwback.exe [--edge=top|bottom] [--theme=system|light|dark]";
+    for (const auto& arg : parsed.unknownArguments) {
+      text += std::wstring(Tr(StringId::UnknownArgument)) + arg + L"\n";
+    }
+    text += L"\n" + std::wstring(Tr(StringId::Usage));
     MessageBoxW(nullptr, text.c_str(), L"Throwback", MB_ICONERROR);
     return 1;
   }

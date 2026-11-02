@@ -36,6 +36,8 @@ add_library(throwback_ui STATIC
   src/ui/canvas.cpp
   src/ui/fonts.cpp
   src/ui/icon.cpp
+  src/ui/strings.cpp
+  src/ui/system_language.cpp
   src/ui/system_theme.cpp
   src/ui/theme.cpp)
 target_link_libraries(throwback_ui

@@ -11,6 +11,7 @@ add_executable(throwback_tests
   layout_test.cpp
   options_test.cpp
   stable_order_test.cpp
+  strings_test.cpp
   task_click_test.cpp
   theme_test.cpp
   window_filter_test.cpp

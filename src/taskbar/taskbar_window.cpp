@@ -11,6 +11,7 @@
 
 #include "taskbar/bar_view.h"
 #include "taskbar/window_actions.h"
+#include "ui/strings.h"
 
 namespace throwback {
 namespace {
@@ -449,7 +450,8 @@ void TaskbarWindow::OnContextMenu(int x, int y) {
   }
 
   HMENU menu = CreatePopupMenu();
-  AppendMenuW(menu, MF_STRING, kMenuExit, L"Exit Throwback");
+  AppendMenuW(menu, MF_STRING, kMenuExit,
+              std::wstring(ui::Tr(ui::StringId::ExitThrowback)).c_str());
   // Required for the menu to close when the user clicks elsewhere.
   SetForegroundWindow(hwnd_);
   const auto command = static_cast<UINT>(TrackPopupMenu(
