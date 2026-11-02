@@ -93,7 +93,7 @@ TaskbarWindow::TaskbarWindow(HINSTANCE instance, const Settings& settings,
   thumbnail_ = std::make_unique<ThumbnailPopup>(instance, hwnd_);
   startMenu_ = std::make_unique<StartMenu>(instance, hwnd_,
                                            [this] { InvalidateRect(hwnd_, nullptr, FALSE); });
-  winKeyHook_ = std::make_unique<WinKeyHook>(hwnd_, kStartMenuRequest);
+  ApplyWindowsKey();
   ApplyTheme();
   RegisterAppBar();
   SystemTaskbar::RecoverFromCrash();
@@ -303,6 +303,15 @@ void TaskbarWindow::RegisterAppBar() {
   appBar_.reset();
   appBar_ = std::make_unique<AppBar>(hwnd_, kAppBarCallback);
   Dock();
+}
+
+void TaskbarWindow::ApplyWindowsKey() {
+  // Without the hook the Windows key and Ctrl+Esc open Windows' own menu.
+  if (settings_.windowsKeyOpensMenu && !winKeyHook_) {
+    winKeyHook_ = std::make_unique<WinKeyHook>(hwnd_, kStartMenuRequest);
+  } else if (!settings_.windowsKeyOpensMenu) {
+    winKeyHook_.reset();
+  }
 }
 
 void TaskbarWindow::ApplySystemTaskbar() {

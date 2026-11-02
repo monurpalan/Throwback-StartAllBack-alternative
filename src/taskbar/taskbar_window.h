@@ -42,6 +42,7 @@ class TaskbarWindow {
   void RegisterAppBar();
   void Dock();
   void ApplySystemTaskbar();
+  void ApplyWindowsKey();
   void ApplyTheme();
   void RefreshTasks();
   void UpdateLayout();
