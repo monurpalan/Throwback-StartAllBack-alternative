@@ -48,6 +48,9 @@ class TaskbarWindow {
                                   LONG child, DWORD thread, DWORD time);
   LRESULT HandleMessage(UINT message, WPARAM wParam, LPARAM lParam);
   LRESULT OnShellHook(WPARAM code, LPARAM param);
+  // Shell hook, TaskbarCreated and ITaskbarList messages; true if handled.
+  bool HandleShellMessage(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* result);
+  void OnTaskbarCreated();
   void OnTimer(UINT_PTR timer);
   void OnDisplayChange();
 

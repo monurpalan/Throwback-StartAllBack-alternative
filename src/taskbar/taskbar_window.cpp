@@ -176,18 +176,30 @@ void TaskbarWindow::SetMonitor(HMONITOR monitor) {
   RefreshTasks();
 }
 
-LRESULT TaskbarWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam) {
-  if (shellHookMessage_ != 0 && message == shellHookMessage_) return OnShellHook(wParam, lParam);
-  if (taskbarCreatedMessage_ != 0 && message == taskbarCreatedMessage_) {
-    // Explorer restarted and forgot every AppBar.
-    RegisterAppBar();
-    if (systemTaskbar_) systemTaskbar_->Enforce();
-    if (taskbandHook_) taskbandHook_->Reapply();
-    RefreshTasks();
-    return 0;
-  }
+void TaskbarWindow::OnTaskbarCreated() {
+  // Explorer restarted and forgot every AppBar.
+  RegisterAppBar();
+  if (systemTaskbar_) systemTaskbar_->Enforce();
+  if (taskbandHook_) taskbandHook_->Reapply();
+  RefreshTasks();
+}
 
-  if (IsMain() && manager_.HandleTaskbarList(message, wParam, lParam)) return 0;
+bool TaskbarWindow::HandleShellMessage(UINT message, WPARAM wParam, LPARAM lParam,
+                                       LRESULT* result) {
+  *result = 0;
+  if (shellHookMessage_ != 0 && message == shellHookMessage_) {
+    *result = OnShellHook(wParam, lParam);
+    return true;
+  }
+  if (taskbarCreatedMessage_ != 0 && message == taskbarCreatedMessage_) {
+    OnTaskbarCreated();
+    return true;
+  }
+  return IsMain() && manager_.HandleTaskbarList(message, wParam, lParam);
+}
+
+LRESULT TaskbarWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam) {
+  if (LRESULT result = 0; HandleShellMessage(message, wParam, lParam, &result)) return result;
 
   switch (message) {
     case kAppBarCallback:
