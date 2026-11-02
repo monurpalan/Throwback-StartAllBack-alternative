@@ -1,0 +1,2 @@
+# Files allowed over the size limit, one per line: <path> # <why it cannot be split>
+# This list may only shrink; tools/check-code.ps1 enforces its maximum length.

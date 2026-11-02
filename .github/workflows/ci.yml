@@ -31,3 +31,19 @@ jobs:
           path: |
             build/Release/throwback.exe
             build/Release/fonts/
+
+  checks:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      # File and function size limits (clang-tidy ships with the runner's LLVM).
+      - name: Code limits
+        shell: pwsh
+        run: ./tools/check-code.ps1
+
+      - name: Formatting
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem src, tests -Recurse -Include *.cpp, *.h
+          clang-format --dry-run --Werror $files.FullName
