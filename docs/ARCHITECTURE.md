@@ -21,21 +21,30 @@ inject into `explorer.exe` (see [ADR 0001](adr/0001-standalone-appbar.md)).
 | `AppBar` | Registers the window as a shell AppBar so maximized windows leave room for it. |
 | `WindowTracker` | Enumerates top-level windows, keeps a stable button order, caches icons. |
 | `DrawBar` | Turns a `BarModel` into UI kit calls; contains no drawing code of its own. |
-| `ui::Canvas` | The UI kit: buttons, text and icons on a Direct2D surface; recovers from device loss. |
-| `ui::Theme` | Three-color palette, spacing scale, type scale, light and dark themes. |
-| `ui::Fonts` | Loads the bundled IBM Plex fonts with DirectWrite, falls back to system fonts. |
+| `ui::Canvas` | The UI kit: glass, panes, buttons, text, icons and the orb on a Direct2D surface; recovers from device loss. |
+| `ui::Theme` | The Windows 7 Aero colors, spacing and type sizes. |
+| `ui::EnableGlass` | Makes a window a sheet of blurred glass through DWM. |
+| `ui::Fonts` | Segoe UI text formats through DirectWrite. |
 | `core/*` | Pure, Win32-free logic: layout math, taskbar eligibility rules, options. |
 
 ## Design system
 
-- **Color:** three colors only: ink `#1C1C1F`, paper `#F2F2F0`, accent `#4D9EFF`.
-  Dark mode puts paper on ink, light mode ink on paper. Hover and selection
-  states are the foreground color with transparency.
-- **Spacing:** multiples of 4 px (4, 8, 12, 16, 24, 32, 40, 56) at 96 DPI.
-- **Type:** 18 / 15 / 13 / 11 px. IBM Plex Sans for text, IBM Plex Mono for
-  numbers and labels. Square corners.
-- Screens only draw through `ui::Canvas`, whose components accept fixed
-  variants (`Ghost`, `Selected`), never raw colors or sizes.
+The look is Windows 7 Aero, reproduced as closely as possible and drawn
+entirely in code (no bitmaps from Windows):
+
+- **Glass:** the bar, the start menu and previews are blurred glass
+  (`SetWindowCompositionAttribute` blur behind, premultiplied-alpha Direct2D
+  frames) with Aero's default sky tint, a sheen and a bright rim.
+- **Surfaces:** the white program pane with its blue hover highlight, glossy
+  taskbar buttons (orange while flashing), the glossy Shut down button, the
+  search box and the start orb with its four-color flag.
+- **Type:** Segoe UI 9 pt (12 px at 96 DPI) everywhere; white with a dark halo
+  on glass, black on the pane, an italic prompt in the search box.
+- **Light and dark:** Windows 7 had one Aero look, so the glass is the same in
+  both; the Windows setting only themes native menus.
+- All colors live in `src/ui/theme.h`. Screens only draw through `ui::Canvas`,
+  whose components accept fixed variants (`MenuItem`, `Task`, `Command`...),
+  never raw colors or sizes.
 
 ## Design principles
 

@@ -19,14 +19,25 @@
 
 namespace throwback::ui {
 
+// The bright rim of bar glass faces the rest of the screen.
+enum class GlassVariant { BarBottom, BarTop, Menu };
 enum class ButtonVariant {
-  Ghost,      // flat; only hover shows
-  Selected,   // the active item: filled with an accent line
-  Attention,  // asking for the user's attention
-  Raised,     // a standalone push button
+  MenuItem,      // a row on the white pane; drawn only while hovered
+  GlassItem,     // a row on glass; drawn only while hovered
+  Task,          // a taskbar button
+  ActiveTask,    // the button of the foreground window
+  FlashingTask,  // a window asking for attention
+  Command,       // the glossy push button
+  ShowDesktop,   // the slim button at the end of the bar
 };
-enum class TextTone { Normal, Muted };
-enum class IconKind { Start, ChevronRight, ChevronLeft };
+enum class SeparatorVariant { Pane, Glass };
+enum class TextTone {
+  Dark,   // on the white pane and on push buttons
+  Light,  // on glass: white with a dark glow
+  Muted,  // prompts and messages
+};
+enum class IconKind { ChevronRight, ChevronLeft, Search };
+enum class OrbState { Normal, Hot, Pressed };
 
 // A window's drawing surface plus the UI kit components. Screens draw only
 // through these calls; colors, fonts and sizes come from the theme. All
@@ -36,29 +47,30 @@ class Canvas {
   explicit Canvas(HWND hwnd);
 
   void Resize(UINT width, UINT height);
-  void SetTheme(const Theme& theme) { theme_ = theme; }
   void SetDpi(unsigned dpi);
   // Converts a 96 DPI size to physical pixels.
   int Scale(int pixels) const { return ScaleForDpi(pixels, dpi_); }
 
-  // Draw calls are only valid between BeginFrame and EndFrame.
+  // Draw calls are only valid between BeginFrame and EndFrame. A frame starts
+  // fully transparent, so glass windows show the blurred desktop.
   void BeginFrame();
   void EndFrame();
 
-  // A surface set apart from the window background, such as a menu's pane.
+  void Glass(const Rect& rect, GlassVariant variant);
+  // The white pane of the start menu that holds the program list.
   void Panel(const Rect& rect);
   void Button(const Rect& rect, ButtonVariant variant, bool hovered);
-  // A separator line filling rect; callers pass a one-pixel-thin rect.
-  void Divider(const Rect& rect);
-  void Text(const Rect& rect, std::wstring_view text, TextStyle style,
-            TextAlign align = TextAlign::Leading, TextTone tone = TextTone::Normal);
-  // A single-line input box; shows the placeholder while text is empty.
-  void TextField(const Rect& rect, std::wstring_view text, std::wstring_view placeholder,
-                 bool focused);
+  // A separator line; callers pass a one-pixel-thin rect.
+  void Separator(const Rect& rect, SeparatorVariant variant);
+  void Text(const Rect& rect, std::wstring_view text, TextStyle style, TextTone tone,
+            TextAlign align = TextAlign::Leading);
+  // The search box; shows the prompt while text is empty.
+  void TextField(const Rect& rect, std::wstring_view text, std::wstring_view prompt, bool focused);
   void Icon(const Rect& rect, IconKind kind);
   void Icon(const Rect& rect, HICON icon);
-  // An image file such as the account picture, scaled to fill rect.
-  void Picture(const Rect& rect, const std::wstring& path);
+  void Orb(const Rect& rect, OrbState state);
+  // The framed account picture; shows the initial when there is no image.
+  void AccountPicture(const Rect& rect, const std::wstring& path, std::wstring_view initial);
 
  private:
   void CreateDeviceResources();
@@ -66,12 +78,23 @@ class Canvas {
   IDWriteTextFormat* Format(TextStyle style, TextAlign align);
   ID2D1Bitmap* IconBitmap(HICON icon);
   ID2D1Bitmap* PictureBitmap(const std::wstring& path);
-  void Fill(const Rect& rect, const Color& color);
   float TextWidth(std::wstring_view text, TextStyle style);
+  void DrawTextRun(const Rect& rect, std::wstring_view text, IDWriteTextFormat* format,
+                   const Color& color, float dx, float dy);
+  void DrawChevron(const Rect& rect, bool right);
+  void DrawSearchGlyph(const Rect& rect);
+  void DrawFlag(float cx, float cy, float size);
+
+  // Primitives behind the components.
+  void Fill(const Rect& rect, const Color& color);
+  void FillRound(const Rect& rect, float radius, const Color& color);
+  void FillGradient(const Rect& rect, float radius, const Color& top, const Color& bottom);
+  void FillGlow(const Rect& rect, const Color& color);
+  void StrokeRound(const Rect& rect, float radius, const Color& color);
+  ID2D1SolidColorBrush* Brush(const Color& color);
 
   HWND hwnd_;
   unsigned dpi_ = 96;
-  Theme theme_ = MakeTheme(false);
 
   Microsoft::WRL::ComPtr<ID2D1Factory> factory_;
   Microsoft::WRL::ComPtr<IDWriteFactory> dwrite_;

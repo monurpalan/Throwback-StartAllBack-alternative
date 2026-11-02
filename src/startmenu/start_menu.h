@@ -29,7 +29,7 @@ class StartMenu {
 
   // anchor is the start button in screen coordinates; the menu opens below
   // it for a bar at the top of the screen and above it otherwise.
-  void Open(const RECT& anchor, bool below, const ui::Theme& theme, unsigned dpi);
+  void Open(const RECT& anchor, bool below, unsigned dpi);
   // Dismisses the menu and gives focus back to the window that had it.
   void Close() { Hide(/*restoreFocus=*/true); }
   bool IsOpen() const;

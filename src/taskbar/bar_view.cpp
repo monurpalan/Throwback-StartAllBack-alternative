@@ -1,18 +1,22 @@
 #include "taskbar/bar_view.h"
 
-#include <algorithm>
-
 namespace throwback {
 namespace {
 
-// The classic taskbar's sizes at 96 DPI: 24 px button icons, a 20 px logo.
+// The Windows 7 taskbar's sizes at 96 DPI: 24 px button icons and an orb that
+// nearly fills the bar's height.
 constexpr int kIconSize = 24;
-constexpr int kStartIconSize = 20;
+constexpr int kOrbSize = 38;
 
 ui::ButtonVariant VariantFor(const TaskButtonModel& button) {
-  if (button.active) return ui::ButtonVariant::Selected;
-  if (button.flashing) return ui::ButtonVariant::Attention;
-  return ui::ButtonVariant::Ghost;
+  if (button.flashing && !button.active) return ui::ButtonVariant::FlashingTask;
+  if (button.active) return ui::ButtonVariant::ActiveTask;
+  return ui::ButtonVariant::Task;
+}
+
+ui::OrbState OrbStateFor(const BarModel& model) {
+  if (model.startOpen) return ui::OrbState::Pressed;
+  return model.startHovered ? ui::OrbState::Hot : ui::OrbState::Normal;
 }
 
 void DrawTaskButton(ui::Canvas& canvas, const TaskButtonModel& button) {
@@ -27,30 +31,25 @@ void DrawTaskButton(ui::Canvas& canvas, const TaskButtonModel& button) {
 
   const Rect title{icon.right + padding, button.rect.top, button.rect.right - padding,
                    button.rect.bottom};
-  canvas.Text(title, button.title, ui::TextStyle::Body);
+  canvas.Text(title, button.title, ui::TextStyle::Body, ui::TextTone::Light);
 }
 
 }  // namespace
 
 void DrawBar(ui::Canvas& canvas, const BarModel& model) {
-  canvas.Button(model.startButton,
-                model.startOpen ? ui::ButtonVariant::Selected : ui::ButtonVariant::Ghost,
-                model.startHovered);
-  canvas.Icon(CenteredSquare(model.startButton, canvas.Scale(kStartIconSize)), ui::IconKind::Start);
+  canvas.Glass(model.bounds, model.top ? ui::GlassVariant::BarTop : ui::GlassVariant::BarBottom);
+  canvas.Orb(CenteredSquare(model.startButton, canvas.Scale(kOrbSize)), OrbStateFor(model));
 
   for (const auto& button : model.buttons) DrawTaskButton(canvas, button);
 
   const Rect& clock = model.clock;
   const int middle = (clock.top + clock.bottom) / 2;
-  canvas.Text({clock.left, clock.top, clock.right, middle}, model.time, ui::TextStyle::Number,
-              ui::TextAlign::Center);
-  canvas.Text({clock.left, middle, clock.right, clock.bottom}, model.date,
-              ui::TextStyle::SmallNumber, ui::TextAlign::Center);
+  canvas.Text({clock.left, clock.top, clock.right, middle + canvas.Scale(ui::kSpace2)}, model.time,
+              ui::TextStyle::Body, ui::TextTone::Light, ui::TextAlign::Center);
+  canvas.Text({clock.left, middle - canvas.Scale(ui::kSpace2), clock.right, clock.bottom},
+              model.date, ui::TextStyle::Body, ui::TextTone::Light, ui::TextAlign::Center);
 
-  canvas.Button(model.showDesktop, ui::ButtonVariant::Ghost, model.showDesktopHovered);
-  const Rect& desktop = model.showDesktop;
-  canvas.Divider(
-      {desktop.left, desktop.top, desktop.left + std::max(1, canvas.Scale(1)), desktop.bottom});
+  canvas.Button(model.showDesktop, ui::ButtonVariant::ShowDesktop, model.showDesktopHovered);
 }
 
 }  // namespace throwback

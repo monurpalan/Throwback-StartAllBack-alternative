@@ -65,7 +65,6 @@ class TaskbarWindow {
   HWINEVENTHOOK cloakHook_ = nullptr;
   bool refreshPending_ = false;
   unsigned dpi_ = 96;
-  ui::Theme theme_ = ui::MakeTheme(false);
   int hovered_ = kHitNone;
   bool trackingMouse_ = false;
   int pressedHit_ = kHitNone;

@@ -9,19 +9,16 @@ namespace throwback::ui {
 
 enum class TextAlign { Leading, Center };
 
-// Creates text formats from the bundled IBM Plex fonts (the fonts folder next
-// to the executable). Falls back to Segoe UI / Consolas when they are missing.
+// Creates Segoe UI text formats, the Windows 7 system font.
 class Fonts {
  public:
-  explicit Fonts(IDWriteFactory* factory);
+  explicit Fonts(IDWriteFactory* factory) : factory_(factory) {}
 
   Microsoft::WRL::ComPtr<IDWriteTextFormat> CreateFormat(TextStyle style, TextAlign align,
                                                          unsigned dpi) const;
-  bool UsingBundledFonts() const { return collection_ != nullptr; }
 
  private:
   Microsoft::WRL::ComPtr<IDWriteFactory> factory_;
-  Microsoft::WRL::ComPtr<IDWriteFontCollection> collection_;
 };
 
 }  // namespace throwback::ui

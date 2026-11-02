@@ -29,8 +29,7 @@ class ThumbnailPopup {
   };
   // anchor is the button in screen coordinates; the popup opens below it
   // for a bar at the top of the screen and above it otherwise.
-  void Show(const Content& content, const RECT& anchor, bool below, const ui::Theme& theme,
-            unsigned dpi);
+  void Show(const Content& content, const RECT& anchor, bool below, unsigned dpi);
   void Hide();
   HWND Task() const { return content_.task; }
 

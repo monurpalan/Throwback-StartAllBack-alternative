@@ -21,6 +21,8 @@ struct TaskButtonModel {
 
 // Everything shown on the bar for one frame.
 struct BarModel {
+  Rect bounds;
+  bool top = false;  // docked to the top edge
   Rect startButton;
   bool startHovered = false;
   bool startOpen = false;

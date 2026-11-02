@@ -10,6 +10,7 @@
 #include "shell/launch.h"
 #include "startmenu/power.h"
 #include "startmenu/start_menu_view.h"
+#include "ui/glass.h"
 #include "ui/strings.h"
 
 namespace throwback {
@@ -33,7 +34,6 @@ StartMenu::StartMenu(HINSTANCE instance, HWND owner, std::function<void()> onClo
     : onClosed_(std::move(onClosed)) {
   WNDCLASSEXW windowClass{};
   windowClass.cbSize = sizeof(windowClass);
-  windowClass.style = CS_DROPSHADOW;
   windowClass.lpfnWndProc = WindowProc;
   windowClass.hInstance = instance;
   windowClass.hCursor = LoadCursorW(nullptr, IDC_ARROW);
@@ -44,6 +44,7 @@ StartMenu::StartMenu(HINSTANCE instance, HWND owner, std::function<void()> onClo
                           owner, nullptr, instance, this);
   if (!hwnd_) throw std::runtime_error("CreateWindowEx failed for the start menu");
   canvas_ = std::make_unique<ui::Canvas>(hwnd_);
+  ui::EnableGlass(hwnd_, ui::GlassCorners::Round);
 }
 
 StartMenu::~StartMenu() {
@@ -102,7 +103,7 @@ LRESULT StartMenu::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam) {
   return DefWindowProcW(hwnd_, message, wParam, lParam);
 }
 
-void StartMenu::Open(const RECT& anchor, bool below, const ui::Theme& theme, unsigned dpi) {
+void StartMenu::Open(const RECT& anchor, bool below, unsigned dpi) {
   folders_.clear();  // may point into the catalog that LoadData replaces
   dpi_ = dpi;
   layout_ = ComputeStartMenuLayout(dpi);
@@ -112,7 +113,6 @@ void StartMenu::Open(const RECT& anchor, bool below, const ui::Theme& theme, uns
   SetMode(Mode::Home);
 
   canvas_->SetDpi(dpi);
-  canvas_->SetTheme(theme);
   const int width = layout_.frame.Width();
   const int height = layout_.frame.Height();
   MONITORINFO monitor{};

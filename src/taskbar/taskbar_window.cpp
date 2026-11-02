@@ -11,6 +11,7 @@
 
 #include "taskbar/bar_view.h"
 #include "taskbar/window_actions.h"
+#include "ui/glass.h"
 #include "ui/strings.h"
 
 namespace throwback {
@@ -35,13 +36,13 @@ constexpr UINT kMenuExit = 1;
 
 // At 96 DPI; width and height come from the window at layout time.
 constexpr BarMetrics kBaseMetrics = {
-    .startButtonWidth = 48,
-    .clockWidth = 88,
-    .showDesktopWidth = ui::kSpace12,
+    .startButtonWidth = 56,
+    .clockWidth = 80,
+    .showDesktopWidth = 16,
     .minButtonWidth = 64,
-    .maxButtonWidth = 200,
-    .spacing = ui::kSpace4,
-    .padding = ui::kSpace4,
+    .maxButtonWidth = 160,
+    .spacing = ui::kSpace2,
+    .padding = ui::kSpace2,
 };
 
 std::wstring FormatTime() {
@@ -87,6 +88,7 @@ TaskbarWindow::TaskbarWindow(HINSTANCE instance, const Options& options)
   tracker_ = std::make_unique<WindowTracker>(hwnd_);
   canvas_ = std::make_unique<ui::Canvas>(hwnd_);
   canvas_->SetDpi(dpi_);
+  ui::EnableGlass(hwnd_, ui::GlassCorners::Square);
   thumbnail_ = std::make_unique<ThumbnailPopup>(instance, hwnd_);
   startMenu_ = std::make_unique<StartMenu>(instance, hwnd_,
                                            [this] { InvalidateRect(hwnd_, nullptr, FALSE); });
@@ -304,8 +306,7 @@ void TaskbarWindow::Dock() {
 void TaskbarWindow::ApplyTheme() {
   const bool light = options_.theme == ThemeMode::Light ||
                      (options_.theme == ThemeMode::System && ui::SystemUsesLightTheme());
-  theme_ = ui::MakeTheme(light);
-  canvas_->SetTheme(theme_);
+  // The Aero glass looks the same either way; only native menus follow it.
   ApplyMenuTheme(!light);
   InvalidateRect(hwnd_, nullptr, FALSE);
 }
@@ -337,7 +338,11 @@ void TaskbarWindow::Paint() {
   const HWND foreground = GetForegroundWindow();
   const auto& items = tracker_->Items();
 
+  RECT client{};
+  GetClientRect(hwnd_, &client);
   BarModel model{
+      .bounds = {0, 0, client.right, client.bottom},
+      .top = options_.edge == Edge::Top,
       .startButton = layout_.startButton,
       .startHovered = hovered_ == kHitStart,
       .startOpen = startMenu_ && startMenu_->IsOpen(),
@@ -469,8 +474,7 @@ void TaskbarWindow::ShowThumbnail(int index) {
   const TaskItem& item = items[static_cast<size_t>(index)];
   RECT anchor{};
   if (!ButtonScreenRect(item.hwnd, &anchor)) return;
-  thumbnail_->Show({item.hwnd, item.title, item.icon}, anchor, options_.edge == Edge::Top, theme_,
-                   dpi_);
+  thumbnail_->Show({item.hwnd, item.title, item.icon}, anchor, options_.edge == Edge::Top, dpi_);
 }
 
 void TaskbarWindow::ToggleStartMenu() {
@@ -484,7 +488,7 @@ void TaskbarWindow::ToggleStartMenu() {
   ClientToScreen(hwnd_, &topLeft);
   ClientToScreen(hwnd_, &bottomRight);
   startMenu_->Open({topLeft.x, topLeft.y, bottomRight.x, bottomRight.y}, options_.edge == Edge::Top,
-                   theme_, dpi_);
+                   dpi_);
   InvalidateRect(hwnd_, nullptr, FALSE);
 }
 

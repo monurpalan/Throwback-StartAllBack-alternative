@@ -21,6 +21,7 @@ public static class SmokeNative {
   [DllImport("user32.dll")] public static extern bool PostMessage(IntPtr hwnd, uint msg, IntPtr w, IntPtr l);
   [DllImport("user32.dll")] public static extern bool SystemParametersInfo(int action, int param, ref RECT rect, int flags);
   [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
+  [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr hwnd);
   [DllImport("user32.dll")] public static extern void mouse_event(uint flags, int x, int y, uint data, UIntPtr extra);
   [DllImport("user32.dll")] public static extern void keybd_event(byte vk, byte scan, uint flags, UIntPtr extra);
   public static RECT WorkArea() { var r = new RECT(); SystemParametersInfo(0x30, 0, ref r, 0); return r; }
@@ -71,6 +72,24 @@ foreach ($theme in "dark", "light") {
     [SmokeNative]::mouse_event(0x10, 0, 0, 0, [UIntPtr]::Zero)
     Start-Sleep -Milliseconds 700
     Save-Screen "$OutDir\$name-menu.png" ($clockX - 300) $rect.Top 420 ($height + 80)
+    [SmokeNative]::keybd_event(0x1B, 0, 0, [UIntPtr]::Zero)
+    [SmokeNative]::keybd_event(0x1B, 0, 2, [UIntPtr]::Zero)
+    Start-Sleep -Milliseconds 300
+
+    # Click the orb: the start menu opens next to the bar.
+    [void][SmokeNative]::SetCursorPos($rect.Left + [int]($height * 0.7), $rect.Top + [int]($height / 2))
+    [SmokeNative]::mouse_event(0x2, 0, 0, 0, [UIntPtr]::Zero)
+    [SmokeNative]::mouse_event(0x4, 0, 0, 0, [UIntPtr]::Zero)
+    Start-Sleep -Milliseconds 2000
+    $menu = [SmokeNative]::FindWindow("ThrowbackStartMenu", [NullString]::Value)
+    if ($menu -eq [IntPtr]::Zero -or -not [SmokeNative]::IsWindowVisible($menu)) {
+      $failures += "${name}: start menu did not open"
+    } else {
+      $menuRect = New-Object SmokeNative+RECT
+      [void][SmokeNative]::GetWindowRect($menu, [ref]$menuRect)
+      Save-Screen "$OutDir\$name-start.png" $menuRect.Left $menuRect.Top `
+        ($menuRect.Right - $menuRect.Left) ($menuRect.Bottom - $menuRect.Top)
+    }
     [SmokeNative]::keybd_event(0x1B, 0, 0, [UIntPtr]::Zero)
     [SmokeNative]::keybd_event(0x1B, 0, 2, [UIntPtr]::Zero)
     Start-Sleep -Milliseconds 300

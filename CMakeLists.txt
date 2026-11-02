@@ -35,17 +35,19 @@ add_library(throwback_core STATIC
 target_include_directories(throwback_core PUBLIC src)
 target_link_libraries(throwback_core PRIVATE throwback_options)
 
-# UI kit: theme, fonts and the components every screen draws with.
+# UI kit: the Aero theme and the components every screen draws with.
 add_library(throwback_ui STATIC
+  src/ui/aero.cpp
   src/ui/canvas.cpp
   src/ui/fonts.cpp
+  src/ui/glass.cpp
   src/ui/icon.cpp
   src/ui/strings.cpp
   src/ui/system_language.cpp
   src/ui/system_theme.cpp
   src/ui/theme.cpp)
 target_link_libraries(throwback_ui
-  PUBLIC throwback_core d2d1 dwrite windowscodecs
+  PUBLIC throwback_core d2d1 dwrite windowscodecs dwmapi
   PRIVATE throwback_options)
 
 add_executable(throwback WIN32
@@ -68,11 +70,6 @@ add_executable(throwback WIN32
   src/taskbar/window_tracker.cpp)
 target_link_libraries(throwback PRIVATE
   throwback_ui throwback_options dwmapi shell32 ole32 secur32 powrprof)
-
-# Bundled IBM Plex fonts (and their OFL license) ship next to the executable.
-add_custom_command(TARGET throwback POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/assets/fonts $<TARGET_FILE_DIR:throwback>/fonts)
 
 if(THROWBACK_BUILD_TESTS)
   enable_testing()

@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <stdexcept>
 
+#include "ui/glass.h"
+
 namespace throwback {
 namespace {
 
@@ -35,6 +37,7 @@ ThumbnailPopup::ThumbnailPopup(HINSTANCE instance, HWND owner) {
                           WS_POPUP, 0, 0, 0, 0, owner, nullptr, instance, this);
   if (!hwnd_) throw std::runtime_error("CreateWindowEx failed for the thumbnail popup");
   canvas_ = std::make_unique<ui::Canvas>(hwnd_);
+  ui::EnableGlass(hwnd_, ui::GlassCorners::Round);
 }
 
 ThumbnailPopup::~ThumbnailPopup() {
@@ -69,11 +72,9 @@ LRESULT CALLBACK ThumbnailPopup::WindowProc(HWND hwnd, UINT message, WPARAM wPar
   return DefWindowProcW(hwnd, message, wParam, lParam);
 }
 
-void ThumbnailPopup::Show(const Content& content, const RECT& anchor, bool below,
-                          const ui::Theme& theme, unsigned dpi) {
+void ThumbnailPopup::Show(const Content& content, const RECT& anchor, bool below, unsigned dpi) {
   Hide();
   content_ = content;
-  canvas_->SetTheme(theme);
   canvas_->SetDpi(dpi);
 
   const int padding = canvas_->Scale(ui::kSpace8);
@@ -129,9 +130,12 @@ void ThumbnailPopup::Hide() {
 void ThumbnailPopup::Paint() {
   PAINTSTRUCT paint;
   BeginPaint(hwnd_, &paint);
+  RECT client{};
+  GetClientRect(hwnd_, &client);
   canvas_->BeginFrame();
+  canvas_->Glass({0, 0, client.right, client.bottom}, ui::GlassVariant::Menu);
   canvas_->Icon(iconRect_, content_.icon);
-  canvas_->Text(titleRect_, content_.title, ui::TextStyle::Body);
+  canvas_->Text(titleRect_, content_.title, ui::TextStyle::Body, ui::TextTone::Light);
   canvas_->EndFrame();
   EndPaint(hwnd_, &paint);
 }

@@ -28,7 +28,8 @@ patching or injecting into Explorer.
 
 **Everywhere**
 
-- Light and dark themes, following Windows or forced with `--theme=light` / `--theme=dark`
+- The Windows 7 Aero look: blurred glass, the start orb, glossy buttons, Segoe UI
+- Native menus follow the Windows light/dark setting or `--theme=light` / `--theme=dark`
 - English and Turkish, following the Windows display language or forced with `--lang=en` / `--lang=tr`
 - Per-monitor DPI aware, reserves screen space like the real taskbar
 - Steps aside for fullscreen apps
@@ -56,11 +57,10 @@ powershell -ExecutionPolicy Bypass -File tools/smoke-test.ps1
 
 ```
 src/core      Pure logic (layout, window rules, options), no Win32, unit tested
-src/ui        UI kit: theme, fonts and the components every screen draws with
+src/ui        UI kit: the Aero theme, glass and the components every screen draws with
 src/taskbar   The bar window, AppBar docking, window tracking
 src/startmenu The start menu: programs, places, search, Windows key hook
 src/shell     Shell helpers shared by both: icons, launching
-assets/fonts  Bundled IBM Plex fonts
 tests         GoogleTest unit tests
 docs          Architecture notes and decision records
 ```
@@ -69,5 +69,4 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how the pieces fit together
 
 ## License
 
-[MIT](LICENSE). The bundled IBM Plex fonts are licensed under the
-[SIL Open Font License 1.1](assets/fonts/OFL.txt).
+[MIT](LICENSE).
