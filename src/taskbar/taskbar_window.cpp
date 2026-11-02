@@ -159,6 +159,12 @@ void TaskbarWindow::RequestRefresh() {
   PostMessageW(hwnd_, kRefreshRequest, 0, 0);
 }
 
+void TaskbarWindow::OnDisplayChange() {
+  Dock();
+  // Monitors may have come or gone; the main bar keeps one bar on each.
+  if (IsMain()) manager_.Reconcile();
+}
+
 void TaskbarWindow::SetMonitor(HMONITOR monitor) {
   if (monitor == monitor_) return;
   monitor_ = monitor;
@@ -214,17 +220,13 @@ LRESULT TaskbarWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam)
       }
       return 0;
     case WM_DISPLAYCHANGE:
-      Dock();
-      // Monitors may have come or gone; the main bar keeps one bar on each.
-      if (IsMain()) manager_.Reconcile();
+      OnDisplayChange();
       return 0;
     case WM_CLOSE:
       // Closing any bar (its menu, taskkill, installers) ends the app.
-      if (!IsMain()) {
-        PostMessageW(manager_.MainWindow(), WM_CLOSE, 0, 0);
-        return 0;
-      }
-      break;
+      if (IsMain()) break;
+      PostMessageW(manager_.MainWindow(), WM_CLOSE, 0, 0);
+      return 0;
     case WM_PAINT:
       Paint();
       return 0;

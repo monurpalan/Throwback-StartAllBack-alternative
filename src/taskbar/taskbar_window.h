@@ -48,6 +48,7 @@ class TaskbarWindow {
   LRESULT HandleMessage(UINT message, WPARAM wParam, LPARAM lParam);
   LRESULT OnShellHook(WPARAM code, LPARAM param);
   void OnTimer(UINT_PTR timer);
+  void OnDisplayChange();
 
   void RegisterAppBar();
   void Dock();
