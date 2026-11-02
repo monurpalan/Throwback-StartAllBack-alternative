@@ -9,6 +9,7 @@
 #include <string>
 #include <utility>
 
+#include "taskbar/bar_manager.h"
 #include "taskbar/bar_view.h"
 #include "taskbar/window_actions.h"
 #include "ui/glass.h"
@@ -65,11 +66,13 @@ UINT HoverDelayMs() {
 
 }  // namespace
 
-TaskbarWindow* TaskbarWindow::instance_ = nullptr;
+TaskbarWindow* TaskbarWindow::mainInstance_ = nullptr;
 
-TaskbarWindow::TaskbarWindow(HINSTANCE instance, const Settings& settings,
-                             shell::SettingsStore store)
-    : settings_(settings), store_(std::move(store)), module_(instance) {
+TaskbarWindow::TaskbarWindow(HINSTANCE instance, BarManager& manager, HMONITOR monitor)
+    : manager_(manager),
+      settings_(manager.CurrentSettings()),
+      monitor_(monitor),
+      module_(instance) {
   WNDCLASSEXW windowClass{};
   windowClass.cbSize = sizeof(windowClass);
   windowClass.lpfnWndProc = WindowProc;
@@ -83,21 +86,22 @@ TaskbarWindow::TaskbarWindow(HINSTANCE instance, const Settings& settings,
   CreateWindowExW(WS_EX_TOOLWINDOW | WS_EX_TOPMOST | WS_EX_NOACTIVATE, kClassName, L"Throwback",
                   WS_POPUP, 0, 0, 0, 0, nullptr, nullptr, instance, this);
   if (!hwnd_) throw std::runtime_error("CreateWindowEx failed");
-  instance_ = this;
+  if (IsMain()) mainInstance_ = this;
 
   dpi_ = GetDpiForWindow(hwnd_);
   tracker_ = std::make_unique<WindowTracker>(hwnd_);
+  tracker_->SetMonitor(monitor_);
   canvas_ = std::make_unique<ui::Canvas>(hwnd_);
   canvas_->SetDpi(dpi_);
   ui::EnableGlass(hwnd_, ui::GlassCorners::Square);
   thumbnail_ = std::make_unique<ThumbnailPopup>(instance, hwnd_);
   startMenu_ = std::make_unique<StartMenu>(
       instance, hwnd_, settings_, [this] { InvalidateRect(hwnd_, nullptr, FALSE); },
-      [this] { SavePinned(); });
+      [this] { manager_.SavePinned(); });
   ApplyWindowsKey();
   ApplyTheme();
   RegisterAppBar();
-  SystemTaskbar::RecoverFromCrash();
+  if (IsMain()) SystemTaskbar::RecoverFromCrash();
   ApplySystemTaskbar();
 
   shellHookMessage_ = RegisterWindowMessageW(L"SHELLHOOK");
@@ -105,8 +109,10 @@ TaskbarWindow::TaskbarWindow(HINSTANCE instance, const Settings& settings,
   RegisterShellHookWindow(hwnd_);
   // Store apps and virtual desktop switches cloak and uncloak windows
   // without any shell hook message.
-  cloakHook_ = SetWinEventHook(EVENT_OBJECT_CLOAKED, EVENT_OBJECT_UNCLOAKED, nullptr, OnWinEvent, 0,
-                               0, WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS);
+  if (IsMain()) {
+    cloakHook_ = SetWinEventHook(EVENT_OBJECT_CLOAKED, EVENT_OBJECT_UNCLOAKED, nullptr, OnWinEvent,
+                                 0, 0, WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS);
+  }
   SetTimer(hwnd_, kRefreshTimer, kRefreshIntervalMs, nullptr);
 
   RefreshTasks();
@@ -118,7 +124,7 @@ TaskbarWindow::~TaskbarWindow() {
   startMenu_.reset();
   thumbnail_.reset();
   if (hwnd_) DestroyWindow(hwnd_);
-  instance_ = nullptr;
+  if (mainInstance_ == this) mainInstance_ = nullptr;
 }
 
 LRESULT CALLBACK TaskbarWindow::WindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
@@ -142,13 +148,23 @@ LRESULT CALLBACK TaskbarWindow::WindowProc(HWND hwnd, UINT message, WPARAM wPara
 
 void CALLBACK TaskbarWindow::OnWinEvent(HWINEVENTHOOK, DWORD, HWND hwnd, LONG object, LONG child,
                                         DWORD, DWORD) {
-  TaskbarWindow* self = instance_;
+  TaskbarWindow* self = mainInstance_;
   if (!self || !self->hwnd_ || !hwnd || object != OBJID_WINDOW || child != CHILDID_SELF) return;
-  // Events arrive in bursts; one refresh covers all of them.
-  if (!self->refreshPending_) {
-    self->refreshPending_ = true;
-    PostMessageW(self->hwnd_, kRefreshRequest, 0, 0);
-  }
+  self->manager_.RequestRefresh();
+}
+
+void TaskbarWindow::RequestRefresh() {
+  if (!hwnd_ || refreshPending_) return;
+  refreshPending_ = true;
+  PostMessageW(hwnd_, kRefreshRequest, 0, 0);
+}
+
+void TaskbarWindow::SetMonitor(HMONITOR monitor) {
+  if (monitor == monitor_) return;
+  monitor_ = monitor;
+  tracker_->SetMonitor(monitor);
+  Dock();
+  RefreshTasks();
 }
 
 LRESULT TaskbarWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam) {
@@ -199,7 +215,16 @@ LRESULT TaskbarWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam)
       return 0;
     case WM_DISPLAYCHANGE:
       Dock();
+      // Monitors may have come or gone; the main bar keeps one bar on each.
+      if (IsMain()) manager_.Reconcile();
       return 0;
+    case WM_CLOSE:
+      // Closing any bar (its menu, taskkill, installers) ends the app.
+      if (!IsMain()) {
+        PostMessageW(manager_.MainWindow(), WM_CLOSE, 0, 0);
+        return 0;
+      }
+      break;
     case WM_PAINT:
       Paint();
       return 0;
@@ -234,7 +259,7 @@ LRESULT TaskbarWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam)
       DeregisterShellHookWindow(hwnd_);
       appBar_.reset();  // gives the reserved screen space back
       systemTaskbar_.reset();
-      PostQuitMessage(0);
+      if (IsMain()) PostQuitMessage(0);
       return 0;
     case WM_NCDESTROY: {
       const HWND hwnd = hwnd_;
@@ -307,7 +332,7 @@ void TaskbarWindow::RegisterAppBar() {
 }
 
 void TaskbarWindow::Dock() {
-  if (appBar_) appBar_->Dock(settings_.edge, ScaleForDpi(kBarHeight, dpi_));
+  if (appBar_) appBar_->Dock(settings_.edge, ScaleForDpi(kBarHeight, dpi_), monitor_);
 }
 
 void TaskbarWindow::RefreshTasks() {
@@ -467,7 +492,7 @@ void TaskbarWindow::OnContextMenu(int x, int y) {
       menu, TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_NONOTIFY, point.x, point.y, 0, hwnd_, nullptr));
   PostMessageW(hwnd_, WM_NULL, 0, 0);
   DestroyMenu(menu);
-  if (command == kMenuExit) DestroyWindow(hwnd_);
+  if (command == kMenuExit) PostMessageW(hwnd_, WM_CLOSE, 0, 0);
   if (command == kMenuProperties) OpenSettings();
 }
 

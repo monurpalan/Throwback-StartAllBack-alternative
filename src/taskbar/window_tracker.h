@@ -25,6 +25,8 @@ class WindowTracker {
  public:
   explicit WindowTracker(HWND self) : self_(self) {}
 
+  // Limits the buttons to windows on monitor; nullptr shows every window.
+  void SetMonitor(HMONITOR monitor) { monitor_ = monitor; }
   // Re-reads the window list. Returns true when buttons, titles or icons changed.
   bool Refresh();
   // Makes the next Refresh() fetch the window's icon again.
@@ -47,6 +49,7 @@ class WindowTracker {
   Icon ReadIcon(HWND hwnd);
 
   HWND self_;
+  HMONITOR monitor_ = nullptr;
   std::vector<TaskItem> items_;
   AppIconCache appIcons_;
 };

@@ -1,5 +1,6 @@
 // The bar's settings: applying them live, saving them and the properties
 // dialog.
+#include "taskbar/bar_manager.h"
 #include "taskbar/settings_dialog.h"
 #include "taskbar/taskbar_window.h"
 #include "taskbar/window_actions.h"
@@ -15,17 +16,9 @@ void TaskbarWindow::ApplyTheme() {
   InvalidateRect(hwnd_, nullptr, FALSE);
 }
 
-void TaskbarWindow::SavePinned() {
-  // Only the pins are saved: settings_ also holds this run's command-line
-  // overrides, which must not become the saved settings.
-  Settings saved = store_.Load();
-  saved.pinned = settings_.pinned;
-  store_.Save(saved);
-}
-
 void TaskbarWindow::ApplyWindowsKey() {
   // Without the hook the Windows key and Ctrl+Esc open Windows' own menu.
-  if (settings_.windowsKeyOpensMenu && !winKeyHook_) {
+  if (settings_.windowsKeyOpensMenu && IsMain() && !winKeyHook_) {
     winKeyHook_ = std::make_unique<WinKeyHook>(hwnd_, kStartMenuRequest);
   } else if (!settings_.windowsKeyOpensMenu) {
     winKeyHook_.reset();
@@ -33,7 +26,7 @@ void TaskbarWindow::ApplyWindowsKey() {
 }
 
 void TaskbarWindow::ApplySystemTaskbar() {
-  if (settings_.hideSystemTaskbar && !systemTaskbar_) {
+  if (settings_.hideSystemTaskbar && IsMain() && !systemTaskbar_) {
     systemTaskbar_ = std::make_unique<SystemTaskbar>();
   } else if (!settings_.hideSystemTaskbar) {
     systemTaskbar_.reset();
@@ -42,18 +35,10 @@ void TaskbarWindow::ApplySystemTaskbar() {
 
 void TaskbarWindow::OpenSettings() {
   ShowSettingsDialog(module_, hwnd_, settings_,
-                     [this](const Settings& edited) { ApplySettings(edited); });
+                     [this](const Settings& edited) { manager_.ApplySettings(edited); });
 }
 
-void TaskbarWindow::ApplySettings(const Settings& edited) {
-  // Pins are changed in the start menu, not here, so they are kept.
-  Settings next = edited;
-  next.pinned = settings_.pinned;
-  store_.Save(next);
-  const bool moved = next.edge != settings_.edge;
-  settings_ = next;
-
-  ui::SetLanguage(ui::LanguageFor(settings_.language));
+void TaskbarWindow::OnSettingsChanged(bool moved) {
   ApplyTheme();
   ApplyWindowsKey();
   ApplySystemTaskbar();

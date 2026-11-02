@@ -24,6 +24,7 @@ target_compile_options(throwback_options INTERFACE /W4 /WX /permissive- /utf-8)
 # Pure logic with no Win32 dependencies: easy to unit test.
 add_library(throwback_core STATIC
   src/core/layout.cpp
+  src/core/monitor_diff.cpp
   src/core/options.cpp
   src/core/program_menu.cpp
   src/core/search.cpp
@@ -71,6 +72,7 @@ add_executable(throwback WIN32
   src/startmenu/win_key_hook.cpp
   src/taskbar/app_icons.cpp
   src/taskbar/appbar.cpp
+  src/taskbar/bar_manager.cpp
   src/taskbar/bar_view.cpp
   src/taskbar/main.cpp
   src/taskbar/system_taskbar.cpp

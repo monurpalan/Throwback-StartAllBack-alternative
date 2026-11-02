@@ -33,13 +33,14 @@ AppBar::~AppBar() {
   SHAppBarMessage(ABM_REMOVE, &data);
 }
 
-void AppBar::Dock(Edge edge, int thickness) {
+void AppBar::Dock(Edge edge, int thickness, HMONITOR target) {
   edge_ = edge;
   thickness_ = thickness;
+  monitor_ = target;
 
   MONITORINFO monitor{};
   monitor.cbSize = sizeof(monitor);
-  GetMonitorInfoW(MonitorFromPoint({0, 0}, MONITOR_DEFAULTTOPRIMARY), &monitor);
+  GetMonitorInfoW(target ? target : MonitorFromPoint({0, 0}, MONITOR_DEFAULTTOPRIMARY), &monitor);
 
   APPBARDATA data = MakeData(hwnd_);
   data.uEdge = edge == Edge::Top ? ABE_TOP : ABE_BOTTOM;
@@ -57,7 +58,7 @@ void AppBar::Dock(Edge edge, int thickness) {
 }
 
 void AppBar::Redock() {
-  if (thickness_ > 0) Dock(edge_, thickness_);
+  if (thickness_ > 0) Dock(edge_, thickness_, monitor_);
 }
 
 void AppBar::HandleCallback(WPARAM notification, LPARAM param) {

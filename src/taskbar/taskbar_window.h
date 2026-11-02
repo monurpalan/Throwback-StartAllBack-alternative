@@ -7,7 +7,6 @@
 #include "core/layout.h"
 #include "core/settings.h"
 #include "core/task_click.h"
-#include "shell/settings_store.h"
 #include "startmenu/start_menu.h"
 #include "startmenu/win_key_hook.h"
 #include "taskbar/appbar.h"
@@ -19,13 +18,22 @@
 
 namespace throwback {
 
-// The bar itself: owns the window and wires the tracker, AppBar and renderer together.
+class BarManager;
+
+// The bar itself: owns the window and wires the tracker, AppBar and renderer
+// together. monitor is nullptr for the main bar on the primary monitor.
 class TaskbarWindow {
  public:
-  TaskbarWindow(HINSTANCE instance, const Settings& settings, shell::SettingsStore store);
+  TaskbarWindow(HINSTANCE instance, BarManager& manager, HMONITOR monitor);
   ~TaskbarWindow();
   TaskbarWindow(const TaskbarWindow&) = delete;
   TaskbarWindow& operator=(const TaskbarWindow&) = delete;
+
+  HWND Hwnd() const { return hwnd_; }
+  void SetMonitor(HMONITOR monitor);
+  void OnSettingsChanged(bool moved);
+  // Refreshes the buttons soon; events arrive in bursts and share one refresh.
+  void RequestRefresh();
 
  private:
   static constexpr int kHitNone = -3;
@@ -45,9 +53,8 @@ class TaskbarWindow {
   void Dock();
   void ApplySystemTaskbar();
   void ApplyWindowsKey();
-  void SavePinned();
   void OpenSettings();
-  void ApplySettings(const Settings& edited);
+  bool IsMain() const { return monitor_ == nullptr; }
   void ApplyTheme();
   void RefreshTasks();
   void UpdateLayout();
@@ -63,11 +70,12 @@ class TaskbarWindow {
   void HideThumbnail();
   void ToggleStartMenu();
 
-  // The WinEvent callback has no context parameter; there is one bar per process.
-  static TaskbarWindow* instance_;
+  // The WinEvent callback has no context parameter; the main bar hooks it.
+  static TaskbarWindow* mainInstance_;
 
-  Settings settings_;
-  shell::SettingsStore store_;
+  BarManager& manager_;
+  Settings& settings_;  // shared by every bar, owned by the manager
+  HMONITOR monitor_;
   HINSTANCE module_;
   HWND hwnd_ = nullptr;
   UINT shellHookMessage_ = 0;

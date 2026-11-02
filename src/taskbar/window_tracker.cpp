@@ -91,6 +91,11 @@ WindowTracker::Icon WindowTracker::ReadIcon(HWND hwnd) {
 bool WindowTracker::Refresh() {
   EnumContext context{self_, {}};
   EnumWindows(CollectWindow, reinterpret_cast<LPARAM>(&context));
+  if (monitor_) {
+    std::erase_if(context.found, [this](HWND hwnd) {
+      return MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST) != monitor_;
+    });
+  }
 
   std::vector<HWND> previous;
   previous.reserve(items_.size());

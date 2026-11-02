@@ -15,8 +15,8 @@ class AppBar {
   AppBar(const AppBar&) = delete;
   AppBar& operator=(const AppBar&) = delete;
 
-  // Docks the window to an edge of the primary monitor.
-  void Dock(Edge edge, int thickness);
+  // Docks the window to an edge of monitor; nullptr is the primary one.
+  void Dock(Edge edge, int thickness, HMONITOR monitor);
   // Re-applies the last Dock() call, e.g. after a display change.
   void Redock();
   // Handles the notifications the shell sends to callbackMessage.
@@ -31,6 +31,7 @@ class AppBar {
   HWND hwnd_;
   Edge edge_ = Edge::Top;
   int thickness_ = 0;
+  HMONITOR monitor_ = nullptr;
 };
 
 }  // namespace throwback

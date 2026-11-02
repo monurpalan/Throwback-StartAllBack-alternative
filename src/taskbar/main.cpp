@@ -9,7 +9,7 @@
 #include "core/options.h"
 #include "core/settings.h"
 #include "shell/settings_store.h"
-#include "taskbar/taskbar_window.h"
+#include "taskbar/bar_manager.h"
 #include "ui/strings.h"
 
 // Themed common controls (version 6) for the properties dialog, as Windows
@@ -67,7 +67,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int) {
 
   int exitCode = 0;
   try {
-    throwback::TaskbarWindow window(instance, settings, store);
+    throwback::BarManager bars(instance, settings, store);
     exitCode = RunMessageLoop();
   } catch (const std::exception& error) {
     MessageBoxA(nullptr, error.what(), "Throwback", MB_ICONERROR);
