@@ -1,5 +1,7 @@
 #include "taskbar/bar_view.h"
 
+#include <algorithm>
+
 namespace throwback {
 namespace {
 
@@ -31,7 +33,9 @@ void DrawTaskButton(ui::Canvas& canvas, const TaskButtonModel& button) {
 }  // namespace
 
 void DrawBar(ui::Canvas& canvas, const BarModel& model) {
-  canvas.Button(model.startButton, ui::ButtonVariant::Ghost, model.startHovered);
+  canvas.Button(model.startButton,
+                model.startOpen ? ui::ButtonVariant::Selected : ui::ButtonVariant::Ghost,
+                model.startHovered);
   canvas.Icon(CenteredSquare(model.startButton, canvas.Scale(kStartIconSize)), ui::IconKind::Start);
 
   for (const auto& button : model.buttons) DrawTaskButton(canvas, button);
@@ -44,7 +48,9 @@ void DrawBar(ui::Canvas& canvas, const BarModel& model) {
               ui::TextStyle::SmallNumber, ui::TextAlign::Center);
 
   canvas.Button(model.showDesktop, ui::ButtonVariant::Ghost, model.showDesktopHovered);
-  canvas.Divider(model.showDesktop);
+  const Rect& desktop = model.showDesktop;
+  canvas.Divider(
+      {desktop.left, desktop.top, desktop.left + std::max(1, canvas.Scale(1)), desktop.bottom});
 }
 
 }  // namespace throwback

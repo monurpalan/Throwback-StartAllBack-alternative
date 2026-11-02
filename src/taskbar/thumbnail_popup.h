@@ -1,7 +1,7 @@
 #pragma once
 
-#include <dwmapi.h>
 #include <windows.h>
+#include <dwmapi.h>
 
 #include <memory>
 #include <string>

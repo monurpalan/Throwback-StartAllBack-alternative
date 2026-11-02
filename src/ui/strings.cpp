@@ -23,6 +23,8 @@ constexpr std::array<Translation, kStringCount> kTable = {{
     {StringId::SignOut, L"Sign out", L"Oturumu kapat"},
     {StringId::Lock, L"Lock", L"Kilitle"},
     {StringId::PowerOptions, L"Power options", L"Güç seçenekleri"},
+    // The shell names the Run dialog in English on every Windows language.
+    {StringId::Run, L"Run...", L"Çalıştır..."},
 }};
 
 // A missing or misplaced translation fails the build, not the user.

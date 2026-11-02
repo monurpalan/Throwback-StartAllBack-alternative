@@ -1,7 +1,7 @@
 #include "ui/fonts.h"
 
-#include <dwrite_3.h>
 #include <windows.h>
+#include <dwrite_3.h>
 
 #include <filesystem>
 #include <initializer_list>

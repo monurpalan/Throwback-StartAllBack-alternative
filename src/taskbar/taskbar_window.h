@@ -7,6 +7,8 @@
 #include "core/layout.h"
 #include "core/options.h"
 #include "core/task_click.h"
+#include "startmenu/start_menu.h"
+#include "startmenu/win_key_hook.h"
 #include "taskbar/appbar.h"
 #include "taskbar/thumbnail_popup.h"
 #include "taskbar/window_tracker.h"
@@ -50,6 +52,7 @@ class TaskbarWindow {
   void OnContextMenu(int x, int y);
   void ShowThumbnail(int index);
   void HideThumbnail();
+  void ToggleStartMenu();
 
   // The WinEvent callback has no context parameter; there is one bar per process.
   static TaskbarWindow* instance_;
@@ -76,6 +79,8 @@ class TaskbarWindow {
   std::unique_ptr<ui::Canvas> canvas_;
   std::unique_ptr<AppBar> appBar_;
   std::unique_ptr<ThumbnailPopup> thumbnail_;
+  std::unique_ptr<StartMenu> startMenu_;
+  std::unique_ptr<WinKeyHook> winKeyHook_;
 };
 
 }  // namespace throwback

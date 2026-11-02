@@ -23,6 +23,7 @@ enum class StringId {
   SignOut,
   Lock,
   PowerOptions,
+  Run,
   kCount,
 };
 

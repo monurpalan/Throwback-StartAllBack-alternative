@@ -19,6 +19,7 @@ namespace {
 constexpr wchar_t kClassName[] = L"ThrowbackTaskbar";
 constexpr UINT kAppBarCallback = WM_APP + 1;
 constexpr UINT kRefreshRequest = WM_APP + 2;
+constexpr UINT kStartMenuRequest = WM_APP + 3;
 constexpr UINT_PTR kRefreshTimer = 1;
 constexpr UINT_PTR kThumbnailTimer = 2;
 constexpr UINT kRefreshIntervalMs = 1000;
@@ -55,15 +56,6 @@ std::wstring FormatDate() {
   return buffer;
 }
 
-void OpenSystemStartMenu() {
-  INPUT inputs[2] = {};
-  inputs[0].type = INPUT_KEYBOARD;
-  inputs[0].ki.wVk = VK_LWIN;
-  inputs[1] = inputs[0];
-  inputs[1].ki.dwFlags = KEYEVENTF_KEYUP;
-  SendInput(2, inputs, sizeof(INPUT));
-}
-
 UINT HoverDelayMs() {
   UINT delay = 400;
   SystemParametersInfoW(SPI_GETMOUSEHOVERTIME, 0, &delay, 0);
@@ -96,6 +88,9 @@ TaskbarWindow::TaskbarWindow(HINSTANCE instance, const Options& options)
   canvas_ = std::make_unique<ui::Canvas>(hwnd_);
   canvas_->SetDpi(dpi_);
   thumbnail_ = std::make_unique<ThumbnailPopup>(instance, hwnd_);
+  startMenu_ = std::make_unique<StartMenu>(instance, hwnd_,
+                                           [this] { InvalidateRect(hwnd_, nullptr, FALSE); });
+  winKeyHook_ = std::make_unique<WinKeyHook>(hwnd_, kStartMenuRequest);
   ApplyTheme();
   RegisterAppBar();
 
@@ -113,6 +108,8 @@ TaskbarWindow::TaskbarWindow(HINSTANCE instance, const Options& options)
 }
 
 TaskbarWindow::~TaskbarWindow() {
+  winKeyHook_.reset();
+  startMenu_.reset();
   thumbnail_.reset();
   if (hwnd_) DestroyWindow(hwnd_);
   instance_ = nullptr;
@@ -164,6 +161,9 @@ LRESULT TaskbarWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam)
     case kRefreshRequest:
       refreshPending_ = false;
       RefreshTasks();
+      return 0;
+    case kStartMenuRequest:
+      ToggleStartMenu();
       return 0;
     case WM_TIMER:
       OnTimer(wParam);
@@ -220,6 +220,7 @@ LRESULT TaskbarWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam)
       if (wParam) DestroyWindow(hwnd_);
       return 0;
     case WM_DESTROY:
+      winKeyHook_.reset();  // give the Windows key back right away
       KillTimer(hwnd_, kRefreshTimer);
       KillTimer(hwnd_, kThumbnailTimer);
       if (cloakHook_) UnhookWinEvent(cloakHook_);
@@ -339,6 +340,7 @@ void TaskbarWindow::Paint() {
   BarModel model{
       .startButton = layout_.startButton,
       .startHovered = hovered_ == kHitStart,
+      .startOpen = startMenu_ && startMenu_->IsOpen(),
       .clock = layout_.clock,
       .time = time,
       .date = date,
@@ -430,7 +432,7 @@ void TaskbarWindow::OnButtonUp(int x, int y) {
   if (hit != pressed) return;  // released somewhere else: cancel
 
   if (hit == kHitStart) {
-    OpenSystemStartMenu();
+    ToggleStartMenu();
   } else if (hit == kHitShowDesktop) {
     ToggleDesktop();
   } else if (hit >= 0 && tracker_->Items()[static_cast<size_t>(hit)].hwnd == pressedTask_) {
@@ -469,6 +471,21 @@ void TaskbarWindow::ShowThumbnail(int index) {
   if (!ButtonScreenRect(item.hwnd, &anchor)) return;
   thumbnail_->Show({item.hwnd, item.title, item.icon}, anchor, options_.edge == Edge::Top, theme_,
                    dpi_);
+}
+
+void TaskbarWindow::ToggleStartMenu() {
+  HideThumbnail();
+  if (startMenu_->IsOpen()) {
+    startMenu_->Close();
+    return;
+  }
+  POINT topLeft{layout_.startButton.left, layout_.startButton.top};
+  POINT bottomRight{layout_.startButton.right, layout_.startButton.bottom};
+  ClientToScreen(hwnd_, &topLeft);
+  ClientToScreen(hwnd_, &bottomRight);
+  startMenu_->Open({topLeft.x, topLeft.y, bottomRight.x, bottomRight.y}, options_.edge == Edge::Top,
+                   theme_, dpi_);
+  InvalidateRect(hwnd_, nullptr, FALSE);
 }
 
 void TaskbarWindow::HideThumbnail() {

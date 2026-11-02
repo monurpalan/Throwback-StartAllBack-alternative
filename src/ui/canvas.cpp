@@ -71,6 +71,7 @@ void Canvas::CreateDeviceResources() {
 
 void Canvas::DiscardDeviceResources() {
   iconCache_.clear();
+  pictures_.clear();
   brush_.Reset();
   target_.Reset();
 }
@@ -104,8 +105,13 @@ void Canvas::Fill(const Rect& rect, const Color& color) {
   target_->FillRectangle(ToRectF(rect), brush_.Get());
 }
 
+void Canvas::Panel(const Rect& rect) { Fill(rect, theme_.panel); }
+
 void Canvas::Button(const Rect& rect, ButtonVariant variant, bool hovered) {
   switch (variant) {
+    case ButtonVariant::Raised:
+      Fill(rect, hovered ? theme_.selected : theme_.hover);
+      break;
     case ButtonVariant::Selected: {
       Fill(rect, hovered ? theme_.selectedHover : theme_.selected);
       const int inset = Scale(kSpace8);
@@ -123,16 +129,47 @@ void Canvas::Button(const Rect& rect, ButtonVariant variant, bool hovered) {
   }
 }
 
-void Canvas::Divider(const Rect& rect) {
-  Fill({rect.left, rect.top, rect.left + std::max(1, Scale(1)), rect.bottom}, theme_.divider);
-}
+void Canvas::Divider(const Rect& rect) { Fill(rect, theme_.divider); }
 
-void Canvas::Text(const Rect& rect, std::wstring_view text, TextStyle style, TextAlign align) {
+void Canvas::Text(const Rect& rect, std::wstring_view text, TextStyle style, TextAlign align,
+                  TextTone tone) {
   if (text.empty() || rect.Width() <= 0 || rect.Height() <= 0) return;
   const std::wstring shown = IsUppercase(style) ? ToUpper(text) : std::wstring(text);
-  brush_->SetColor(ToD2D(theme_.foreground));
+  brush_->SetColor(ToD2D(tone == TextTone::Muted ? theme_.mutedText : theme_.foreground));
   target_->DrawText(shown.c_str(), static_cast<UINT32>(shown.size()), Format(style, align),
                     ToRectF(rect), brush_.Get(), D2D1_DRAW_TEXT_OPTIONS_CLIP);
+}
+
+float Canvas::TextWidth(std::wstring_view text, TextStyle style) {
+  ComPtr<IDWriteTextLayout> layout;
+  if (FAILED(dwrite_->CreateTextLayout(text.data(), static_cast<UINT32>(text.size()),
+                                       Format(style, TextAlign::Leading), 100000.0f, 1000.0f,
+                                       layout.GetAddressOf()))) {
+    return 0.0f;
+  }
+  DWRITE_TEXT_METRICS metrics{};
+  layout->GetMetrics(&metrics);
+  return metrics.widthIncludingTrailingWhitespace;
+}
+
+void Canvas::TextField(const Rect& rect, std::wstring_view text, std::wstring_view placeholder,
+                       bool focused) {
+  Fill(rect, theme_.field);
+  const int padding = Scale(kSpace8);
+  const Rect inner{rect.left + padding, rect.top, rect.right - padding, rect.bottom};
+  if (text.empty()) {
+    Text(inner, placeholder, TextStyle::Body, TextAlign::Leading, TextTone::Muted);
+  } else {
+    Text(inner, text, TextStyle::Body);
+  }
+  if (!focused) return;
+  // A thin caret after the text, as tall as a line of body text.
+  const int caretX =
+      inner.left + std::min(static_cast<int>(TextWidth(text, TextStyle::Body)), inner.Width());
+  const int caretHeight = Scale(static_cast<int>(kBodySize) + kSpace4);
+  const int caretTop = rect.top + (rect.Height() - caretHeight) / 2;
+  Fill({caretX, caretTop, caretX + std::max(1, Scale(1)), caretTop + caretHeight},
+       theme_.foreground);
 }
 
 }  // namespace throwback::ui

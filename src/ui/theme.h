@@ -69,6 +69,9 @@ struct Theme {
   Color selectedHover;
   Color attention;  // a window asking for attention (flashing)
   Color divider;
+  Color panel;      // a surface set apart from the background
+  Color field;      // text input boxes
+  Color mutedText;  // placeholders and secondary text
   Color accent;
 };
 

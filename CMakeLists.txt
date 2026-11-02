@@ -25,7 +25,11 @@ target_compile_options(throwback_options INTERFACE /W4 /WX /permissive- /utf-8)
 add_library(throwback_core STATIC
   src/core/layout.cpp
   src/core/options.cpp
+  src/core/search.cpp
+  src/core/start_menu_layout.cpp
   src/core/task_click.cpp
+  src/core/user_assist.cpp
+  src/core/win_key.cpp
   src/core/window_filter.cpp
   src/core/window_menu.cpp)
 target_include_directories(throwback_core PUBLIC src)
@@ -45,6 +49,15 @@ target_link_libraries(throwback_ui
   PRIVATE throwback_options)
 
 add_executable(throwback WIN32
+  src/shell/launch.cpp
+  src/shell/shell_icons.cpp
+  src/startmenu/frequent.cpp
+  src/startmenu/places.cpp
+  src/startmenu/power.cpp
+  src/startmenu/programs.cpp
+  src/startmenu/start_menu.cpp
+  src/startmenu/start_menu_view.cpp
+  src/startmenu/win_key_hook.cpp
   src/taskbar/app_icons.cpp
   src/taskbar/appbar.cpp
   src/taskbar/bar_view.cpp
@@ -54,7 +67,7 @@ add_executable(throwback WIN32
   src/taskbar/window_actions.cpp
   src/taskbar/window_tracker.cpp)
 target_link_libraries(throwback PRIVATE
-  throwback_ui throwback_options dwmapi shell32 ole32)
+  throwback_ui throwback_options dwmapi shell32 ole32 secur32 powrprof)
 
 # Bundled IBM Plex fonts (and their OFL license) ship next to the executable.
 add_custom_command(TARGET throwback POST_BUILD

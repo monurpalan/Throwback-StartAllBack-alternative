@@ -1,0 +1,10 @@
+#pragma once
+
+namespace throwback {
+
+enum class PowerAction { ShutDown, Restart, Sleep, SignOut, Lock };
+
+// Runs the action right away, like the start menu's power button does.
+void RunPowerAction(PowerAction action);
+
+}  // namespace throwback

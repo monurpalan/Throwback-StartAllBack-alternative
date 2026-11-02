@@ -11,11 +11,23 @@ patching or injecting into Explorer.
 
 ## Features
 
+**Taskbar**
+
 - One button per window with icon and title, never combined
 - Dock to the top or bottom edge (`--edge=top` / `--edge=bottom`)
 - Click to activate, click the active button to minimize
-- Right-click a button to close the window
-- Clock and date, follows your locale
+- Live window previews on hover, the classic window menu on right-click
+- Flashing buttons for windows that need attention
+- Show desktop button, clock and date in your locale
+
+**Start menu**
+
+- The Windows 7 layout: frequent programs, All Programs, search, places and power
+- Opens with the Start button, the Windows key or Ctrl+Esc; Win+shortcuts keep working
+- Search that ignores case and accents, including Turkish letters
+
+**Everywhere**
+
 - Light and dark themes, following Windows or forced with `--theme=light` / `--theme=dark`
 - English and Turkish, following the Windows display language or forced with `--lang=en` / `--lang=tr`
 - Per-monitor DPI aware, reserves screen space like the real taskbar
@@ -46,6 +58,8 @@ powershell -ExecutionPolicy Bypass -File tools/smoke-test.ps1
 src/core      Pure logic (layout, window rules, options), no Win32, unit tested
 src/ui        UI kit: theme, fonts and the components every screen draws with
 src/taskbar   The bar window, AppBar docking, window tracking
+src/startmenu The start menu: programs, places, search, Windows key hook
+src/shell     Shell helpers shared by both: icons, launching
 assets/fonts  Bundled IBM Plex fonts
 tests         GoogleTest unit tests
 docs          Architecture notes and decision records

@@ -36,6 +36,9 @@ Theme MakeTheme(bool light) {
       .selectedHover = ink.WithAlpha(0.20f),
       .attention = palette::kAccent.WithAlpha(0.40f),
       .divider = ink.WithAlpha(0.24f),
+      .panel = ink.WithAlpha(0.05f),
+      .field = ink.WithAlpha(0.10f),
+      .mutedText = ink.WithAlpha(0.60f),
       .accent = palette::kAccent,
   };
 }

@@ -4,35 +4,25 @@
 #include <string>
 
 #include "core/window_menu.h"
+#include "shell/launch.h"
 
 namespace throwback {
 namespace {
 
+using shell::BringToFront;
+
 // Explorer's command for the "show desktop" button.
 constexpr WPARAM kShowDesktopCommand = 407;
 
-void SendKeyPress(WORD key, bool withWin = false) {
+void PressWinD() {
   INPUT inputs[4] = {};
-  UINT count = 0;
-  const auto add = [&](WORD vk, DWORD flags) {
-    inputs[count].type = INPUT_KEYBOARD;
-    inputs[count].ki.wVk = vk;
-    inputs[count].ki.dwFlags = flags;
-    ++count;
-  };
-  if (withWin) add(VK_LWIN, 0);
-  add(key, 0);
-  add(key, KEYEVENTF_KEYUP);
-  if (withWin) add(VK_LWIN, KEYEVENTF_KEYUP);
-  SendInput(count, inputs, sizeof(INPUT));
-}
-
-void BringToFront(HWND window) {
-  if (SetForegroundWindow(window)) return;
-  // Only the process that received the last input may change the foreground
-  // window. Pressing an unassigned key gives that right back to us.
-  SendKeyPress(0xE8);
-  SetForegroundWindow(window);
+  const WORD keys[4] = {VK_LWIN, 'D', 'D', VK_LWIN};
+  for (int i = 0; i < 4; ++i) {
+    inputs[i].type = INPUT_KEYBOARD;
+    inputs[i].ki.wVk = keys[i];
+    inputs[i].ki.dwFlags = i >= 2 ? KEYEVENTF_KEYUP : 0;
+  }
+  SendInput(4, inputs, sizeof(INPUT));
 }
 
 void AllowToActivate(HWND window) {
@@ -182,7 +172,7 @@ void ToggleDesktop() {
   if (HWND tray = FindWindowW(L"Shell_TrayWnd", nullptr)) {
     PostMessageW(tray, WM_COMMAND, kShowDesktopCommand, 0);
   } else {
-    SendKeyPress('D', /*withWin=*/true);
+    PressWinD();
   }
 }
 

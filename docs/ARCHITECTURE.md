@@ -79,6 +79,25 @@ inject into `explorer.exe` (see [ADR 0001](adr/0001-standalone-appbar.md)).
 - **Hung windows:** when Windows swaps a window for its "not responding" ghost,
   the button keeps its place.
 
+## Start menu
+
+A Windows 7 style menu (`src/startmenu`), drawn with the same UI kit:
+
+- **Left:** the most used programs, read from Windows' own usage history
+  (UserAssist), so the list is useful from the first run. "All Programs"
+  opens the merged Start Menu folders of the user and all users, plus
+  packaged apps from `shell:AppsFolder`, folder by folder in place.
+- **Search:** typing anywhere filters every program; matching ignores case,
+  accents and Turkish dotted/dotless i (`core/search`).
+- **Right:** the account picture, the user's folders and system places named
+  by the shell in the user's language, and the power button.
+- **Windows key:** a low-level keyboard hook on its own thread turns a lone
+  Windows key press (and Ctrl+Esc) into "open our menu", by replaying the
+  release after an unassigned key so the system menu stays closed. Every
+  Win+key shortcut keeps working (`core/win_key`).
+- Launches go through `ShellExecuteEx` with usage logging, so Windows keeps
+  counting them and the frequent list stays accurate.
+
 ## Known limitations
 
 - Primary monitor only.

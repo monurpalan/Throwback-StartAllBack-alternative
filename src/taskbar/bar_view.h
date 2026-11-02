@@ -23,6 +23,7 @@ struct TaskButtonModel {
 struct BarModel {
   Rect startButton;
   bool startHovered = false;
+  bool startOpen = false;
   std::vector<TaskButtonModel> buttons;
   Rect clock;
   std::wstring_view time;

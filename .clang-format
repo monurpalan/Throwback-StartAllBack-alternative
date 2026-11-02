@@ -2,3 +2,14 @@ BasedOnStyle: Google
 ColumnLimit: 100
 DerivePointerAlignment: false
 PointerAlignment: Left
+# Most Windows SDK headers only compile after <windows.h>.
+IncludeBlocks: Preserve
+IncludeCategories:
+  - Regex: '^<windows\.h>$'
+    Priority: 1
+  - Regex: '^<[a-z_0-9]+\.h>$'
+    Priority: 2
+  - Regex: '^<.*>$'
+    Priority: 3
+  - Regex: '.*'
+    Priority: 4

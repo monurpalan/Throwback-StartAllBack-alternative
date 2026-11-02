@@ -10,10 +10,14 @@ FetchContent_MakeAvailable(googletest)
 add_executable(throwback_tests
   layout_test.cpp
   options_test.cpp
+  search_test.cpp
   stable_order_test.cpp
+  start_menu_layout_test.cpp
   strings_test.cpp
   task_click_test.cpp
   theme_test.cpp
+  user_assist_test.cpp
+  win_key_test.cpp
   window_filter_test.cpp
   window_menu_test.cpp)
 target_link_libraries(throwback_tests PRIVATE throwback_ui throwback_options GTest::gtest_main)
