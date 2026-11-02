@@ -40,6 +40,9 @@ void DrawBar(ui::Canvas& canvas, const BarModel& model) {
               ui::TextAlign::Center);
   canvas.Text({clock.left, middle, clock.right, clock.bottom}, model.date,
               ui::TextStyle::SmallNumber, ui::TextAlign::Center);
+
+  canvas.Button(model.showDesktop, ui::ButtonVariant::Ghost, model.showDesktopHovered);
+  canvas.Divider(model.showDesktop);
 }
 
 }  // namespace throwback

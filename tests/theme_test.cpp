@@ -19,7 +19,7 @@ class ThemeTest : public ::testing::TestWithParam<bool> {};
 TEST_P(ThemeTest, EveryRoleIsAPaletteColorWithAlpha) {
   const Theme theme = MakeTheme(GetParam());
   for (const Color& color : {theme.background, theme.foreground, theme.hover, theme.selected,
-                             theme.selectedHover, theme.attention, theme.accent}) {
+                             theme.selectedHover, theme.attention, theme.divider, theme.accent}) {
     EXPECT_TRUE(IsPaletteColor(color));
   }
 }

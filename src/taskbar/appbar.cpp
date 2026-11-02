@@ -66,15 +66,19 @@ void AppBar::HandleCallback(WPARAM notification, LPARAM param) {
       Redock();
       break;
     case ABN_FULLSCREENAPP:
-      // Step out of the way of fullscreen apps, come back afterwards.
-      SetWindowPos(hwnd_, param ? HWND_BOTTOM : HWND_TOPMOST, 0, 0, 0, 0,
-                   SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+      SetFullscreenActive(param != 0);
       break;
     case ABN_WINDOWARRANGE:
       // Cascade/tile in progress: hide so windows are arranged around us.
       ShowWindow(hwnd_, param ? SW_HIDE : SW_SHOWNOACTIVATE);
       break;
   }
+}
+
+void AppBar::SetFullscreenActive(bool active) {
+  // HWND_BOTTOM also drops the topmost flag; HWND_TOPMOST puts it back.
+  SetWindowPos(hwnd_, active ? HWND_BOTTOM : HWND_TOPMOST, 0, 0, 0, 0,
+               SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 }
 
 void AppBar::OnActivated() {

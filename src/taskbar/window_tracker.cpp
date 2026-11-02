@@ -130,6 +130,17 @@ HWND WindowTracker::ButtonOwner(HWND hwnd) const {
   return has(owner) ? owner : nullptr;
 }
 
+void WindowTracker::ReplaceWindow(HWND old, HWND replacement) {
+  if (!old || !replacement || old == replacement) return;
+  const auto isOld = [old](const TaskItem& item) { return item.hwnd == old; };
+  if (std::none_of(items_.begin(), items_.end(), isOld)) return;
+  // The replacement may already have been picked up at the end of the list.
+  std::erase_if(items_, [replacement](const TaskItem& item) { return item.hwnd == replacement; });
+  const auto it = std::find_if(items_.begin(), items_.end(), isOld);
+  it->hwnd = replacement;
+  it->iconFinal = false;
+}
+
 void WindowTracker::SetFlashing(HWND hwnd, bool flashing) {
   for (auto& item : items_) {
     if (item.hwnd == hwnd) item.flashing = flashing;

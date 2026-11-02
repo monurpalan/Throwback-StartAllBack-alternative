@@ -68,6 +68,7 @@ struct Theme {
   Color selected;
   Color selectedHover;
   Color attention;  // a window asking for attention (flashing)
+  Color divider;
   Color accent;
 };
 

@@ -13,7 +13,8 @@ add_executable(throwback_tests
   stable_order_test.cpp
   task_click_test.cpp
   theme_test.cpp
-  window_filter_test.cpp)
+  window_filter_test.cpp
+  window_menu_test.cpp)
 target_link_libraries(throwback_tests PRIVATE throwback_ui throwback_options GTest::gtest_main)
 
 include(GoogleTest)

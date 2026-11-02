@@ -1,5 +1,6 @@
 #include "ui/canvas.h"
 
+#include <algorithm>
 #include <string>
 
 #include "ui/com_util.h"
@@ -120,6 +121,10 @@ void Canvas::Button(const Rect& rect, ButtonVariant variant, bool hovered) {
       if (hovered) Fill(rect, theme_.hover);
       break;
   }
+}
+
+void Canvas::Divider(const Rect& rect) {
+  Fill({rect.left, rect.top, rect.left + std::max(1, Scale(1)), rect.bottom}, theme_.divider);
 }
 
 void Canvas::Text(const Rect& rect, std::wstring_view text, TextStyle style, TextAlign align) {

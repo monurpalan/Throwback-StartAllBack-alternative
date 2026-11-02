@@ -21,6 +21,8 @@ class AppBar {
   void Redock();
   // Handles the notifications the shell sends to callbackMessage.
   void HandleCallback(WPARAM notification, LPARAM param);
+  // Drops below a fullscreen app on our monitor and comes back afterwards.
+  void SetFullscreenActive(bool active);
   // Must be forwarded from WM_ACTIVATE and WM_WINDOWPOSCHANGED.
   void OnActivated();
   void OnWindowPosChanged();

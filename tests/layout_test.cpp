@@ -25,6 +25,15 @@ TEST(LayoutTest, PlacesStartButtonLeftAndClockRight) {
   EXPECT_TRUE(layout.taskButtons.empty());
 }
 
+TEST(LayoutTest, ShowDesktopSitsAtTheFarEndAndPushesTheClock) {
+  BarMetrics metrics = TestMetrics();
+  metrics.showDesktopWidth = 12;
+  const BarLayout layout = ComputeLayout(metrics, 2);
+  EXPECT_EQ(layout.showDesktop, (Rect{988, 0, 1000, 40}));
+  EXPECT_EQ(layout.clock, (Rect{888, 0, 988, 40}));
+  EXPECT_LE(layout.taskButtons.back().right, layout.clock.left - metrics.spacing);
+}
+
 TEST(LayoutTest, FewButtonsUseMaxWidth) {
   const BarLayout layout = ComputeLayout(TestMetrics(), 2);
   ASSERT_EQ(layout.taskButtons.size(), 2u);

@@ -26,7 +26,8 @@ add_library(throwback_core STATIC
   src/core/layout.cpp
   src/core/options.cpp
   src/core/task_click.cpp
-  src/core/window_filter.cpp)
+  src/core/window_filter.cpp
+  src/core/window_menu.cpp)
 target_include_directories(throwback_core PUBLIC src)
 target_link_libraries(throwback_core PRIVATE throwback_options)
 
@@ -47,6 +48,8 @@ add_executable(throwback WIN32
   src/taskbar/bar_view.cpp
   src/taskbar/main.cpp
   src/taskbar/taskbar_window.cpp
+  src/taskbar/thumbnail_popup.cpp
+  src/taskbar/window_actions.cpp
   src/taskbar/window_tracker.cpp)
 target_link_libraries(throwback PRIVATE
   throwback_ui throwback_options dwmapi shell32 ole32)

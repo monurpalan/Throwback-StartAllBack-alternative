@@ -30,6 +30,9 @@ class WindowTracker {
   // Makes the next Refresh() fetch the window's icon again.
   void InvalidateIcon(HWND hwnd);
   void SetFlashing(HWND hwnd, bool flashing);
+  // Windows swaps a hung window for a "not responding" ghost and back; the
+  // button keeps its place instead of jumping to the end.
+  void ReplaceWindow(HWND old, HWND replacement);
   // The window whose button represents hwnd: itself, or the top-level owner
   // for dialogs and other windows without a button of their own.
   HWND ButtonOwner(HWND hwnd) const;

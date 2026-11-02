@@ -39,6 +39,8 @@ class Canvas {
   void EndFrame();
 
   void Button(const Rect& rect, ButtonVariant variant, bool hovered);
+  // A one-pixel vertical separator along the left edge of rect.
+  void Divider(const Rect& rect);
   void Text(const Rect& rect, std::wstring_view text, TextStyle style,
             TextAlign align = TextAlign::Leading);
   void Icon(const Rect& rect, IconKind kind);

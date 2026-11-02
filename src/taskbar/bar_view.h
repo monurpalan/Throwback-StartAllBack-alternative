@@ -27,6 +27,8 @@ struct BarModel {
   Rect clock;
   std::wstring_view time;
   std::wstring_view date;
+  Rect showDesktop;
+  bool showDesktopHovered = false;
 };
 
 // Draws the bar using UI kit components only.

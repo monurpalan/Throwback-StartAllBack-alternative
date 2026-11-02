@@ -18,6 +18,7 @@ BarMetrics ScaleMetrics(const BarMetrics& metrics, unsigned dpi) {
       .barHeight = ScaleForDpi(metrics.barHeight, dpi),
       .startButtonWidth = ScaleForDpi(metrics.startButtonWidth, dpi),
       .clockWidth = ScaleForDpi(metrics.clockWidth, dpi),
+      .showDesktopWidth = ScaleForDpi(metrics.showDesktopWidth, dpi),
       .minButtonWidth = ScaleForDpi(metrics.minButtonWidth, dpi),
       .maxButtonWidth = ScaleForDpi(metrics.maxButtonWidth, dpi),
       .spacing = ScaleForDpi(metrics.spacing, dpi),
@@ -28,7 +29,10 @@ BarMetrics ScaleMetrics(const BarMetrics& metrics, unsigned dpi) {
 BarLayout ComputeLayout(const BarMetrics& metrics, std::size_t taskCount) {
   BarLayout layout;
   layout.startButton = {0, 0, metrics.startButtonWidth, metrics.barHeight};
-  layout.clock = {metrics.barWidth - metrics.clockWidth, 0, metrics.barWidth, metrics.barHeight};
+  layout.showDesktop = {metrics.barWidth - metrics.showDesktopWidth, 0, metrics.barWidth,
+                        metrics.barHeight};
+  layout.clock = {layout.showDesktop.left - metrics.clockWidth, 0, layout.showDesktop.left,
+                  metrics.barHeight};
 
   const int areaLeft = layout.startButton.right + metrics.spacing;
   const int areaRight = layout.clock.left - metrics.spacing;

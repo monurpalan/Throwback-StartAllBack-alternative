@@ -68,6 +68,16 @@ inject into `explorer.exe` (see [ADR 0001](adr/0001-standalone-appbar.md)).
 - **Minimize animation** targets our button by answering `HSHELL_GETMINRECT`.
 - **Store app icons** come from the window's AppUserModelID via
   `shell:AppsFolder`, because their frame windows carry a generic icon.
+- **Previews:** resting on a button shows a live DWM thumbnail
+  (`DwmRegisterThumbnail`) after the system hover delay.
+- **Window menu:** right-clicking a button shows the classic system menu. Its
+  labels are read from a system menu Windows builds for a throwaway window,
+  so they are always in the user's Windows language. Native menus follow the
+  bar's light or dark theme.
+- **Fullscreen apps:** the bar drops below them on `ABN_FULLSCREENAPP` and the
+  shell's fullscreen enter/exit notifications, and comes back afterwards.
+- **Hung windows:** when Windows swaps a window for its "not responding" ghost,
+  the button keeps its place.
 
 ## Known limitations
 
