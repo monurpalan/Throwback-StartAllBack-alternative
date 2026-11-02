@@ -22,6 +22,10 @@ void DrawRows(ui::Canvas& canvas, const StartMenuModel& model) {
     const int top = list.top + static_cast<int>(i) * model.rowHeight;
     const Rect rect{list.left + inset, top, list.right - inset, top + model.rowHeight};
     canvas.Button(rect, ui::ButtonVariant::MenuItem, row.selected);
+    if (row.separatorBefore) {
+      canvas.Separator(HorizontalRule(list.left + padding, list.right - padding, top - 1, canvas),
+                       ui::SeparatorVariant::Pane);
+    }
 
     const int iconTop = top + (model.rowHeight - model.iconSize) / 2;
     const Rect icon{rect.left + padding / 2, iconTop, rect.left + padding / 2 + model.iconSize,

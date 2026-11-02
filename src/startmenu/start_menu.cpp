@@ -33,8 +33,11 @@ bool KeyDown(int key) { return (GetKeyState(key) & 0x8000) != 0; }
 
 }  // namespace
 
-StartMenu::StartMenu(HINSTANCE instance, HWND owner, std::function<void()> onClosed)
-    : onClosed_(std::move(onClosed)) {
+StartMenu::StartMenu(HINSTANCE instance, HWND owner, Settings& settings,
+                     std::function<void()> onClosed, std::function<void()> onPinnedChanged)
+    : settings_(settings),
+      onClosed_(std::move(onClosed)),
+      onPinnedChanged_(std::move(onPinnedChanged)) {
   WNDCLASSEXW windowClass{};
   windowClass.cbSize = sizeof(windowClass);
   windowClass.lpfnWndProc = WindowProc;
@@ -93,6 +96,13 @@ LRESULT StartMenu::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam) {
     case WM_LBUTTONUP:
       OnClick(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
       return 0;
+    case WM_RBUTTONUP: {
+      const Hit hit = HitTest(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+      POINT point{GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+      ClientToScreen(hwnd_, &point);
+      if (hit.kind == Hit::Kind::Row) ShowRowMenu(hit.index, point);
+      return 0;
+    }
     case WM_MOUSEWHEEL:
       OnWheel(GET_WHEEL_DELTA_WPARAM(wParam));
       return 0;
@@ -178,12 +188,17 @@ void StartMenu::RebuildRows() {
   rows_.clear();
   switch (mode_) {
     case Mode::Home:
-      for (const auto& program : frequent_) rows_.push_back({program.name, program.target});
+      AddHomeRows();
       break;
     case Mode::AllPrograms: {
       const Program& folder = folders_.empty() ? catalog_->root : *folders_.back();
       for (const auto& child : folder.children) {
-        rows_.push_back({child->name, child->target, child->folder ? child.get() : nullptr});
+        rows_.push_back({child->name,
+                         child->target,
+                         child->folder ? child.get() : nullptr,
+                         {},
+                         false,
+                         !child->folder});
       }
       break;
     }
@@ -198,7 +213,7 @@ void StartMenu::RebuildRows() {
                        [](const auto& a, const auto& b) { return a.first > b.first; });
       for (const auto& [score, program] : matches) {
         if (rows_.size() == kMaxSearchResults) break;
-        rows_.push_back({program->name, program->target});
+        rows_.push_back({program->name, program->target, nullptr, {}, false, true});
       }
       AddSettingsResults();
       break;
@@ -280,7 +295,7 @@ void StartMenu::Paint() {
     model.rows.push_back(
         {row.name,
          icons_->Get(row.iconTarget.empty() ? row.target : row.iconTarget, model.iconSize),
-         row.folder != nullptr, i == selected_});
+         row.folder != nullptr, i == selected_, row.separatorBefore});
   }
   model.showBack = mode_ != Mode::Home;
   model.allProgramsHovered = hover_.kind == Hit::Kind::AllPrograms;
@@ -384,6 +399,14 @@ void StartMenu::OnKey(UINT key) {
     case VK_UP:
       if (count > 0) selected_ = std::max(selected_ - 1, 0);
       break;
+    case VK_APPS:
+      if (selected_ >= 0 && selected_ < count) {
+        const int top = layout_.list.top + (selected_ - scroll_) * RowHeight();
+        POINT point{layout_.list.left + RowHeight(), top + RowHeight()};
+        ClientToScreen(hwnd_, &point);
+        ShowRowMenu(selected_, point);
+      }
+      return;
     case VK_RETURN:
       if (count > 0) ActivateRow(std::max(selected_, 0), KeyDown(VK_CONTROL) && KeyDown(VK_SHIFT));
       return;

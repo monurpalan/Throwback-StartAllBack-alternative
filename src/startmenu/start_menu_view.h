@@ -18,6 +18,7 @@ struct StartMenuModel {
     HICON icon = nullptr;
     bool folder = false;
     bool selected = false;
+    bool separatorBefore = false;
   };
   struct PlaceRow {
     std::wstring_view name;

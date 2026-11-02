@@ -25,6 +25,12 @@ constexpr std::array<Translation, kStringCount> kTable = {{
     {StringId::PowerOptions, L"Power options", L"Güç seçenekleri"},
     // The shell names the Run dialog in English on every Windows language.
     {StringId::Run, L"Run...", L"Çalıştır..."},
+    {StringId::OpenProgram, L"Open", L"Aç"},
+    {StringId::RunAsAdministrator, L"Run as administrator", L"Yönetici olarak çalıştır"},
+    {StringId::OpenFileLocation, L"Open file location", L"Dosya konumunu aç"},
+    {StringId::PinToStartMenu, L"Pin to Start menu", L"Başlat menüsüne sabitle"},
+    {StringId::UnpinFromStartMenu, L"Unpin from Start menu", L"Başlat menüsünden kaldır"},
+    {StringId::Properties, L"Properties", L"Özellikler"},
     {StringId::SettingsDisplay, L"Display", L"Ekran"},
     {StringId::SettingsNightLight, L"Night light", L"Gece ışığı"},
     {StringId::SettingsSound, L"Sound", L"Ses"},

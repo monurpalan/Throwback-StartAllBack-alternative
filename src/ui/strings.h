@@ -24,6 +24,12 @@ enum class StringId {
   Lock,
   PowerOptions,
   Run,
+  OpenProgram,
+  RunAsAdministrator,
+  OpenFileLocation,
+  PinToStartMenu,
+  UnpinFromStartMenu,
+  Properties,
   // Settings pages found by the start menu search.
   SettingsDisplay,
   SettingsNightLight,

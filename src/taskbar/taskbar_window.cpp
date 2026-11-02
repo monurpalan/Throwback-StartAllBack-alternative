@@ -91,8 +91,9 @@ TaskbarWindow::TaskbarWindow(HINSTANCE instance, const Settings& settings,
   canvas_->SetDpi(dpi_);
   ui::EnableGlass(hwnd_, ui::GlassCorners::Square);
   thumbnail_ = std::make_unique<ThumbnailPopup>(instance, hwnd_);
-  startMenu_ = std::make_unique<StartMenu>(instance, hwnd_,
-                                           [this] { InvalidateRect(hwnd_, nullptr, FALSE); });
+  startMenu_ = std::make_unique<StartMenu>(
+      instance, hwnd_, settings_, [this] { InvalidateRect(hwnd_, nullptr, FALSE); },
+      [this] { SavePinned(); });
   ApplyWindowsKey();
   ApplyTheme();
   RegisterAppBar();
@@ -303,6 +304,14 @@ void TaskbarWindow::RegisterAppBar() {
   appBar_.reset();
   appBar_ = std::make_unique<AppBar>(hwnd_, kAppBarCallback);
   Dock();
+}
+
+void TaskbarWindow::SavePinned() {
+  // Only the pins are saved: settings_ also holds this run's command-line
+  // overrides, which must not become the saved settings.
+  Settings saved = store_.Load();
+  saved.pinned = settings_.pinned;
+  store_.Save(saved);
 }
 
 void TaskbarWindow::ApplyWindowsKey() {

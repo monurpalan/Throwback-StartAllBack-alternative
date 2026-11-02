@@ -43,6 +43,7 @@ class TaskbarWindow {
   void Dock();
   void ApplySystemTaskbar();
   void ApplyWindowsKey();
+  void SavePinned();
   void ApplyTheme();
   void RefreshTasks();
   void UpdateLayout();

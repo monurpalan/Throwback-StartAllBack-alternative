@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "core/settings.h"
 #include "core/start_menu_layout.h"
 #include "shell/async_icons.h"
 #include "startmenu/frequent.h"
@@ -22,7 +23,9 @@ namespace throwback {
 class StartMenu {
  public:
   // The menu is owned by the bar, so closing requests reach the bar.
-  StartMenu(HINSTANCE instance, HWND owner, std::function<void()> onClosed);
+  // Pinning changes settings.pinned and then calls onPinnedChanged to save.
+  StartMenu(HINSTANCE instance, HWND owner, Settings& settings, std::function<void()> onClosed,
+            std::function<void()> onPinnedChanged);
   ~StartMenu();
   StartMenu(const StartMenu&) = delete;
   StartMenu& operator=(const StartMenu&) = delete;
@@ -45,6 +48,8 @@ class StartMenu {
     std::wstring target;
     const Program* folder = nullptr;
     std::wstring iconTarget;  // when the icon comes from another item than target
+    bool separatorBefore = false;
+    bool pinnable = false;  // a program, not a folder or a settings page
   };
   // What the mouse is over.
   struct Hit {
@@ -56,6 +61,10 @@ class StartMenu {
   LRESULT HandleMessage(UINT message, WPARAM wParam, LPARAM lParam);
 
   void LoadData();
+  void AddHomeRows();
+  // The display name of a launchable target; empty once it is uninstalled.
+  std::wstring ProgramName(const std::wstring& target) const;
+  void ShowRowMenu(int index, POINT point);
   void AddSettingsResults();
   void SetMode(Mode mode);
   void RebuildRows();
@@ -77,7 +86,9 @@ class StartMenu {
   void ShowPowerMenu();
 
   HWND hwnd_ = nullptr;
+  Settings& settings_;
   std::function<void()> onClosed_;
+  std::function<void()> onPinnedChanged_;
   std::unique_ptr<ui::Canvas> canvas_;
   StartMenuLayout layout_;
   unsigned dpi_ = 96;

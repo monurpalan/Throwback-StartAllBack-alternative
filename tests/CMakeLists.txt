@@ -10,6 +10,7 @@ FetchContent_MakeAvailable(googletest)
 add_executable(throwback_tests
   layout_test.cpp
   options_test.cpp
+  program_menu_test.cpp
   search_test.cpp
   settings_test.cpp
   stable_order_test.cpp

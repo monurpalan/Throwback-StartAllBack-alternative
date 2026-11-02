@@ -25,6 +25,7 @@ target_compile_options(throwback_options INTERFACE /W4 /WX /permissive- /utf-8)
 add_library(throwback_core STATIC
   src/core/layout.cpp
   src/core/options.cpp
+  src/core/program_menu.cpp
   src/core/search.cpp
   src/core/settings.cpp
   src/core/start_menu_layout.cpp
@@ -59,9 +60,11 @@ add_executable(throwback WIN32
   src/startmenu/frequent.cpp
   src/startmenu/places.cpp
   src/startmenu/power.cpp
+  src/startmenu/program_menu.cpp
   src/startmenu/programs.cpp
   src/startmenu/settings_pages.cpp
   src/startmenu/start_menu.cpp
+  src/startmenu/start_menu_actions.cpp
   src/startmenu/start_menu_view.cpp
   src/startmenu/win_key_hook.cpp
   src/taskbar/app_icons.cpp
