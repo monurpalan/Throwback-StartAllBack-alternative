@@ -31,6 +31,7 @@ constexpr std::array<Translation, kStringCount> kTable = {{
     {StringId::PinToStartMenu, L"Pin to Start menu", L"Başlat menüsüne sabitle"},
     {StringId::UnpinFromStartMenu, L"Unpin from Start menu", L"Başlat menüsünden kaldır"},
     {StringId::Properties, L"Properties", L"Özellikler"},
+    {StringId::Recent, L"Recent", L"Son"},
     {StringId::SettingsDisplay, L"Display", L"Ekran"},
     {StringId::SettingsNightLight, L"Night light", L"Gece ışığı"},
     {StringId::SettingsSound, L"Sound", L"Ses"},

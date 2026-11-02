@@ -175,6 +175,7 @@ void StartMenu::LoadData() {
 }
 
 void StartMenu::SetMode(Mode mode) {
+  ResetJumpList();
   mode_ = mode;
   if (mode == Mode::Home) {
     folders_.clear();
@@ -274,6 +275,14 @@ StartMenu::Hit StartMenu::HitTest(int x, int y) const {
   if (layout_.allPrograms.Contains(x, y)) return {Kind::AllPrograms};
   if (layout_.power.Contains(x, y)) return {Kind::Power};
   if (layout_.powerArrow.Contains(x, y)) return {Kind::PowerArrow};
+  if (jumpRow_ >= 0) {
+    // The open jump list covers the places.
+    const std::vector<Rect> items = JumpItemRects(layout_, jumpItems_.size());
+    for (size_t i = 0; i < items.size(); ++i) {
+      if (items[i].Contains(x, y)) return {Kind::JumpItem, static_cast<int>(i)};
+    }
+    return {};
+  }
   const std::vector<Rect> places = PlaceRowRects();
   for (size_t i = 0; i < places.size(); ++i) {
     if (places[i].Contains(x, y)) return {Kind::Place, static_cast<int>(i)};
@@ -295,7 +304,8 @@ void StartMenu::Paint() {
     model.rows.push_back(
         {row.name,
          icons_->Get(row.iconTarget.empty() ? row.target : row.iconTarget, model.iconSize),
-         row.folder != nullptr, i == selected_, row.separatorBefore});
+         row.folder != nullptr, i == selected_ || i == jumpRow_, row.separatorBefore,
+         !row.appId.empty()});
   }
   model.showBack = mode_ != Mode::Home;
   model.allProgramsHovered = hover_.kind == Hit::Kind::AllPrograms;
@@ -310,6 +320,12 @@ void StartMenu::Paint() {
   }
   model.powerHovered = hover_.kind == Hit::Kind::Power;
   model.powerArrowHovered = hover_.kind == Hit::Kind::PowerArrow;
+  model.jumpListOpen = jumpRow_ >= 0;
+  for (size_t i = 0; i < jumpItems_.size(); ++i) {
+    model.jumpRows.push_back(
+        {jumpItems_[i].name, icons_->Get(jumpItems_[i].target, ScaleForDpi(kSmallIcon, dpi_)),
+         hover_.kind == Hit::Kind::JumpItem && hover_.index == static_cast<int>(i)});
+  }
 
   canvas_->BeginFrame();
   DrawStartMenu(*canvas_, model);
@@ -322,11 +338,18 @@ void StartMenu::OnMouseMove(int x, int y) {
     TRACKMOUSEEVENT track{sizeof(track), TME_LEAVE, hwnd_, 0};
     trackingMouse_ = TrackMouseEvent(&track) != FALSE;
   }
+  // Reaching the open jump list keeps it, even after crossing another row
+  // on the way there.
+  if (jumpRow_ >= 0 && layout_.jumpList.Contains(x, y)) {
+    HoverJumpList(jumpRow_);
+    selected_ = jumpRow_;
+  }
   const Hit hit = HitTest(x, y);
   if (hit.kind == hover_.kind && hit.index == hover_.index) return;
   hover_ = hit;
   // Like the classic menu, pointing at a program selects it.
   if (hit.kind == Hit::Kind::Row) selected_ = hit.index;
+  if (mode_ == Mode::Home && hit.kind == Hit::Kind::Row) HoverJumpList(hit.index);
   InvalidateRect(hwnd_, nullptr, FALSE);
 }
 
@@ -334,6 +357,10 @@ void StartMenu::OnClick(int x, int y) {
   const Hit hit = HitTest(x, y);
   switch (hit.kind) {
     case Hit::Kind::Row:
+      if (mode_ == Mode::Home && OnJumpArrow(hit.index, x)) {
+        OpenJumpList(hit.index);
+        break;
+      }
       ActivateRow(hit.index, KeyDown(VK_CONTROL) && KeyDown(VK_SHIFT));
       break;
     case Hit::Kind::AllPrograms:
@@ -354,6 +381,12 @@ void StartMenu::OnClick(int x, int y) {
     case Hit::Kind::PowerArrow:
       ShowPowerMenu();
       break;
+    case Hit::Kind::JumpItem: {
+      const std::wstring target = jumpItems_[static_cast<size_t>(hit.index)].target;
+      Hide(/*restoreFocus=*/false);
+      shell::Launch(target);
+      break;
+    }
     case Hit::Kind::None:
       break;
   }

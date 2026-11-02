@@ -15,6 +15,7 @@ constexpr int kControlHeight = 24;
 constexpr int kPictureSize = 48;
 constexpr int kPlaceHeight = 32;
 constexpr int kPowerArrowWidth = 24;
+constexpr int kJumpRowHeight = 24;
 
 }  // namespace
 
@@ -52,6 +53,8 @@ StartMenuLayout ComputeStartMenuLayout(unsigned dpi) {
   layout.places = {rightLeft, layout.picture.bottom + padding * 2, rightRight, bottomTop};
   layout.powerArrow = {rightRight - s(kPowerArrowWidth), controlTop, rightRight, controlBottom};
   layout.power = {rightLeft, controlTop, layout.powerArrow.left, controlBottom};
+  layout.jumpList = {rightLeft, layout.leftPane.top, rightRight, layout.leftPane.bottom};
+  layout.jumpRowHeight = s(kJumpRowHeight);
   return layout;
 }
 

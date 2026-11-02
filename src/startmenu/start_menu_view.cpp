@@ -32,10 +32,11 @@ void DrawRows(ui::Canvas& canvas, const StartMenuModel& model) {
                     iconTop + model.iconSize};
     canvas.Icon(icon, row.icon);
 
-    const int chevron = row.folder ? canvas.Scale(kChevronSize) : 0;
+    const bool arrow = row.folder || row.hasJumpList;
+    const int chevron = arrow ? canvas.Scale(kChevronSize) : 0;
     canvas.Text({icon.right + padding, top, rect.right - padding - chevron, rect.bottom}, row.name,
                 ui::TextStyle::Body, ui::TextTone::Dark);
-    if (row.folder) {
+    if (arrow) {
       canvas.Icon({rect.right - padding - chevron, top, rect.right - padding, rect.bottom},
                   ui::IconKind::ChevronRight);
     }
@@ -70,8 +71,40 @@ void DrawLeftPane(ui::Canvas& canvas, const StartMenuModel& model) {
   canvas.TextField(layout.search, model.query, ui::Tr(ui::StringId::SearchPlaceholder), true);
 }
 
+void DrawPower(ui::Canvas& canvas, const StartMenuModel& model);
+
+void DrawJumpList(ui::Canvas& canvas, const StartMenuModel& model) {
+  const StartMenuLayout& layout = model.layout;
+  const int padding = canvas.Scale(ui::kSpace8);
+  const int inset = canvas.Scale(ui::kSpace2);
+  canvas.Panel(layout.jumpList);
+  const Rect title{layout.jumpList.left + padding, layout.jumpList.top,
+                   layout.jumpList.right - padding, layout.jumpList.top + layout.jumpRowHeight};
+  canvas.Text(title, ui::Tr(ui::StringId::Recent), ui::TextStyle::Body, ui::TextTone::Muted);
+  canvas.Separator(HorizontalRule(title.left, title.right, title.bottom - inset, canvas),
+                   ui::SeparatorVariant::Pane);
+
+  const int iconSize = canvas.Scale(kChevronSize);
+  const std::vector<Rect> rects = JumpItemRects(layout, model.jumpRows.size());
+  for (size_t i = 0; i < rects.size(); ++i) {
+    const auto& item = model.jumpRows[i];
+    canvas.Button(rects[i], ui::ButtonVariant::MenuItem, item.hovered);
+    const int iconTop = rects[i].top + (rects[i].Height() - iconSize) / 2;
+    const Rect icon{rects[i].left + padding / 2, iconTop, rects[i].left + padding / 2 + iconSize,
+                    iconTop + iconSize};
+    canvas.Icon(icon, item.icon);
+    canvas.Text({icon.right + padding / 2, rects[i].top, rects[i].right - inset, rects[i].bottom},
+                item.name, ui::TextStyle::Body, ui::TextTone::Dark);
+  }
+}
+
 void DrawRightColumn(ui::Canvas& canvas, const StartMenuModel& model) {
   const StartMenuLayout& layout = model.layout;
+  if (model.jumpListOpen) {
+    DrawJumpList(canvas, model);
+    DrawPower(canvas, model);
+    return;
+  }
   canvas.AccountPicture(layout.picture, std::wstring(model.picturePath),
                         model.accountName.substr(0, 1));
 
@@ -91,6 +124,11 @@ void DrawRightColumn(ui::Canvas& canvas, const StartMenuModel& model) {
                 place.name, ui::TextStyle::Body, ui::TextTone::Light);
   }
 
+  DrawPower(canvas, model);
+}
+
+void DrawPower(ui::Canvas& canvas, const StartMenuModel& model) {
+  const StartMenuLayout& layout = model.layout;
   canvas.Button(layout.power, ui::ButtonVariant::Command, model.powerHovered);
   canvas.Text(layout.power, ui::Tr(ui::StringId::ShutDown), ui::TextStyle::Body, ui::TextTone::Dark,
               ui::TextAlign::Center);
@@ -99,6 +137,18 @@ void DrawRightColumn(ui::Canvas& canvas, const StartMenuModel& model) {
 }
 
 }  // namespace
+
+std::vector<Rect> JumpItemRects(const StartMenuLayout& layout, size_t count) {
+  std::vector<Rect> rects;
+  const int inset = layout.jumpRowHeight / 12;  // 2 px at 96 DPI
+  int top = layout.jumpList.top + layout.jumpRowHeight;
+  for (size_t i = 0; i < count && top + layout.jumpRowHeight <= layout.jumpList.bottom; ++i) {
+    rects.push_back({layout.jumpList.left + inset, top, layout.jumpList.right - inset,
+                     top + layout.jumpRowHeight});
+    top += layout.jumpRowHeight;
+  }
+  return rects;
+}
 
 std::vector<Rect> PlaceRects(const StartMenuLayout& layout, const std::vector<bool>& separators,
                              int gap) {

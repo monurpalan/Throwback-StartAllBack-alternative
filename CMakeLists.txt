@@ -55,6 +55,7 @@ target_link_libraries(throwback_ui
 add_executable(throwback WIN32
   src/shell/async_icons.cpp
   src/shell/launch.cpp
+  src/shell/recent_items.cpp
   src/shell/settings_store.cpp
   src/shell/shell_icons.cpp
   src/startmenu/frequent.cpp
@@ -65,6 +66,7 @@ add_executable(throwback WIN32
   src/startmenu/settings_pages.cpp
   src/startmenu/start_menu.cpp
   src/startmenu/start_menu_actions.cpp
+  src/startmenu/start_menu_jump.cpp
   src/startmenu/start_menu_view.cpp
   src/startmenu/win_key_hook.cpp
   src/taskbar/app_icons.cpp

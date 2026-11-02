@@ -10,6 +10,7 @@
 #include "core/settings.h"
 #include "core/start_menu_layout.h"
 #include "shell/async_icons.h"
+#include "shell/recent_items.h"
 #include "startmenu/frequent.h"
 #include "startmenu/places.h"
 #include "startmenu/programs.h"
@@ -50,10 +51,19 @@ class StartMenu {
     std::wstring iconTarget;  // when the icon comes from another item than target
     bool separatorBefore = false;
     bool pinnable = false;  // a program, not a folder or a settings page
+    std::wstring appId;     // set when the program has a jump list
   };
   // What the mouse is over.
   struct Hit {
-    enum class Kind { None, Row, AllPrograms, Place, Power, PowerArrow } kind = Kind::None;
+    enum class Kind {
+      None,
+      Row,
+      AllPrograms,
+      Place,
+      Power,
+      PowerArrow,
+      JumpItem
+    } kind = Kind::None;
     int index = -1;
   };
 
@@ -65,6 +75,13 @@ class StartMenu {
   // The display name of a launchable target; empty once it is uninstalled.
   std::wstring ProgramName(const std::wstring& target) const;
   void ShowRowMenu(int index, POINT point);
+  // Jump lists open on hovering a home row for a moment, or at once when its
+  // arrow is clicked, and replace the right column until another row is
+  // pointed at.
+  void HoverJumpList(int row);
+  void OpenJumpList(int row);
+  void ResetJumpList();
+  bool OnJumpArrow(int row, int x) const;
   void AddSettingsResults();
   void SetMode(Mode mode);
   void RebuildRows();
@@ -108,6 +125,9 @@ class StartMenu {
   int selected_ = -1;
   Hit hover_;
   bool trackingMouse_ = false;
+  int jumpRow_ = -1;
+  int pendingJumpRow_ = -1;
+  std::vector<shell::RecentItem> jumpItems_;
   bool keepOpen_ = false;  // a popup menu of ours is showing
   HWND previousForeground_ = nullptr;
 };

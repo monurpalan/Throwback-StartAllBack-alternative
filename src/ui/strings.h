@@ -30,6 +30,7 @@ enum class StringId {
   PinToStartMenu,
   UnpinFromStartMenu,
   Properties,
+  Recent,
   // Settings pages found by the start menu search.
   SettingsDisplay,
   SettingsNightLight,

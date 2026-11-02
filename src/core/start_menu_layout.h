@@ -17,9 +17,11 @@ struct StartMenuLayout {
   Rect places;  // first place row starts at places.top
   Rect power;
   Rect powerArrow;
+  Rect jumpList;      // replaces the right column while a jump list is open
   int rowHeight = 0;  // program rows
   int placeHeight = 0;
   int listRows = 0;
+  int jumpRowHeight = 0;
 };
 
 StartMenuLayout ComputeStartMenuLayout(unsigned dpi);

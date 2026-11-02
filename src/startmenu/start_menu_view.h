@@ -19,6 +19,12 @@ struct StartMenuModel {
     bool folder = false;
     bool selected = false;
     bool separatorBefore = false;
+    bool hasJumpList = false;
+  };
+  struct JumpRow {
+    std::wstring_view name;
+    HICON icon = nullptr;
+    bool hovered = false;
   };
   struct PlaceRow {
     std::wstring_view name;
@@ -39,11 +45,17 @@ struct StartMenuModel {
   std::vector<PlaceRow> places;
   bool powerHovered = false;
   bool powerArrowHovered = false;
+  // While open, the jump list replaces the picture and the places.
+  bool jumpListOpen = false;
+  std::vector<JumpRow> jumpRows;
 };
 
 // The place row rects, with separators taken into account.
 std::vector<Rect> PlaceRects(const StartMenuLayout& layout, const std::vector<bool>& separators,
                              int gap);
+
+// The jump list's item rects, below its title; as many as fit.
+std::vector<Rect> JumpItemRects(const StartMenuLayout& layout, size_t count);
 
 // Draws the start menu using UI kit components only.
 void DrawStartMenu(ui::Canvas& canvas, const StartMenuModel& model);

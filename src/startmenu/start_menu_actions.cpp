@@ -7,6 +7,16 @@
 #include "startmenu/start_menu.h"
 
 namespace throwback {
+namespace {
+
+// The app ID to show a jump list for, when the program has recent items.
+std::wstring JumpListId(const std::wstring& target) {
+  std::wstring appId = shell::AppIdForTarget(target);
+  if (shell::LoadRecentItems(appId, 1).empty()) appId.clear();
+  return appId;
+}
+
+}  // namespace
 
 std::wstring StartMenu::ProgramName(const std::wstring& target) const {
   // Programs from All Programs are shortcuts; frequent ones are app IDs.
@@ -26,14 +36,15 @@ void StartMenu::AddHomeRows() {
   for (const auto& target : settings_.pinned) {
     if (rows_.size() == limit) return;
     if (std::wstring name = ProgramName(target); !name.empty()) {
-      rows_.push_back({std::move(name), target, nullptr, {}, false, true});
+      rows_.push_back({std::move(name), target, nullptr, {}, false, true, JumpListId(target)});
     }
   }
   const size_t pinnedCount = rows_.size();
   for (const auto& program : frequent_) {
     if (rows_.size() == limit) break;
     if (IsPinned(settings_, program.target)) continue;
-    rows_.push_back({program.name, program.target, nullptr, {}, false, true});
+    rows_.push_back(
+        {program.name, program.target, nullptr, {}, false, true, JumpListId(program.target)});
   }
   if (pinnedCount > 0 && rows_.size() > pinnedCount) rows_[pinnedCount].separatorBefore = true;
 }

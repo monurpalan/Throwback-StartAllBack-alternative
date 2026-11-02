@@ -20,6 +20,7 @@ TEST(StartMenuLayoutTest, ClassicSizeAt96Dpi) {
   EXPECT_EQ(layout.picture, (Rect{304, 8, 352, 56}));
   EXPECT_EQ(layout.power, (Rect{264, 476, 368, 500}));
   EXPECT_EQ(layout.powerArrow, (Rect{368, 476, 392, 500}));
+  EXPECT_EQ(layout.jumpList, (Rect{264, 8, 392, 464}));
 }
 
 TEST(StartMenuLayoutTest, PartsStayInsideTheirAreas) {
@@ -33,6 +34,8 @@ TEST(StartMenuLayoutTest, PartsStayInsideTheirAreas) {
     EXPECT_GE(layout.places.left, layout.leftPane.right) << dpi;
     EXPECT_EQ(layout.power.right, layout.powerArrow.left) << dpi;
     EXPECT_TRUE(Inside(layout.powerArrow, layout.frame)) << dpi;
+    EXPECT_TRUE(Inside(layout.jumpList, layout.frame)) << dpi;
+    EXPECT_GE(layout.jumpList.left, layout.leftPane.right) << dpi;
   }
 }
 
