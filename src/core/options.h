@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -9,10 +10,15 @@ enum class Edge { Top, Bottom };
 enum class ThemeMode { System, Light, Dark };
 enum class LanguageMode { System, English, Turkish };
 
+// Command-line arguments. They override the saved settings for one run and
+// are never saved themselves.
 struct Options {
-  Edge edge = Edge::Top;
-  ThemeMode theme = ThemeMode::System;
-  LanguageMode language = LanguageMode::System;
+  std::optional<Edge> edge;
+  std::optional<ThemeMode> theme;
+  std::optional<LanguageMode> language;
+  // Settings live per profile; tests run under their own so they never touch
+  // the user's settings.
+  std::wstring profile = L"default";
 };
 
 struct ParseResult {
@@ -23,5 +29,8 @@ struct ParseResult {
 
 // Parses command-line arguments (without the program name).
 ParseResult ParseOptions(const std::vector<std::wstring>& args);
+
+// Letters, digits, '-' and '_', at most 32 characters: safe as a registry key.
+bool IsValidProfileName(std::wstring_view name);
 
 }  // namespace throwback

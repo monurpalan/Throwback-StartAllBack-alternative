@@ -51,7 +51,7 @@ $failures = @()
 foreach ($theme in "dark", "light") {
   foreach ($lang in "en", "tr") {
     $name = "$theme-$lang"
-    $process = Start-Process $Exe -ArgumentList "--theme=$theme", "--lang=$lang" -PassThru
+    $process = Start-Process $Exe -ArgumentList "--profile=smoke", "--theme=$theme", "--lang=$lang" -PassThru
     Start-Sleep -Seconds 3
     $bar = Find-Bar
     if (-not $bar) { $failures += "${name}: bar window not found"; continue }
@@ -110,6 +110,8 @@ foreach ($theme in "dark", "light") {
   }
 }
 
+# The smoke profile only exists for this run; never touch the user's own.
+Remove-Item "HKCU:\Software\Throwback\Profiles\smoke" -Recurse -ErrorAction SilentlyContinue
 Write-Host "Screenshots: $((Resolve-Path $OutDir).Path)"
 if ($failures.Count) {
   $failures | ForEach-Object { Write-Host "FAIL $_" }

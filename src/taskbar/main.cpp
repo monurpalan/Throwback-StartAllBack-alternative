@@ -7,6 +7,8 @@
 #include <vector>
 
 #include "core/options.h"
+#include "core/settings.h"
+#include "shell/settings_store.h"
 #include "taskbar/taskbar_window.h"
 #include "ui/strings.h"
 
@@ -52,7 +54,9 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int) {
   using throwback::ui::StringId;
   using throwback::ui::Tr;
   const throwback::ParseResult parsed = throwback::ParseOptions(CommandLineArgs());
-  throwback::ui::SetLanguage(ResolveLanguage(parsed.options.language));
+  const throwback::shell::SettingsStore store(parsed.options.profile);
+  const throwback::Settings settings = throwback::WithOverrides(store.Load(), parsed.options);
+  throwback::ui::SetLanguage(ResolveLanguage(settings.language));
   if (!parsed.unknownArguments.empty()) {
     std::wstring text;
     for (const auto& arg : parsed.unknownArguments) {
@@ -68,7 +72,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int) {
 
   int exitCode = 0;
   try {
-    throwback::TaskbarWindow window(instance, parsed.options);
+    throwback::TaskbarWindow window(instance, settings, store);
     exitCode = RunMessageLoop();
   } catch (const std::exception& error) {
     MessageBoxA(nullptr, error.what(), "Throwback", MB_ICONERROR);

@@ -5,11 +5,12 @@
 namespace throwback {
 namespace {
 
-TEST(OptionsTest, Defaults) {
+TEST(OptionsTest, DefaultsOverrideNothing) {
   const ParseResult result = ParseOptions({});
-  EXPECT_EQ(result.options.edge, Edge::Top);
-  EXPECT_EQ(result.options.theme, ThemeMode::System);
-  EXPECT_EQ(result.options.language, LanguageMode::System);
+  EXPECT_FALSE(result.options.edge);
+  EXPECT_FALSE(result.options.theme);
+  EXPECT_FALSE(result.options.language);
+  EXPECT_EQ(result.options.profile, L"default");
   EXPECT_TRUE(result.unknownArguments.empty());
 }
 
@@ -29,6 +30,20 @@ TEST(OptionsTest, ParsesLanguages) {
   EXPECT_EQ(ParseOptions({L"--lang=tr"}).options.language, LanguageMode::Turkish);
   EXPECT_EQ(ParseOptions({L"--lang=en"}).options.language, LanguageMode::English);
   EXPECT_EQ(ParseOptions({L"--lang=tr", L"--lang=system"}).options.language, LanguageMode::System);
+}
+
+TEST(OptionsTest, ParsesProfile) {
+  EXPECT_EQ(ParseOptions({L"--profile=test"}).options.profile, L"test");
+  // Profile names become registry key names, so separators are refused.
+  EXPECT_EQ(ParseOptions({L"--profile=..\\other"}).unknownArguments.size(), 1u);
+  EXPECT_EQ(ParseOptions({L"--profile="}).unknownArguments.size(), 1u);
+}
+
+TEST(OptionsTest, ValidatesProfileNames) {
+  EXPECT_TRUE(IsValidProfileName(L"test_2-b"));
+  EXPECT_FALSE(IsValidProfileName(L"a b"));
+  EXPECT_FALSE(IsValidProfileName(L"a\\b"));
+  EXPECT_FALSE(IsValidProfileName(std::wstring(33, L'a')));
 }
 
 TEST(OptionsTest, ReportsUnknownArguments) {

@@ -67,8 +67,9 @@ UINT HoverDelayMs() {
 
 TaskbarWindow* TaskbarWindow::instance_ = nullptr;
 
-TaskbarWindow::TaskbarWindow(HINSTANCE instance, const Options& options)
-    : options_(options), module_(instance) {
+TaskbarWindow::TaskbarWindow(HINSTANCE instance, const Settings& settings,
+                             shell::SettingsStore store)
+    : settings_(settings), store_(std::move(store)), module_(instance) {
   WNDCLASSEXW windowClass{};
   windowClass.cbSize = sizeof(windowClass);
   windowClass.lpfnWndProc = WindowProc;
@@ -300,12 +301,12 @@ void TaskbarWindow::RegisterAppBar() {
 }
 
 void TaskbarWindow::Dock() {
-  if (appBar_) appBar_->Dock(options_.edge, ScaleForDpi(kBarHeight, dpi_));
+  if (appBar_) appBar_->Dock(settings_.edge, ScaleForDpi(kBarHeight, dpi_));
 }
 
 void TaskbarWindow::ApplyTheme() {
-  const bool light = options_.theme == ThemeMode::Light ||
-                     (options_.theme == ThemeMode::System && ui::SystemUsesLightTheme());
+  const bool light = settings_.theme == ThemeMode::Light ||
+                     (settings_.theme == ThemeMode::System && ui::SystemUsesLightTheme());
   // The Aero glass looks the same either way; only native menus follow it.
   ApplyMenuTheme(!light);
   InvalidateRect(hwnd_, nullptr, FALSE);
@@ -342,7 +343,7 @@ void TaskbarWindow::Paint() {
   GetClientRect(hwnd_, &client);
   BarModel model{
       .bounds = {0, 0, client.right, client.bottom},
-      .top = options_.edge == Edge::Top,
+      .top = settings_.edge == Edge::Top,
       .startButton = layout_.startButton,
       .startHovered = hovered_ == kHitStart,
       .startOpen = startMenu_ && startMenu_->IsOpen(),
@@ -474,7 +475,7 @@ void TaskbarWindow::ShowThumbnail(int index) {
   const TaskItem& item = items[static_cast<size_t>(index)];
   RECT anchor{};
   if (!ButtonScreenRect(item.hwnd, &anchor)) return;
-  thumbnail_->Show({item.hwnd, item.title, item.icon}, anchor, options_.edge == Edge::Top, dpi_);
+  thumbnail_->Show({item.hwnd, item.title, item.icon}, anchor, settings_.edge == Edge::Top, dpi_);
 }
 
 void TaskbarWindow::ToggleStartMenu() {
@@ -487,8 +488,8 @@ void TaskbarWindow::ToggleStartMenu() {
   POINT bottomRight{layout_.startButton.right, layout_.startButton.bottom};
   ClientToScreen(hwnd_, &topLeft);
   ClientToScreen(hwnd_, &bottomRight);
-  startMenu_->Open({topLeft.x, topLeft.y, bottomRight.x, bottomRight.y}, options_.edge == Edge::Top,
-                   dpi_);
+  startMenu_->Open({topLeft.x, topLeft.y, bottomRight.x, bottomRight.y},
+                   settings_.edge == Edge::Top, dpi_);
   InvalidateRect(hwnd_, nullptr, FALSE);
 }
 

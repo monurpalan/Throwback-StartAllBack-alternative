@@ -10,9 +10,9 @@ constexpr std::array<Translation, kStringCount> kTable = {{
     {StringId::UnknownArgument, L"Unknown argument: ", L"Bilinmeyen argüman: "},
     {StringId::Usage,
      L"Usage: throwback.exe [--edge=top|bottom] [--theme=system|light|dark] "
-     L"[--lang=system|en|tr]",
+     L"[--lang=system|en|tr] [--profile=<name>]",
      L"Kullanım: throwback.exe [--edge=top|bottom] [--theme=system|light|dark] "
-     L"[--lang=system|en|tr]"},
+     L"[--lang=system|en|tr] [--profile=<ad>]"},
     {StringId::AllPrograms, L"All Programs", L"Tüm Programlar"},
     {StringId::Back, L"Back", L"Geri"},
     {StringId::SearchPlaceholder, L"Search programs", L"Programlarda ara"},

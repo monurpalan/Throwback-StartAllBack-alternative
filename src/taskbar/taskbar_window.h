@@ -5,8 +5,9 @@
 #include <memory>
 
 #include "core/layout.h"
-#include "core/options.h"
+#include "core/settings.h"
 #include "core/task_click.h"
+#include "shell/settings_store.h"
 #include "startmenu/start_menu.h"
 #include "startmenu/win_key_hook.h"
 #include "taskbar/appbar.h"
@@ -20,7 +21,7 @@ namespace throwback {
 // The bar itself: owns the window and wires the tracker, AppBar and renderer together.
 class TaskbarWindow {
  public:
-  TaskbarWindow(HINSTANCE instance, const Options& options);
+  TaskbarWindow(HINSTANCE instance, const Settings& settings, shell::SettingsStore store);
   ~TaskbarWindow();
   TaskbarWindow(const TaskbarWindow&) = delete;
   TaskbarWindow& operator=(const TaskbarWindow&) = delete;
@@ -57,7 +58,8 @@ class TaskbarWindow {
   // The WinEvent callback has no context parameter; there is one bar per process.
   static TaskbarWindow* instance_;
 
-  Options options_;
+  Settings settings_;
+  shell::SettingsStore store_;
   HINSTANCE module_;
   HWND hwnd_ = nullptr;
   UINT shellHookMessage_ = 0;

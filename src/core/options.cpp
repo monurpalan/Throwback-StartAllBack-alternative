@@ -1,13 +1,21 @@
 #include "core/options.h"
 
+#include <algorithm>
 #include <string_view>
 
 namespace throwback {
 namespace {
 
+constexpr std::wstring_view kProfilePrefix = L"--profile=";
+constexpr size_t kMaxProfileLength = 32;
+
 // Applies one known argument; returns false for anything unknown.
 bool Apply(std::wstring_view arg, Options& options) {
-  if (arg == L"--edge=top") {
+  if (arg.starts_with(kProfilePrefix)) {
+    const std::wstring_view name = arg.substr(kProfilePrefix.size());
+    if (!IsValidProfileName(name)) return false;
+    options.profile = name;
+  } else if (arg == L"--edge=top") {
     options.edge = Edge::Top;
   } else if (arg == L"--edge=bottom") {
     options.edge = Edge::Bottom;
@@ -30,6 +38,14 @@ bool Apply(std::wstring_view arg, Options& options) {
 }
 
 }  // namespace
+
+bool IsValidProfileName(std::wstring_view name) {
+  if (name.empty() || name.size() > kMaxProfileLength) return false;
+  return std::ranges::all_of(name, [](wchar_t c) {
+    return (c >= L'a' && c <= L'z') || (c >= L'A' && c <= L'Z') || (c >= L'0' && c <= L'9') ||
+           c == L'-' || c == L'_';
+  });
+}
 
 ParseResult ParseOptions(const std::vector<std::wstring>& args) {
   ParseResult result;

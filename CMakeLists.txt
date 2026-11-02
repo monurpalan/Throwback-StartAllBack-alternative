@@ -26,6 +26,7 @@ add_library(throwback_core STATIC
   src/core/layout.cpp
   src/core/options.cpp
   src/core/search.cpp
+  src/core/settings.cpp
   src/core/start_menu_layout.cpp
   src/core/task_click.cpp
   src/core/user_assist.cpp
@@ -52,6 +53,7 @@ target_link_libraries(throwback_ui
 
 add_executable(throwback WIN32
   src/shell/launch.cpp
+  src/shell/settings_store.cpp
   src/shell/shell_icons.cpp
   src/startmenu/frequent.cpp
   src/startmenu/places.cpp
