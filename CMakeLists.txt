@@ -25,6 +25,7 @@ target_compile_options(throwback_options INTERFACE /W4 /WX /permissive- /utf-8)
 add_library(throwback_core STATIC
   src/core/layout.cpp
   src/core/options.cpp
+  src/core/task_click.cpp
   src/core/window_filter.cpp)
 target_include_directories(throwback_core PUBLIC src)
 target_link_libraries(throwback_core PRIVATE throwback_options)
@@ -41,6 +42,7 @@ target_link_libraries(throwback_ui
   PRIVATE throwback_options)
 
 add_executable(throwback WIN32
+  src/taskbar/app_icons.cpp
   src/taskbar/appbar.cpp
   src/taskbar/bar_view.cpp
   src/taskbar/main.cpp

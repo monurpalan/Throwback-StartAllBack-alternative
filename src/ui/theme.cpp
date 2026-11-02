@@ -34,6 +34,7 @@ Theme MakeTheme(bool light) {
       .hover = ink.WithAlpha(0.08f),
       .selected = ink.WithAlpha(0.14f),
       .selectedHover = ink.WithAlpha(0.20f),
+      .attention = palette::kAccent.WithAlpha(0.40f),
       .accent = palette::kAccent,
   };
 }

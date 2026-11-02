@@ -5,9 +5,14 @@ namespace {
 
 constexpr int kIconSize = 16;
 
+ui::ButtonVariant VariantFor(const TaskButtonModel& button) {
+  if (button.active) return ui::ButtonVariant::Selected;
+  if (button.flashing) return ui::ButtonVariant::Attention;
+  return ui::ButtonVariant::Ghost;
+}
+
 void DrawTaskButton(ui::Canvas& canvas, const TaskButtonModel& button) {
-  canvas.Button(button.rect, button.active ? ui::ButtonVariant::Selected : ui::ButtonVariant::Ghost,
-                button.hovered);
+  canvas.Button(button.rect, VariantFor(button), button.hovered);
 
   const int padding = canvas.Scale(ui::kSpace8);
   const int iconSize = canvas.Scale(kIconSize);

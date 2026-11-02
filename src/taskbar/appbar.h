@@ -21,6 +21,9 @@ class AppBar {
   void Redock();
   // Handles the notifications the shell sends to callbackMessage.
   void HandleCallback(WPARAM notification, LPARAM param);
+  // Must be forwarded from WM_ACTIVATE and WM_WINDOWPOSCHANGED.
+  void OnActivated();
+  void OnWindowPosChanged();
 
  private:
   HWND hwnd_;

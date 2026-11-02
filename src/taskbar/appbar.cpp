@@ -70,7 +70,21 @@ void AppBar::HandleCallback(WPARAM notification, LPARAM param) {
       SetWindowPos(hwnd_, param ? HWND_BOTTOM : HWND_TOPMOST, 0, 0, 0, 0,
                    SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
       break;
+    case ABN_WINDOWARRANGE:
+      // Cascade/tile in progress: hide so windows are arranged around us.
+      ShowWindow(hwnd_, param ? SW_HIDE : SW_SHOWNOACTIVATE);
+      break;
   }
+}
+
+void AppBar::OnActivated() {
+  APPBARDATA data = MakeData(hwnd_);
+  SHAppBarMessage(ABM_ACTIVATE, &data);
+}
+
+void AppBar::OnWindowPosChanged() {
+  APPBARDATA data = MakeData(hwnd_);
+  SHAppBarMessage(ABM_WINDOWPOSCHANGED, &data);
 }
 
 }  // namespace throwback

@@ -15,6 +15,7 @@ struct TaskButtonModel {
   std::wstring_view title;
   HICON icon = nullptr;
   bool active = false;
+  bool flashing = false;
   bool hovered = false;
 };
 

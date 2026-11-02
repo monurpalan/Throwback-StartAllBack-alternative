@@ -67,6 +67,7 @@ struct Theme {
   Color hover;
   Color selected;
   Color selectedHover;
+  Color attention;  // a window asking for attention (flashing)
   Color accent;
 };
 

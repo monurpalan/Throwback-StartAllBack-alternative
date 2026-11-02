@@ -18,7 +18,7 @@
 
 namespace throwback::ui {
 
-enum class ButtonVariant { Ghost, Selected };
+enum class ButtonVariant { Ghost, Selected, Attention };
 enum class IconKind { Start };
 
 // A window's drawing surface plus the UI kit components. Screens draw only

@@ -7,6 +7,7 @@
 #include <exception>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 #include "taskbar/bar_view.h"
 #include "ui/theme.h"
@@ -16,6 +17,7 @@ namespace {
 
 constexpr wchar_t kClassName[] = L"ThrowbackTaskbar";
 constexpr UINT kAppBarCallback = WM_APP + 1;
+constexpr UINT kRefreshRequest = WM_APP + 2;
 constexpr UINT_PTR kRefreshTimer = 1;
 constexpr UINT kRefreshIntervalMs = 1000;
 constexpr int kBarHeight = 40;
@@ -45,16 +47,38 @@ std::wstring FormatDate() {
   return buffer;
 }
 
-void OpenSystemStartMenu() {
+void SendKeyPress(WORD key) {
   INPUT inputs[2] = {};
   inputs[0].type = INPUT_KEYBOARD;
-  inputs[0].ki.wVk = VK_LWIN;
+  inputs[0].ki.wVk = key;
   inputs[1] = inputs[0];
   inputs[1].ki.dwFlags = KEYEVENTF_KEYUP;
   SendInput(2, inputs, sizeof(INPUT));
 }
 
+void OpenSystemStartMenu() { SendKeyPress(VK_LWIN); }
+
+void BringToFront(HWND window) {
+  if (SetForegroundWindow(window)) return;
+  // Only the process that received the last input may change the foreground
+  // window. Pressing an unassigned key gives that right back to us.
+  SendKeyPress(0xE8);
+  SetForegroundWindow(window);
+}
+
+TaskClickState ReadClickState(HWND task) {
+  const LONG_PTR style = GetWindowLongPtrW(task, GWL_STYLE);
+  return {
+      .wasActive = task == GetForegroundWindow(),
+      .minimized = IsIconic(task) != FALSE,
+      // A disabled window has a modal dialog open and must not be minimized.
+      .canMinimize = (style & WS_MINIMIZEBOX) != 0 && IsWindowEnabled(task),
+  };
+}
+
 }  // namespace
+
+TaskbarWindow* TaskbarWindow::instance_ = nullptr;
 
 TaskbarWindow::TaskbarWindow(HINSTANCE instance, const Options& options) : options_(options) {
   WNDCLASSEXW windowClass{};
@@ -70,17 +94,22 @@ TaskbarWindow::TaskbarWindow(HINSTANCE instance, const Options& options) : optio
   CreateWindowExW(WS_EX_TOOLWINDOW | WS_EX_TOPMOST | WS_EX_NOACTIVATE, kClassName, L"Throwback",
                   WS_POPUP, 0, 0, 0, 0, nullptr, nullptr, instance, this);
   if (!hwnd_) throw std::runtime_error("CreateWindowEx failed");
+  instance_ = this;
 
   dpi_ = GetDpiForWindow(hwnd_);
   tracker_ = std::make_unique<WindowTracker>(hwnd_);
   canvas_ = std::make_unique<ui::Canvas>(hwnd_);
   canvas_->SetDpi(dpi_);
   ApplyTheme();
-  appBar_ = std::make_unique<AppBar>(hwnd_, kAppBarCallback);
-  Dock();
+  RegisterAppBar();
 
   shellHookMessage_ = RegisterWindowMessageW(L"SHELLHOOK");
+  taskbarCreatedMessage_ = RegisterWindowMessageW(L"TaskbarCreated");
   RegisterShellHookWindow(hwnd_);
+  // Store apps and virtual desktop switches cloak and uncloak windows
+  // without any shell hook message.
+  cloakHook_ = SetWinEventHook(EVENT_OBJECT_CLOAKED, EVENT_OBJECT_UNCLOAKED, nullptr, OnWinEvent, 0,
+                               0, WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS);
   SetTimer(hwnd_, kRefreshTimer, kRefreshIntervalMs, nullptr);
 
   RefreshTasks();
@@ -89,6 +118,7 @@ TaskbarWindow::TaskbarWindow(HINSTANCE instance, const Options& options) : optio
 
 TaskbarWindow::~TaskbarWindow() {
   if (hwnd_) DestroyWindow(hwnd_);
+  instance_ = nullptr;
 }
 
 LRESULT CALLBACK TaskbarWindow::WindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
@@ -110,10 +140,22 @@ LRESULT CALLBACK TaskbarWindow::WindowProc(HWND hwnd, UINT message, WPARAM wPara
   }
 }
 
+void CALLBACK TaskbarWindow::OnWinEvent(HWINEVENTHOOK, DWORD, HWND hwnd, LONG object, LONG child,
+                                        DWORD, DWORD) {
+  TaskbarWindow* self = instance_;
+  if (!self || !self->hwnd_ || !hwnd || object != OBJID_WINDOW || child != CHILDID_SELF) return;
+  // Events arrive in bursts; one refresh covers all of them.
+  if (!self->refreshPending_) {
+    self->refreshPending_ = true;
+    PostMessageW(self->hwnd_, kRefreshRequest, 0, 0);
+  }
+}
+
 LRESULT TaskbarWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam) {
-  if (shellHookMessage_ != 0 && message == shellHookMessage_) {
-    if ((wParam & 0x7FFF) == HSHELL_REDRAW)
-      tracker_->InvalidateIcon(reinterpret_cast<HWND>(lParam));
+  if (shellHookMessage_ != 0 && message == shellHookMessage_) return OnShellHook(wParam, lParam);
+  if (taskbarCreatedMessage_ != 0 && message == taskbarCreatedMessage_) {
+    // Explorer restarted and forgot every AppBar.
+    RegisterAppBar();
     RefreshTasks();
     return 0;
   }
@@ -122,10 +164,20 @@ LRESULT TaskbarWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam)
     case kAppBarCallback:
       appBar_->HandleCallback(wParam, lParam);
       return 0;
-    case WM_TIMER:
-      // Fallback for changes the shell hook doesn't report; also ticks the clock.
+    case kRefreshRequest:
+      refreshPending_ = false;
       RefreshTasks();
       return 0;
+    case WM_TIMER:
+      // Fallback for changes no event reports; also ticks the clock.
+      RefreshTasks();
+      return 0;
+    case WM_ACTIVATE:
+      if (appBar_) appBar_->OnActivated();
+      break;
+    case WM_WINDOWPOSCHANGED:
+      if (appBar_) appBar_->OnWindowPosChanged();
+      break;  // DefWindowProc turns this into WM_SIZE
     case WM_SIZE:
       if (canvas_) canvas_->Resize(LOWORD(lParam), HIWORD(lParam));
       UpdateLayout();
@@ -160,14 +212,18 @@ LRESULT TaskbarWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam)
       hovered_ = kHitNone;
       InvalidateRect(hwnd_, nullptr, FALSE);
       return 0;
+    case WM_LBUTTONDOWN:
+      OnButtonDown(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+      return 0;
     case WM_LBUTTONUP:
-      OnClick(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+      OnButtonUp(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
       return 0;
     case WM_RBUTTONUP:
       OnContextMenu(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
       return 0;
     case WM_DESTROY:
       KillTimer(hwnd_, kRefreshTimer);
+      if (cloakHook_) UnhookWinEvent(cloakHook_);
       DeregisterShellHookWindow(hwnd_);
       appBar_.reset();  // gives the reserved screen space back
       PostQuitMessage(0);
@@ -180,6 +236,40 @@ LRESULT TaskbarWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam)
     }
   }
   return DefWindowProcW(hwnd_, message, wParam, lParam);
+}
+
+LRESULT TaskbarWindow::OnShellHook(WPARAM code, LPARAM param) {
+  if (code == HSHELL_GETMINRECT) {
+    // Aim the minimize and restore animations at our button.
+    auto* info = reinterpret_cast<SHELLHOOKINFO*>(param);
+    return info && ButtonScreenRect(info->hwnd, &info->rc) ? 1 : 0;
+  }
+
+  auto window = reinterpret_cast<HWND>(param);
+  if (code == HSHELL_REDRAW) tracker_->InvalidateIcon(window);
+  // Refresh first so a window we haven't seen yet exists before its flags change.
+  RefreshTasks();
+  window = tracker_->ButtonOwner(window);
+  if (!window) return 0;
+  switch (code) {
+    case HSHELL_FLASH:
+      if (window != GetForegroundWindow()) tracker_->SetFlashing(window, true);
+      break;
+    case HSHELL_REDRAW:
+    case HSHELL_WINDOWACTIVATED:
+    case HSHELL_RUDEAPPACTIVATED:
+      tracker_->SetFlashing(window, false);
+      break;
+  }
+  return 0;
+}
+
+void TaskbarWindow::RegisterAppBar() {
+  // Unregister first: a new registration followed by the old one's removal
+  // would leave the window without a reservation.
+  appBar_.reset();
+  appBar_ = std::make_unique<AppBar>(hwnd_, kAppBarCallback);
+  Dock();
 }
 
 void TaskbarWindow::Dock() {
@@ -233,6 +323,7 @@ void TaskbarWindow::Paint() {
         .title = items[i].title,
         .icon = items[i].icon,
         .active = items[i].hwnd == foreground,
+        .flashing = items[i].flashing,
         .hovered = hovered_ == static_cast<int>(i),
     });
   }
@@ -252,6 +343,22 @@ int TaskbarWindow::HitTest(int x, int y) const {
   return kHitNone;
 }
 
+bool TaskbarWindow::ButtonScreenRect(HWND task, RECT* rect) const {
+  const auto& items = tracker_->Items();
+  const size_t count = std::min(layout_.taskButtons.size(), items.size());
+  for (size_t i = 0; i < count; ++i) {
+    if (items[i].hwnd != task) continue;
+    const Rect& button = layout_.taskButtons[i];
+    POINT topLeft{button.left, button.top};
+    POINT bottomRight{button.right, button.bottom};
+    ClientToScreen(hwnd_, &topLeft);
+    ClientToScreen(hwnd_, &bottomRight);
+    *rect = {topLeft.x, topLeft.y, bottomRight.x, bottomRight.y};
+    return true;
+  }
+  return false;
+}
+
 void TaskbarWindow::OnMouseMove(int x, int y) {
   if (!trackingMouse_) {
     TRACKMOUSEEVENT track{sizeof(track), TME_LEAVE, hwnd_, 0};
@@ -264,12 +371,24 @@ void TaskbarWindow::OnMouseMove(int x, int y) {
   }
 }
 
-void TaskbarWindow::OnClick(int x, int y) {
+void TaskbarWindow::OnButtonDown(int x, int y) {
+  pressedHit_ = HitTest(x, y);
+  pressedTask_ = nullptr;
+  if (pressedHit_ >= 0) {
+    pressedTask_ = tracker_->Items()[static_cast<size_t>(pressedHit_)].hwnd;
+    pressedState_ = ReadClickState(pressedTask_);
+  }
+}
+
+void TaskbarWindow::OnButtonUp(int x, int y) {
   const int hit = HitTest(x, y);
+  const int pressed = std::exchange(pressedHit_, kHitNone);
+  if (hit != pressed) return;  // released somewhere else: cancel
+
   if (hit == kHitStart) {
     OpenSystemStartMenu();
-  } else if (hit >= 0) {
-    ActivateTask(tracker_->Items()[static_cast<size_t>(hit)].hwnd);
+  } else if (hit >= 0 && tracker_->Items()[static_cast<size_t>(hit)].hwnd == pressedTask_) {
+    ActivateTask(pressedTask_, pressedState_);
   }
 }
 
@@ -299,14 +418,29 @@ void TaskbarWindow::OnContextMenu(int x, int y) {
   }
 }
 
-void TaskbarWindow::ActivateTask(HWND task) {
-  // Classic behaviour: clicking the active window's button minimizes it.
-  if (task == GetForegroundWindow() && !IsIconic(task)) {
-    ShowWindowAsync(task, SW_MINIMIZE);
-    return;
+void TaskbarWindow::ActivateTask(HWND task, const TaskClickState& state) {
+  switch (DecideTaskClick(state)) {
+    case TaskClickAction::Minimize: {
+      DWORD processId = 0;
+      GetWindowThreadProcessId(task, &processId);
+      AllowSetForegroundWindow(processId);
+      PostMessageW(task, WM_SYSCOMMAND, SC_MINIMIZE, 0);
+      return;
+    }
+    case TaskClickAction::Restore: {
+      // The app's own restore keeps maximized windows maximized; the timeout
+      // keeps a hung app from freezing the bar.
+      DWORD_PTR result = 0;
+      SendMessageTimeoutW(task, WM_SYSCOMMAND, SC_RESTORE, 0, SMTO_ABORTIFHUNG, 200, &result);
+      break;
+    }
+    case TaskClickAction::Activate:
+      break;
+    case TaskClickAction::None:
+      return;
   }
-  if (IsIconic(task)) ShowWindowAsync(task, SW_RESTORE);
-  SetForegroundWindow(task);
+  // Activate the open dialog, if any, rather than the window it blocks.
+  BringToFront(GetLastActivePopup(task));
 }
 
 }  // namespace throwback

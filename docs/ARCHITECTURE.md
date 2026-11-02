@@ -41,18 +41,35 @@ inject into `explorer.exe` (see [ADR 0001](adr/0001-standalone-appbar.md)).
 
 - **Logic is testable without a desktop.** Anything that is a decision rather
   than a system call lives in `src/core` and has unit tests. The Win32 layer
-  only collects facts (`WindowTraits`) and applies results (`BarLayout`).
-- **Never hang on other apps.** Calls into other processes (`WM_GETICON`) use
-  `SendMessageTimeout` with `SMTO_ABORTIFHUNG`.
+  only collects facts (`WindowTraits`, `TaskClickState`) and applies results
+  (`BarLayout`, `TaskClickAction`).
+- **Never hang on other apps.** Calls into other processes (`WM_GETICON`,
+  `SC_RESTORE`) use `SendMessageTimeout` with `SMTO_ABORTIFHUNG`; minimizing is
+  posted, never sent.
 - **Leave the system as we found it.** The AppBar is removed on exit, so the
   reserved screen space is returned even when the user just kills the process
   politely.
 - **Event driven with a safety net.** The shell hook (`RegisterShellHookWindow`)
-  reports window changes immediately; a 1 s timer catches anything it misses
-  and drives the clock.
+  reports created, activated and flashing windows; a WinEvent hook on
+  cloak/uncloak catches store apps and virtual desktop switches. A 1 s timer
+  catches anything both miss and drives the clock.
+- **Survive Explorer restarts.** On `TaskbarCreated` the AppBar registers again,
+  since Explorer forgets every AppBar when it restarts.
+
+## Window behaviour
+
+- **Which windows get a button:** visible, not cloaked, not a tool window, no
+  owner (unless `WS_EX_APPWINDOW`), not removed through
+  `ITaskbarList::DeleteTab`. Store app frames need `WS_EX_WINDOWEDGE`, which
+  separates them from shell surfaces of the same class.
+- **Clicks** are decided from the window state at mouse-down: activate, restore
+  a minimized window through the app's own `SC_RESTORE`, or minimize the active
+  one. An open modal dialog is activated instead of the window it blocks.
+- **Minimize animation** targets our button by answering `HSHELL_GETMINRECT`.
+- **Store app icons** come from the window's AppUserModelID via
+  `shell:AppsFolder`, because their frame windows carry a generic icon.
 
 ## Known limitations
 
 - Primary monitor only.
-- UWP apps hosted in `ApplicationFrameWindow` show a generic icon.
 - The system taskbar stays visible; Throwback docks next to it.

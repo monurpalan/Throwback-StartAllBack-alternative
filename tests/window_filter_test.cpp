@@ -5,7 +5,7 @@
 namespace throwback {
 namespace {
 
-WindowTraits NormalWindow() { return {.visible = true, .hasTitle = true}; }
+WindowTraits NormalWindow() { return {.visible = true}; }
 
 TEST(WindowFilterTest, ShowsNormalAppWindow) { EXPECT_TRUE(ShouldShowOnTaskbar(NormalWindow())); }
 
@@ -28,12 +28,19 @@ TEST(WindowFilterTest, HidesToolOwnedAndNoActivateWindows) {
   }
 }
 
-TEST(WindowFilterTest, AppWindowStyleOverridesOwnerAndToolStyle) {
+TEST(WindowFilterTest, AppWindowStyleOverridesOwnerAndNoActivate) {
   WindowTraits traits = NormalWindow();
   traits.hasOwner = true;
-  traits.toolWindow = true;
+  traits.noActivate = true;
   traits.appWindow = true;
   EXPECT_TRUE(ShouldShowOnTaskbar(traits));
+}
+
+TEST(WindowFilterTest, ToolWindowStaysHiddenEvenWithAppWindowStyle) {
+  WindowTraits traits = NormalWindow();
+  traits.toolWindow = true;
+  traits.appWindow = true;
+  EXPECT_FALSE(ShouldShowOnTaskbar(traits));
 }
 
 TEST(WindowFilterTest, AppWindowStillHiddenWhenCloaked) {
@@ -43,10 +50,20 @@ TEST(WindowFilterTest, AppWindowStillHiddenWhenCloaked) {
   EXPECT_FALSE(ShouldShowOnTaskbar(traits));
 }
 
-TEST(WindowFilterTest, HidesUntitledWindows) {
+TEST(WindowFilterTest, HidesWindowsThatDeletedTheirTab) {
   WindowTraits traits = NormalWindow();
-  traits.hasTitle = false;
+  traits.taskListDeleted = true;
   EXPECT_FALSE(ShouldShowOnTaskbar(traits));
+}
+
+TEST(WindowFilterTest, ImmersiveClassNeedsWindowEdge) {
+  WindowTraits shellSurface = NormalWindow();
+  shellSurface.immersiveClass = true;
+  EXPECT_FALSE(ShouldShowOnTaskbar(shellSurface));
+
+  WindowTraits storeApp = shellSurface;
+  storeApp.windowEdge = true;
+  EXPECT_TRUE(ShouldShowOnTaskbar(storeApp));
 }
 
 }  // namespace

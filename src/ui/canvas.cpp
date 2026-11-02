@@ -104,13 +104,21 @@ void Canvas::Fill(const Rect& rect, const Color& color) {
 }
 
 void Canvas::Button(const Rect& rect, ButtonVariant variant, bool hovered) {
-  if (variant == ButtonVariant::Selected) {
-    Fill(rect, hovered ? theme_.selectedHover : theme_.selected);
-    const int inset = Scale(kSpace8);
-    Fill({rect.left + inset, rect.bottom - Scale(kSpace4), rect.right - inset, rect.bottom},
-         theme_.accent);
-  } else if (hovered) {
-    Fill(rect, theme_.hover);
+  switch (variant) {
+    case ButtonVariant::Selected: {
+      Fill(rect, hovered ? theme_.selectedHover : theme_.selected);
+      const int inset = Scale(kSpace8);
+      Fill({rect.left + inset, rect.bottom - Scale(kSpace4), rect.right - inset, rect.bottom},
+           theme_.accent);
+      break;
+    }
+    case ButtonVariant::Attention:
+      Fill(rect, theme_.attention);
+      if (hovered) Fill(rect, theme_.hover);
+      break;
+    case ButtonVariant::Ghost:
+      if (hovered) Fill(rect, theme_.hover);
+      break;
   }
 }
 
