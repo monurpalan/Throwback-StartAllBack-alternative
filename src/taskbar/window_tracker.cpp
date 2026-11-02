@@ -64,15 +64,16 @@ std::wstring ReadTitle(HWND hwnd) {
 }
 
 HICON ReadWindowIcon(HWND hwnd) {
+  // Buttons show 24 px icons, so prefer the 32 px one and scale it down.
   // Short timeout: a hung app must not freeze the taskbar.
-  for (WPARAM kind : {WPARAM{ICON_SMALL2}, WPARAM{ICON_SMALL}, WPARAM{ICON_BIG}}) {
+  for (WPARAM kind : {WPARAM{ICON_BIG}, WPARAM{ICON_SMALL2}, WPARAM{ICON_SMALL}}) {
     DWORD_PTR result = 0;
     if (SendMessageTimeoutW(hwnd, WM_GETICON, kind, 0, SMTO_ABORTIFHUNG, 50, &result) && result) {
       return reinterpret_cast<HICON>(result);
     }
   }
-  if (auto icon = reinterpret_cast<HICON>(GetClassLongPtrW(hwnd, GCLP_HICONSM))) return icon;
-  return reinterpret_cast<HICON>(GetClassLongPtrW(hwnd, GCLP_HICON));
+  if (auto icon = reinterpret_cast<HICON>(GetClassLongPtrW(hwnd, GCLP_HICON))) return icon;
+  return reinterpret_cast<HICON>(GetClassLongPtrW(hwnd, GCLP_HICONSM));
 }
 
 }  // namespace

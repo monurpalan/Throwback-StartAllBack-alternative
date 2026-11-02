@@ -3,7 +3,9 @@
 namespace throwback {
 namespace {
 
-constexpr int kIconSize = 16;
+// The classic taskbar's sizes at 96 DPI: 24 px button icons, a 20 px logo.
+constexpr int kIconSize = 24;
+constexpr int kStartIconSize = 20;
 
 ui::ButtonVariant VariantFor(const TaskButtonModel& button) {
   if (button.active) return ui::ButtonVariant::Selected;
@@ -30,7 +32,7 @@ void DrawTaskButton(ui::Canvas& canvas, const TaskButtonModel& button) {
 
 void DrawBar(ui::Canvas& canvas, const BarModel& model) {
   canvas.Button(model.startButton, ui::ButtonVariant::Ghost, model.startHovered);
-  canvas.Icon(CenteredSquare(model.startButton, canvas.Scale(kIconSize)), ui::IconKind::Start);
+  canvas.Icon(CenteredSquare(model.startButton, canvas.Scale(kStartIconSize)), ui::IconKind::Start);
 
   for (const auto& button : model.buttons) DrawTaskButton(canvas, button);
 

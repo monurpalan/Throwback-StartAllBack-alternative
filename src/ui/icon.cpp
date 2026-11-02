@@ -9,21 +9,19 @@ namespace throwback::ui {
 void Canvas::Icon(const Rect& rect, IconKind kind) {
   switch (kind) {
     case IconKind::Start: {
-      // Four-pane window logo. The gap is part of the glyph: 1/8 of its size.
-      const float size = static_cast<float>(std::min(rect.Width(), rect.Height()));
-      const float gap = size / 8.0f;
-      const float pane = (size - gap) / 2.0f;
-      const float left =
-          static_cast<float>(rect.left) + (static_cast<float>(rect.Width()) - size) / 2.0f;
-      const float top =
-          static_cast<float>(rect.top) + (static_cast<float>(rect.Height()) - size) / 2.0f;
-      brush_->SetColor(
-          D2D1::ColorF(theme_.accent.r, theme_.accent.g, theme_.accent.b, theme_.accent.a));
+      // The Windows logo: four square panes split by a thin cross, about a
+      // sixteenth of the logo wide. Snapped to whole pixels so edges stay crisp.
+      const int size = std::min(rect.Width(), rect.Height());
+      const int gap = std::max(1, (size + 8) / 16);
+      const int pane = (size - gap) / 2;
+      const int total = 2 * pane + gap;
+      const int left = rect.left + (rect.Width() - total) / 2;
+      const int top = rect.top + (rect.Height() - total) / 2;
       for (int row = 0; row < 2; ++row) {
         for (int column = 0; column < 2; ++column) {
-          const float x = left + static_cast<float>(column) * (pane + gap);
-          const float y = top + static_cast<float>(row) * (pane + gap);
-          target_->FillRectangle(D2D1::RectF(x, y, x + pane, y + pane), brush_.Get());
+          const int x = left + column * (pane + gap);
+          const int y = top + row * (pane + gap);
+          Fill({x, y, x + pane, y + pane}, theme_.accent);
         }
       }
       break;
