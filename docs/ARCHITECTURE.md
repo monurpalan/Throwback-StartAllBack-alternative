@@ -102,6 +102,27 @@ embedded as resources); everything else is drawn in code:
 - **Hung windows:** when Windows swaps a window for its "not responding" ghost,
   the button keeps its place.
 
+## Start menu styles
+
+`Settings::startStyle` picks a Windows version; `CreateStartMenu` builds
+the matching `StartMenuWindow`, and the bar draws that version's Start
+button. Three engines cover the ten styles:
+
+- `ClassicStartMenu` (98, Me, 2000): levels of `ClassicMenu`, cascading
+  popups with the banner, large icons on the first level, columns for long
+  menus and the system's submenu delay. XP's All Programs reuses it in Luna
+  colors (`ClassicLook::WinXp`).
+- `StartMenu` (XP, Vista, 7): one controller with each version's layout
+  (`core/start_menu_layout`) and view (`start_menu*_view.cpp`).
+- `ModernStartMenu` (8, 8.1, 10, 11): each view draws its arrangement and
+  returns the regions the mouse can hit, so layout lives in one place.
+
+Images come from each version's own files under `assets/` (one folder per
+family, all in one resource script so icon IDs stay unique) and are cut the
+way that version's theme describes them. Sizes, colors and fonts follow the
+themes where they define them (XP's `NormalBlue.ini`, the `.msstyles`
+variant data); the flat styles use Segoe UI and the icon fonts.
+
 ## Start menu
 
 A Windows 7 style menu (`src/startmenu`), drawn with the same UI kit:
