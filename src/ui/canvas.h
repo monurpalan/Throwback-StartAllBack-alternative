@@ -67,6 +67,10 @@ enum class XpPanel { UserPane, Programs, MorePrograms, Places, LogOff };
 enum class XpList { Programs, Places };
 enum class XpTextVariant { Program, ProgramBold, Place, PlaceBold, User, LogOff, MorePrograms };
 enum class XpPowerButton { LogOff, TurnOff };
+// The flat looks of Windows 8 to 11.
+enum class ModernLook { Win8, Win10, Win11Dark, Win11Light };
+enum class ModernTone { Primary, Secondary, Accent };
+enum class ModernStartVariant { Win81, Win10, Win11 };
 
 // A window's drawing surface plus the UI kit components. Screens draw only
 // through these calls; colors, fonts and sizes come from the theme. All
@@ -130,6 +134,25 @@ class Canvas {
   // The Start button: a face with the flag and a bold label.
   void ClassicStartButton(const Rect& rect, ClassicLook look, std::wstring_view label,
                           bool pressed);
+
+  // Modern components (modern.cpp).
+  void ModernSurface(const Rect& rect, ModernLook look);
+  // Windows 11's bar along the bottom of the menu, with the account.
+  void ModernBar(const Rect& rect, ModernLook look);
+  void ModernHover(const Rect& rect, ModernLook look, bool hovered);
+  // A start screen tile in one of Windows 8's colors (by index), or in
+  // Windows 10's accent color for a negative index.
+  void ModernTile(const Rect& rect, int color, bool hovered);
+  void ModernText(const Rect& rect, std::wstring_view text, TextStyle style, ModernLook look,
+                  ModernTone tone, TextAlign align = TextAlign::Leading);
+  // A symbol of the look's icon font, by its code point.
+  void ModernGlyph(const Rect& rect, wchar_t glyph, ModernLook look, ModernTone tone);
+  void ModernSearchBox(const Rect& rect, ModernLook look, std::wstring_view query,
+                       std::wstring_view prompt);
+  // The account picture in a circle; the initial without a picture.
+  void ModernPicture(const Rect& rect, const std::wstring& path, std::wstring_view initial,
+                     ModernLook look);
+  void ModernStartButton(const Rect& rect, ModernStartVariant variant, OrbState state);
 
   // Windows XP components (xp.cpp).
   void XpBackground(const Rect& rect, XpPanel panel);

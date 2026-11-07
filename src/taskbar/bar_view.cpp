@@ -85,6 +85,20 @@ void DrawStartButton(ui::Canvas& canvas, const BarModel& model) {
     case StartStyle::WinXp:
       canvas.XpStartButton(model.startButton, ui::Tr(ui::StringId::XpStart), OrbStateFor(model));
       return;
+    case StartStyle::Win8:
+      return;  // Windows 8 had no Start button, only the corner
+    case StartStyle::Win81:
+      canvas.ModernStartButton(model.startButton, ui::ModernStartVariant::Win81,
+                               OrbStateFor(model));
+      return;
+    case StartStyle::Win10:
+      canvas.ModernStartButton(model.startButton, ui::ModernStartVariant::Win10,
+                               OrbStateFor(model));
+      return;
+    case StartStyle::Win11:
+      canvas.ModernStartButton(model.startButton, ui::ModernStartVariant::Win11,
+                               OrbStateFor(model));
+      return;
     default:
       if (model.drawOrb) {
         canvas.Orb(CenteredSquare(model.startButton, canvas.Scale(kOrbSize)), OrbStateFor(model));

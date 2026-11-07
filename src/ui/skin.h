@@ -68,6 +68,10 @@ enum class SkinImage {
   VistaPictureFrame,
   VistaProgramSeparator,
   VistaPlaceSeparator,
+  W81Logo,  // Windows 8.1's Start button and its hover glow
+  W81Glow,
+  W11Logo,  // Windows 11's Start button
+  W10Logo,  // Windows 10's: the flat logo, as 8.1 drew it small
 };
 
 // How an image is cut, as the Windows 7 theme describes it: its states are

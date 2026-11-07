@@ -134,6 +134,47 @@ inline constexpr Color kMenuText = FromRgb(0x000000);
 
 }  // namespace xp
 
+// The flat looks of Windows 8, 8.1, 10 and 11, from their default settings.
+namespace modern {
+
+// Windows 8 and 8.1: the start screen and its tiles.
+inline constexpr Color kScreen = FromRgb(0x180052);
+inline constexpr Color kScreenText = FromRgb(0xFFFFFF);
+inline constexpr Color kTileGreen = FromRgb(0x00A300);
+inline constexpr Color kTileBlue = FromRgb(0x2D89EF);
+inline constexpr Color kTileOrange = FromRgb(0xDA532C);
+inline constexpr Color kTilePurple = FromRgb(0x603CBA);
+inline constexpr Color kTileTeal = FromRgb(0x00ABA9);
+inline constexpr Color kTileRed = FromRgb(0xB91D47);
+inline constexpr Color kTileHover = FromRgb(0xFFFFFF, 0.18f);
+
+// Windows 10, dark.
+inline constexpr Color kWin10Surface = FromRgb(0x1F1F1F, 0.94f);
+inline constexpr Color kWin10Hover = FromRgb(0xFFFFFF, 0.12f);
+inline constexpr Color kWin10Accent = FromRgb(0x0078D7);
+inline constexpr Color kWin10Text = FromRgb(0xFFFFFF);
+inline constexpr Color kWin10Secondary = FromRgb(0xC8C8C8);
+
+// Windows 11, dark and light.
+inline constexpr Color kWin11DarkSurface = FromRgb(0x202020, 0.97f);
+inline constexpr Color kWin11DarkBorder = FromRgb(0x3C3C3C);
+inline constexpr Color kWin11DarkBar = FromRgb(0x1C1C1C, 0.97f);
+inline constexpr Color kWin11DarkHover = FromRgb(0xFFFFFF, 0.07f);
+inline constexpr Color kWin11DarkField = FromRgb(0x2C2C2C);
+inline constexpr Color kWin11DarkText = FromRgb(0xFFFFFF);
+inline constexpr Color kWin11DarkSecondary = FromRgb(0xC5C5C5);
+inline constexpr Color kWin11DarkAccent = FromRgb(0x4CC2FF);
+inline constexpr Color kWin11LightSurface = FromRgb(0xF3F3F3, 0.97f);
+inline constexpr Color kWin11LightBorder = FromRgb(0xDDDDDD);
+inline constexpr Color kWin11LightBar = FromRgb(0xEBEBEB, 0.97f);
+inline constexpr Color kWin11LightHover = FromRgb(0x000000, 0.05f);
+inline constexpr Color kWin11LightField = FromRgb(0xFFFFFF);
+inline constexpr Color kWin11LightText = FromRgb(0x1B1B1B);
+inline constexpr Color kWin11LightSecondary = FromRgb(0x5F5F5F);
+inline constexpr Color kWin11LightAccent = FromRgb(0x0067C0);
+
+}  // namespace modern
+
 // Spacing in pixels at 96 DPI.
 inline constexpr int kSpace2 = 2;
 inline constexpr int kSpace4 = 4;
@@ -162,11 +203,25 @@ enum class TextStyle {
   XpBold,
   XpUser,
   XpStart,
+  // Windows 8 to 11: Segoe UI (Light for the start screen's titles, the
+  // Variable font on Windows 11) and the icon fonts.
+  Win8Title,
+  Win8Name,
+  Win8Tile,
+  Win10Body,
+  Win10Small,
+  Win11Body,
+  Win11Small,
+  Win11Header,
+  GlyphMdl2,
+  GlyphFluent,
 };
 
 float FontSize(TextStyle style);
 bool IsItalic(TextStyle style);
 bool IsBold(TextStyle style);
+// The DirectWrite weight: light, normal, semibold or bold.
+int FontWeightOf(TextStyle style);
 const wchar_t* FontFamily(TextStyle style);
 // Classic text is drawn without smoothing, as those systems did.
 bool IsClassic(TextStyle style);

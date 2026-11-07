@@ -12,7 +12,7 @@ namespace throwback::ui {
 namespace {
 
 // Frames and stretch edges as the Windows 7 theme (aero.msstyles) sets them.
-constexpr std::array<SkinPart, 57> kParts{{
+constexpr std::array<SkinPart, 61> kParts{{
     {.resource = THROWBACK_SKIN_ORB_96, .frames = 3, .perDpi = true},
     {.resource = THROWBACK_SKIN_PICTURE_FRAME_96, .perDpi = true},
     {.resource = THROWBACK_SKIN_TASKBAR, .top = 12},
@@ -114,6 +114,10 @@ constexpr std::array<SkinPart, 57> kParts{{
     {.resource = THROWBACK_SKIN_VISTA_PICTURE_FRAME},
     {.resource = THROWBACK_SKIN_VISTA_PROGRAM_SEPARATOR},
     {.resource = THROWBACK_SKIN_VISTA_PLACE_SEPARATOR},
+    {.resource = THROWBACK_SKIN_W81_LOGO_96, .perDpi = true},
+    {.resource = THROWBACK_SKIN_W81_GLOW_96, .perDpi = true},
+    {.resource = THROWBACK_SKIN_W11_LOGO_96, .perDpi = true},
+    {.resource = THROWBACK_SKIN_W10_LOGO_96, .perDpi = true},
 }};
 
 D2D1_RECT_F RectF(float left, float top, float right, float bottom) {

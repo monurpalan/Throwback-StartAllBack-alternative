@@ -49,6 +49,7 @@ add_library(throwback_ui STATIC
   src/ui/fonts.cpp
   src/ui/glass.cpp
   src/ui/icon.cpp
+  src/ui/modern.cpp
   src/ui/orb_window.cpp
   src/ui/skin.cpp
   src/ui/strings.cpp
@@ -69,6 +70,10 @@ add_executable(throwback WIN32
   src/startmenu/classic_menu.cpp
   src/startmenu/classic_start_menu.cpp
   src/startmenu/frequent.cpp
+  src/startmenu/modern_start_menu.cpp
+  src/startmenu/modern_view.cpp
+  src/startmenu/modern_view_win10.cpp
+  src/startmenu/modern_view_win11.cpp
   src/startmenu/places.cpp
   src/startmenu/power.cpp
   src/startmenu/program_menu.cpp
@@ -109,7 +114,7 @@ target_link_libraries(throwback PRIVATE
 # that is there; without one, the UI kit draws its own version of its parts.
 set(THROWBACK_ASSET_DIRS "${CMAKE_SOURCE_DIR}/src")
 set(THROWBACK_ASSET_DEFINES "")
-foreach(folder win7 classic xp vista)
+foreach(folder win7 classic xp vista modern)
   if(EXISTS ${CMAKE_SOURCE_DIR}/assets/${folder})
     list(APPEND THROWBACK_ASSET_DIRS "${CMAKE_SOURCE_DIR}/assets/${folder}")
     string(TOUPPER ${folder} upper)

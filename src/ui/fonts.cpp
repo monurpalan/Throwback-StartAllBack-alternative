@@ -16,12 +16,12 @@ ComPtr<IDWriteTextFormat> Fonts::CreateFormat(TextStyle style, TextAlign align,
   GetUserDefaultLocaleName(locale, LOCALE_NAME_MAX_LENGTH);
 
   ComPtr<IDWriteTextFormat> format;
-  ThrowIfFailed(factory_->CreateTextFormat(
-                    FontFamily(style), nullptr,
-                    IsBold(style) ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_NORMAL,
-                    IsItalic(style) ? DWRITE_FONT_STYLE_ITALIC : DWRITE_FONT_STYLE_NORMAL,
-                    DWRITE_FONT_STRETCH_NORMAL, size, locale, format.GetAddressOf()),
-                "CreateTextFormat");
+  ThrowIfFailed(
+      factory_->CreateTextFormat(
+          FontFamily(style), nullptr, static_cast<DWRITE_FONT_WEIGHT>(FontWeightOf(style)),
+          IsItalic(style) ? DWRITE_FONT_STYLE_ITALIC : DWRITE_FONT_STYLE_NORMAL,
+          DWRITE_FONT_STRETCH_NORMAL, size, locale, format.GetAddressOf()),
+      "CreateTextFormat");
   format->SetTextAlignment(align == TextAlign::Center ? DWRITE_TEXT_ALIGNMENT_CENTER
                                                       : DWRITE_TEXT_ALIGNMENT_LEADING);
   format->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);

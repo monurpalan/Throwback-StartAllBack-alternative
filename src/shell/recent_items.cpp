@@ -84,7 +84,9 @@ std::vector<RecentItem> LoadRecentDocuments(size_t limit) {
   std::ranges::sort(links, [](const auto& a, const auto& b) { return a.first > b.first; });
   for (const auto& [time, path] : links) {
     if (result.size() >= limit) break;
-    result.push_back({path.stem().wstring(), path.wstring()});
+    // The Recent folder's shortcuts are touched each time the file opens.
+    const auto ticks = static_cast<unsigned long long>(time.time_since_epoch().count());
+    result.push_back({path.stem().wstring(), path.wstring(), ticks});
   }
   return result;
 }

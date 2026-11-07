@@ -8,6 +8,8 @@ namespace throwback::shell {
 struct RecentItem {
   std::wstring name;
   std::wstring target;  // parsing name, opened with the shell
+  // When it was last opened, as a FILETIME value; 0 when unknown.
+  unsigned long long opened = 0;
 };
 
 // The app ID Windows files a program's jump list under, for a start menu

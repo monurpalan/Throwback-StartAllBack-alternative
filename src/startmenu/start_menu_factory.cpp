@@ -1,6 +1,7 @@
 #include <utility>
 
 #include "startmenu/classic_start_menu.h"
+#include "startmenu/modern_start_menu.h"
 #include "startmenu/start_menu.h"
 #include "startmenu/start_menu_window.h"
 
@@ -15,6 +16,11 @@ std::unique_ptr<StartMenuWindow> CreateStartMenu(HINSTANCE instance, HWND owner,
     case StartStyle::Win2000:
       return std::make_unique<ClassicStartMenu>(instance, owner, settings.startStyle,
                                                 std::move(onClosed));
+    case StartStyle::Win8:
+    case StartStyle::Win81:
+    case StartStyle::Win10:
+    case StartStyle::Win11:
+      return std::make_unique<ModernStartMenu>(instance, owner, settings, std::move(onClosed));
     default:
       break;
   }
