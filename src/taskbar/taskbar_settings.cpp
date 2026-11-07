@@ -38,7 +38,17 @@ void TaskbarWindow::OpenSettings() {
                      [this](const Settings& edited) { manager_.ApplySettings(edited); });
 }
 
+void TaskbarWindow::CreateStartMenuForStyle() {
+  if (startMenu_) startMenu_->Close();
+  startMenu_.reset();
+  startStyle_ = settings_.startStyle;
+  startMenu_ = CreateStartMenu(
+      module_, hwnd_, settings_, [this] { InvalidateRect(hwnd_, nullptr, FALSE); },
+      [this] { manager_.SavePinned(); });
+}
+
 void TaskbarWindow::OnSettingsChanged(bool moved) {
+  if (settings_.startStyle != startStyle_) CreateStartMenuForStyle();
   ApplyTheme();
   ApplyWindowsKey();
   ApplySystemTaskbar();

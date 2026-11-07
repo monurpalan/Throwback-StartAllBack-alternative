@@ -13,13 +13,18 @@ using ui::StringId;
 
 constexpr wchar_t kClassName[] = L"ThrowbackSettings";
 constexpr int kWidth = 420;
-constexpr int kHeight = 312;
+constexpr int kHeight = 344;
 constexpr int kApply = 100;
 constexpr int kEdge = 101;
 constexpr int kHideTaskbar = 102;
 constexpr int kWindowsKey = 103;
 constexpr int kLanguage = 104;
 constexpr int kTheme = 105;
+constexpr int kStartStyle = 106;
+// Product names, the same in every language.
+constexpr std::array<const wchar_t*, 10> kStyleNames{
+    L"Windows 98", L"Windows Me", L"Windows 2000", L"Windows XP", L"Windows Vista",
+    L"Windows 7",  L"Windows 8",  L"Windows 8.1",  L"Windows 10", L"Windows 11"};
 
 struct Dialog {
   Settings settings;
@@ -65,28 +70,35 @@ void CreateControls(HWND hwnd, const Dialog& dialog) {
   Control(hwnd, dialog, L"BUTTON", StringId::HideWindowsTaskbar, kCheck, kHideTaskbar,
           {20, 66, 400, 86});
 
-  Control(hwnd, dialog, L"BUTTON", StringId::StartMenuGroup, kGroup, 0, {8, 112, 412, 166});
+  Control(hwnd, dialog, L"BUTTON", StringId::StartMenuGroup, kGroup, 0, {8, 112, 412, 198});
+  Control(hwnd, dialog, L"STATIC", StringId::StartStyleLabel, SS_LEFT, 0, {20, 138, 236, 158});
+  HWND style = Control(hwnd, dialog, L"COMBOBOX", StringId::kCount, kCombo, kStartStyle,
+                       {244, 134, 400, 334});
+  for (const wchar_t* name : kStyleNames) {
+    SendMessageW(style, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(name));
+  }
+  SendMessageW(style, CB_SETCURSEL, static_cast<WPARAM>(s.startStyle), 0);
   Control(hwnd, dialog, L"BUTTON", StringId::WindowsKeyOpensMenu, kCheck, kWindowsKey,
-          {20, 134, 400, 154});
+          {20, 166, 400, 186});
 
-  Control(hwnd, dialog, L"BUTTON", StringId::LanguageAndTheme, kGroup, 0, {8, 174, 412, 264});
-  Control(hwnd, dialog, L"STATIC", StringId::LanguageLabel, SS_LEFT, 0, {20, 200, 236, 220});
+  Control(hwnd, dialog, L"BUTTON", StringId::LanguageAndTheme, kGroup, 0, {8, 206, 412, 296});
+  Control(hwnd, dialog, L"STATIC", StringId::LanguageLabel, SS_LEFT, 0, {20, 232, 236, 252});
   FillCombo(
-      Control(hwnd, dialog, L"COMBOBOX", StringId::kCount, kCombo, kLanguage, {244, 196, 400, 296}),
+      Control(hwnd, dialog, L"COMBOBOX", StringId::kCount, kCombo, kLanguage, {244, 228, 400, 328}),
       std::array{StringId::LanguageSystem, StringId::LanguageEnglish, StringId::LanguageTurkish},
       static_cast<int>(s.language));
-  Control(hwnd, dialog, L"STATIC", StringId::MenuTheme, SS_LEFT, 0, {20, 232, 236, 252});
+  Control(hwnd, dialog, L"STATIC", StringId::MenuTheme, SS_LEFT, 0, {20, 264, 236, 284});
   FillCombo(
-      Control(hwnd, dialog, L"COMBOBOX", StringId::kCount, kCombo, kTheme, {244, 228, 400, 328}),
+      Control(hwnd, dialog, L"COMBOBOX", StringId::kCount, kCombo, kTheme, {244, 260, 400, 360}),
       std::array{StringId::ThemeSystem, StringId::ThemeLight, StringId::ThemeDark},
       static_cast<int>(s.theme));
 
   Control(hwnd, dialog, L"BUTTON", StringId::Ok, BS_DEFPUSHBUTTON | WS_TABSTOP, IDOK,
-          {156, 276, 236, 300});
+          {156, 308, 236, 332});
   Control(hwnd, dialog, L"BUTTON", StringId::Cancel, BS_PUSHBUTTON | WS_TABSTOP, IDCANCEL,
-          {244, 276, 324, 300});
+          {244, 308, 324, 332});
   Control(hwnd, dialog, L"BUTTON", StringId::Apply, BS_PUSHBUTTON | WS_TABSTOP, kApply,
-          {332, 276, 412, 300});
+          {332, 308, 412, 332});
 
   CheckDlgButton(hwnd, kHideTaskbar, s.hideSystemTaskbar ? BST_CHECKED : BST_UNCHECKED);
   CheckDlgButton(hwnd, kWindowsKey, s.windowsKeyOpensMenu ? BST_CHECKED : BST_UNCHECKED);
@@ -102,6 +114,7 @@ void ReadControls(HWND hwnd, Settings& settings) {
   settings.windowsKeyOpensMenu = IsDlgButtonChecked(hwnd, kWindowsKey) == BST_CHECKED;
   settings.language = static_cast<LanguageMode>(Selection(hwnd, kLanguage));
   settings.theme = static_cast<ThemeMode>(Selection(hwnd, kTheme));
+  settings.startStyle = static_cast<StartStyle>(Selection(hwnd, kStartStyle));
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {

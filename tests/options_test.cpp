@@ -46,6 +46,17 @@ TEST(OptionsTest, ValidatesProfileNames) {
   EXPECT_FALSE(IsValidProfileName(std::wstring(33, L'a')));
 }
 
+TEST(OptionsTest, ParsesStartStyles) {
+  EXPECT_EQ(ParseOptions({L"--start-style=98"}).options.startStyle, StartStyle::Win98);
+  EXPECT_EQ(ParseOptions({L"--start-style=8.1"}).options.startStyle, StartStyle::Win81);
+  EXPECT_EQ(ParseOptions({L"--start-style=11"}).options.startStyle, StartStyle::Win11);
+  EXPECT_EQ(ParseOptions({L"--start-style=95"}).unknownArguments.size(), 1u);
+  for (int i = 0; i <= static_cast<int>(StartStyle::Win11); ++i) {
+    const auto style = static_cast<StartStyle>(i);
+    EXPECT_EQ(ParseStartStyle(StartStyleName(style)), style);
+  }
+}
+
 TEST(OptionsTest, ReportsUnknownArguments) {
   const ParseResult result = ParseOptions({L"--edge=left", L"--verbose", L"--lang=de"});
   ASSERT_EQ(result.unknownArguments.size(), 3u);

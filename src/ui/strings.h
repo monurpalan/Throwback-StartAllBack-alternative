@@ -34,6 +34,7 @@ enum class StringId {
   Properties,
   Recent,
   CustomizeIcons,
+  StartStyleLabel,
   // The properties dialog.
   SettingsTitle,
   TaskbarAppearance,

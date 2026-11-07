@@ -73,6 +73,7 @@ SettingValues ToValues(const Settings& settings) {
       {L"Language", NameOf(kLanguages, settings.language)},
       {L"HideSystemTaskbar", settings.hideSystemTaskbar ? L"1" : L"0"},
       {L"WindowsKeyOpensMenu", settings.windowsKeyOpensMenu ? L"1" : L"0"},
+      {L"StartStyle", std::wstring(StartStyleName(settings.startStyle))},
       {L"Pinned", JoinLines(settings.pinned)},
       {L"TrayShown", JoinLines(settings.trayShown)},
       {L"TrayHidden", JoinLines(settings.trayHidden)},
@@ -86,6 +87,9 @@ Settings FromValues(const SettingValues& values) {
   ReadEnum(values, L"Language", kLanguages, settings.language);
   ReadBool(values, L"HideSystemTaskbar", settings.hideSystemTaskbar);
   ReadBool(values, L"WindowsKeyOpensMenu", settings.windowsKeyOpensMenu);
+  if (const auto it = values.find(L"StartStyle"); it != values.end()) {
+    if (const auto style = ParseStartStyle(it->second)) settings.startStyle = *style;
+  }
   if (const auto it = values.find(L"Pinned"); it != values.end()) {
     for (auto& target : SplitLines(it->second)) Pin(settings, target);
   }
@@ -102,6 +106,7 @@ Settings WithOverrides(Settings settings, const Options& options) {
   if (options.edge) settings.edge = *options.edge;
   if (options.theme) settings.theme = *options.theme;
   if (options.language) settings.language = *options.language;
+  if (options.startStyle) settings.startStyle = *options.startStyle;
   return settings;
 }
 

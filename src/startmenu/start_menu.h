@@ -14,6 +14,7 @@
 #include "startmenu/frequent.h"
 #include "startmenu/places.h"
 #include "startmenu/programs.h"
+#include "startmenu/start_menu_window.h"
 #include "ui/canvas.h"
 #include "ui/theme.h"
 
@@ -21,22 +22,22 @@ namespace throwback {
 
 // The classic Windows 7 start menu: frequent programs, All Programs and
 // search on the left; the account picture, places and power on the right.
-class StartMenu {
+class StartMenu : public StartMenuWindow {
  public:
   // The menu is owned by the bar, so closing requests reach the bar.
   // Pinning changes settings.pinned and then calls onPinnedChanged to save.
   StartMenu(HINSTANCE instance, HWND owner, Settings& settings, std::function<void()> onClosed,
             std::function<void()> onPinnedChanged);
-  ~StartMenu();
+  ~StartMenu() override;
   StartMenu(const StartMenu&) = delete;
   StartMenu& operator=(const StartMenu&) = delete;
 
   // anchor is the start button in screen coordinates; the menu opens below
   // it for a bar at the top of the screen and above it otherwise.
-  void Open(const RECT& anchor, bool below, unsigned dpi);
+  void Open(const RECT& anchor, bool below, unsigned dpi) override;
   // Dismisses the menu and gives focus back to the window that had it.
-  void Close() { Hide(/*restoreFocus=*/true); }
-  bool IsOpen() const;
+  void Close() override { Hide(/*restoreFocus=*/true); }
+  bool IsOpen() const override;
 
  private:
   // restoreFocus is false when something else is taking focus anyway: the

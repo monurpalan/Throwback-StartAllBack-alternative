@@ -97,9 +97,7 @@ TaskbarWindow::TaskbarWindow(HINSTANCE instance, BarManager& manager, HMONITOR m
   orb_ = ui::OrbWindow::Create(instance, hwnd_);
   ui::EnableGlass(hwnd_, ui::GlassCorners::Square);
   thumbnail_ = std::make_unique<ThumbnailPopup>(instance, hwnd_);
-  startMenu_ = std::make_unique<StartMenu>(
-      instance, hwnd_, settings_, [this] { InvalidateRect(hwnd_, nullptr, FALSE); },
-      [this] { manager_.SavePinned(); });
+  CreateStartMenuForStyle();
   ApplyWindowsKey();
   ApplyTheme();
   RegisterAppBar();

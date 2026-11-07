@@ -17,6 +17,7 @@ struct Settings {
   bool hideSystemTaskbar = false;
   // A lone press of the Windows key opens our start menu instead of Windows'.
   bool windowsKeyOpensMenu = true;
+  StartStyle startStyle = StartStyle::Win7;
   // Pinned start menu programs, as shell parsing names, in display order.
   std::vector<std::wstring> pinned;
   // Notification icons the user dragged onto the bar or off it, by icon

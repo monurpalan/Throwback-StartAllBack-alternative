@@ -10,9 +10,11 @@ constexpr std::array<Translation, kStringCount> kTable = {{
     {StringId::UnknownArgument, L"Unknown argument: ", L"Bilinmeyen argüman: "},
     {StringId::Usage,
      L"Usage: throwback.exe [--edge=top|bottom] [--theme=system|light|dark] "
-     L"[--lang=system|en|tr] [--profile=<name>]",
+     L"[--lang=system|en|tr] [--start-style=98|me|2000|xp|vista|7|8|8.1|10|11] "
+     L"[--profile=<name>]",
      L"Kullanım: throwback.exe [--edge=top|bottom] [--theme=system|light|dark] "
-     L"[--lang=system|en|tr] [--profile=<ad>]"},
+     L"[--lang=system|en|tr] [--start-style=98|me|2000|xp|vista|7|8|8.1|10|11] "
+     L"[--profile=<ad>]"},
     {StringId::AllPrograms, L"All Programs", L"Tüm Programlar"},
     {StringId::Back, L"Back", L"Geri"},
     {StringId::SearchPlaceholder, L"Search programs and settings", L"Programları ve ayarları ara"},
@@ -33,6 +35,7 @@ constexpr std::array<Translation, kStringCount> kTable = {{
     {StringId::Properties, L"Properties", L"Özellikler"},
     {StringId::Recent, L"Recent", L"Son"},
     {StringId::CustomizeIcons, L"Customize...", L"Özelleştir..."},
+    {StringId::StartStyleLabel, L"Style:", L"Görünüm:"},
     {StringId::SettingsTitle, L"Taskbar and Start Menu Properties",
      L"Görev Çubuğu ve Başlat Menüsü Özellikleri"},
     {StringId::TaskbarAppearance, L"Taskbar appearance", L"Görev çubuğu görünümü"},

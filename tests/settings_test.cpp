@@ -12,6 +12,7 @@ TEST(SettingsTest, RoundTripsThroughValues) {
   settings.language = LanguageMode::Turkish;
   settings.hideSystemTaskbar = true;
   settings.windowsKeyOpensMenu = false;
+  settings.startStyle = StartStyle::WinXp;
   settings.pinned = {L"C:\\a.lnk", L"shell:AppsFolder\\App!Id"};
   settings.trayShown = {L"c:\\apps\\a.exe|1"};
   settings.trayHidden = {L"g1.2.3.", L"c:\\apps\\b.exe|0"};

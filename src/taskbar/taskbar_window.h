@@ -7,7 +7,7 @@
 #include "core/layout.h"
 #include "core/settings.h"
 #include "core/task_click.h"
-#include "startmenu/start_menu.h"
+#include "startmenu/start_menu_window.h"
 #include "startmenu/win_key_hook.h"
 #include "taskbar/appbar.h"
 #include "taskbar/bar_view.h"
@@ -82,6 +82,7 @@ class TaskbarWindow {
   void ShowThumbnail(int index);
   void HideThumbnail();
   void ToggleStartMenu();
+  void CreateStartMenuForStyle();
   // Notification area (main bar only), in taskbar_tray.cpp.
   // Indices into TrayHost::VisibleIcons of the icons on the bar and of
   // those behind the arrow.
@@ -133,7 +134,8 @@ class TaskbarWindow {
   std::unique_ptr<AppBar> appBar_;
   std::unique_ptr<SystemTaskbar> systemTaskbar_;
   std::unique_ptr<ThumbnailPopup> thumbnail_;
-  std::unique_ptr<StartMenu> startMenu_;
+  std::unique_ptr<StartMenuWindow> startMenu_;
+  StartStyle startStyle_ = StartStyle::Win7;  // of startMenu_
   std::unique_ptr<WinKeyHook> winKeyHook_;
   std::unique_ptr<TaskbandHook> taskbandHook_;  // main bar only
   std::unique_ptr<TrayHost> tray_;              // main bar only
