@@ -25,6 +25,10 @@ enum class SkinImage {
   Arrow,
   PaneItem,
   GlassItem,
+  TrayArrow,      // shows the hidden notification icons
+  TrayArrowOpen,  // the same while they are shown
+  TrayItem,       // a notification icon under the mouse
+  FlyoutLink,     // the light strip at the bottom of a flyout
 };
 
 // How an image is cut, as the Windows 7 theme describes it: its states are

@@ -33,6 +33,7 @@ enum class StringId {
   UnpinFromStartMenu,
   Properties,
   Recent,
+  CustomizeIcons,
   // The properties dialog.
   SettingsTitle,
   TaskbarAppearance,

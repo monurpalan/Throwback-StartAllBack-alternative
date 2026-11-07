@@ -13,7 +13,22 @@ TEST(SettingsTest, RoundTripsThroughValues) {
   settings.hideSystemTaskbar = true;
   settings.windowsKeyOpensMenu = false;
   settings.pinned = {L"C:\\a.lnk", L"shell:AppsFolder\\App!Id"};
+  settings.trayShown = {L"c:\\apps\\a.exe|1"};
+  settings.trayHidden = {L"g1.2.3.", L"c:\\apps\\b.exe|0"};
   EXPECT_EQ(FromValues(ToValues(settings)), settings);
+}
+
+TEST(SettingsTest, TrayIconsFollowWindowsUntilMoved) {
+  Settings settings;
+  EXPECT_TRUE(IsTrayIconShown(settings, L"a|1", true));
+  EXPECT_FALSE(IsTrayIconShown(settings, L"a|1", false));
+  SetTrayIconShown(settings, L"a|1", false);
+  EXPECT_FALSE(IsTrayIconShown(settings, L"a|1", true));
+  SetTrayIconShown(settings, L"a|1", true);
+  EXPECT_TRUE(IsTrayIconShown(settings, L"a|1", false));
+  // Moving an icon keeps one entry for it.
+  EXPECT_EQ(settings.trayShown, (std::vector<std::wstring>{L"a|1"}));
+  EXPECT_TRUE(settings.trayHidden.empty());
 }
 
 TEST(SettingsTest, MissingOrBadValuesKeepDefaults) {

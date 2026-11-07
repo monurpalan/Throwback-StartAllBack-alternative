@@ -86,6 +86,13 @@ void BarManager::SavePinned() {
   store_.Save(saved);
 }
 
+void BarManager::SaveTrayChoices() {
+  Settings saved = store_.Load();
+  saved.trayShown = settings_.trayShown;
+  saved.trayHidden = settings_.trayHidden;
+  store_.Save(saved);
+}
+
 bool BarManager::HandleTaskbarList(UINT message, WPARAM wParam, LPARAM lParam) {
   bool changed = false;
   if (!status_.Handle(message, wParam, lParam, &changed)) return false;

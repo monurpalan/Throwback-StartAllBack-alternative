@@ -22,6 +22,7 @@ add_executable(throwback_tests
   task_click_test.cpp
   task_progress_test.cpp
   theme_test.cpp
+  tray_layout_test.cpp
   user_assist_test.cpp
   win_key_test.cpp
   window_filter_test.cpp

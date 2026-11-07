@@ -15,6 +15,7 @@
 #include "taskbar/taskband_hook.h"
 #include "taskbar/thumbnail_popup.h"
 #include "taskbar/tray_host.h"
+#include "taskbar/tray_overflow.h"
 #include "taskbar/window_tracker.h"
 #include "ui/canvas.h"
 #include "ui/orb_window.h"
@@ -40,10 +41,11 @@ class TaskbarWindow {
   void RequestRefresh();
 
  private:
+  static constexpr int kHitTrayArrow = -4;
   static constexpr int kHitNone = -3;
   static constexpr int kHitShowDesktop = -2;
   static constexpr int kHitStart = -1;
-  // Notification icons hit as kHitTrayFirst - index.
+  // Notification icons on the bar hit as kHitTrayFirst - their place there.
   static constexpr int kHitTrayFirst = -100;
   static bool IsTrayHit(int hit) { return hit <= kHitTrayFirst; }
   // Posted by the Windows key hook.
@@ -81,12 +83,26 @@ class TaskbarWindow {
   void HideThumbnail();
   void ToggleStartMenu();
   // Notification area (main bar only), in taskbar_tray.cpp.
+  // Indices into TrayHost::VisibleIcons of the icons on the bar and of
+  // those behind the arrow.
+  struct TrayIcons {
+    std::vector<size_t> shown;
+    std::vector<size_t> hidden;
+  };
+  TrayIcons SplitTrayIcons() const;
+  TrayAreaLayout TrayArea() const;
   int TrayWidth() const;
-  Rect TrayIconRect(size_t index) const;
   int TrayHit(int x, int y) const;
   void SendTrayMouse(int hit, TrayHost::Mouse mouse);
   void PlaceTray();
   void AddTrayIcons(BarModel& model) const;
+  void CreateTrayOverflow();
+  void ToggleTrayOverflow();
+  void MoveTrayIcon(size_t index, bool shown);
+  // A press on a notification icon or the arrow; the release decides between
+  // a click and dragging the icon off the bar. True if it was handled.
+  void OnTrayPressed(int x, int y);
+  bool OnTrayReleased(int pressed, int x, int y);
 
   // The WinEvent callback has no context parameter; the main bar hooks it.
   static TaskbarWindow* mainInstance_;
@@ -121,6 +137,8 @@ class TaskbarWindow {
   std::unique_ptr<WinKeyHook> winKeyHook_;
   std::unique_ptr<TaskbandHook> taskbandHook_;  // main bar only
   std::unique_ptr<TrayHost> tray_;              // main bar only
+  std::unique_ptr<TrayOverflow> trayOverflow_;  // main bar only
+  POINT trayPress_{};
   int lastTrayClick_ = kHitNone;
   DWORD lastTrayClickTime_ = 0;
 };

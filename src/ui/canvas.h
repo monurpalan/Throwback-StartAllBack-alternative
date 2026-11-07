@@ -23,22 +23,26 @@ namespace throwback::ui {
 // The bright rim of bar glass faces the rest of the screen.
 enum class GlassVariant { BarBottom, BarTop, Menu };
 enum class ButtonVariant {
-  MenuItem,      // a row on the white pane; drawn only while hovered
-  GlassItem,     // a row on glass; drawn only while hovered
-  Task,          // a taskbar button
-  ActiveTask,    // the button of the foreground window
-  FlashingTask,  // a window asking for attention
-  Command,       // the glossy push button
-  ShowDesktop,   // the slim button at the end of the bar
+  MenuItem,       // a row on the white pane; drawn only while hovered
+  GlassItem,      // a row on glass; drawn only while hovered
+  Task,           // a taskbar button
+  ActiveTask,     // the button of the foreground window
+  FlashingTask,   // a window asking for attention
+  Command,        // the glossy push button
+  ShowDesktop,    // the slim button at the end of the bar
+  TrayItem,       // a notification icon; drawn only while hovered
+  TrayArrow,      // the arrow that shows hidden notification icons
+  TrayArrowOpen,  // the same arrow while they are shown
 };
 // The parts of the start menu's background, each covering one corner area of
 // the menu up to its outer edge.
 enum class PanelVariant {
-  Programs,  // the white program pane, top left
-  Search,    // the strip under it that holds the search box
-  Places,    // the right column
-  JumpList,  // the right column while a jump list replaces it
-  Power,     // the corner under the right column with the shut down button
+  Programs,    // the white program pane, top left
+  Search,      // the strip under it that holds the search box
+  Places,      // the right column
+  JumpList,    // the right column while a jump list replaces it
+  Power,       // the corner under the right column with the shut down button
+  FlyoutLink,  // the light strip at the bottom of a flyout, for a link
 };
 enum class SeparatorVariant { Pane, Glass };
 enum class ProgressVariant { Normal, Paused, Error, Indeterminate };
@@ -46,6 +50,7 @@ enum class TextTone {
   Dark,   // on the white pane and on push buttons
   Light,  // on glass: white with a dark glow
   Muted,  // prompts and messages
+  Link,   // a link on a light strip
 };
 enum class IconKind {
   ChevronRight,
@@ -102,6 +107,8 @@ class Canvas {
   void DrawTextRun(const Rect& rect, std::wstring_view text, IDWriteTextFormat* format,
                    const Color& color, float dx, float dy);
   void TaskButton(const Rect& rect, ButtonVariant variant, bool hovered);
+  void TrayArrow(const Rect& rect, bool open, bool hovered);
+  void DrawTriangle(const Rect& rect, bool up, const Color& color);
   void DrawChevron(const Rect& rect, bool right, const Color& color);
   void DrawSearchGlyph(const Rect& rect);
   void DrawFlag(float cx, float cy, float size);

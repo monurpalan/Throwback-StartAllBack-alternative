@@ -19,6 +19,10 @@ struct Settings {
   bool windowsKeyOpensMenu = true;
   // Pinned start menu programs, as shell parsing names, in display order.
   std::vector<std::wstring> pinned;
+  // Notification icons the user dragged onto the bar or off it, by icon
+  // identity. Icons in neither list follow Windows' own choice.
+  std::vector<std::wstring> trayShown;
+  std::vector<std::wstring> trayHidden;
 
   bool operator==(const Settings&) const = default;
 };
@@ -36,5 +40,9 @@ Settings WithOverrides(Settings settings, const Options& options);
 void Pin(Settings& settings, const std::wstring& target);
 void Unpin(Settings& settings, const std::wstring& target);
 bool IsPinned(const Settings& settings, const std::wstring& target);
+
+// Whether a notification icon sits on the bar or behind the arrow.
+bool IsTrayIconShown(const Settings& settings, const std::wstring& identity, bool windowsShows);
+void SetTrayIconShown(Settings& settings, const std::wstring& identity, bool shown);
 
 }  // namespace throwback

@@ -33,6 +33,7 @@ add_library(throwback_core STATIC
   src/core/start_menu_layout.cpp
   src/core/task_progress.cpp
   src/core/task_click.cpp
+  src/core/tray_layout.cpp
   src/core/user_assist.cpp
   src/core/win_key.cpp
   src/core/window_filter.cpp
@@ -80,6 +81,7 @@ add_executable(throwback WIN32
   src/taskbar/bar_view.cpp
   src/taskbar/explorer_tray.cpp
   src/taskbar/main.cpp
+  src/taskbar/notify_icon_settings.cpp
   src/taskbar/system_taskbar.cpp
   src/taskbar/settings_dialog.cpp
   src/taskbar/task_status.cpp
@@ -89,6 +91,7 @@ add_executable(throwback WIN32
   src/taskbar/taskbar_window.cpp
   src/taskbar/thumbnail_popup.cpp
   src/taskbar/tray_host.cpp
+  src/taskbar/tray_overflow.cpp
   src/taskbar/window_actions.cpp
   src/taskbar/window_tracker.cpp)
 target_link_libraries(throwback PRIVATE

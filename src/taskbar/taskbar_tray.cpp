@@ -1,45 +1,59 @@
-// The bar's notification area: layout, drawing data and mouse input for the
-// icons TrayHost collects.
+// The bar's notification area: which icons sit on the bar and which behind
+// the arrow, layout, drawing data and mouse input for the icons TrayHost
+// collects.
+#include <cstdlib>
+
+#include "taskbar/bar_manager.h"
 #include "taskbar/taskbar_window.h"
 
 namespace throwback {
 namespace {
 
-// Windows 7 spaces 16 px icons 24 px apart.
-constexpr int kSlot = 24;
 constexpr int kIcon = 16;
-constexpr int kInset = 4;
 
 }  // namespace
 
-int TaskbarWindow::TrayWidth() const {
-  if (!tray_) return 0;
-  const size_t count = tray_->VisibleIcons().size();
-  if (count == 0) return 0;
-  return static_cast<int>(count) * ScaleForDpi(kSlot, dpi_) + 2 * ScaleForDpi(kInset, dpi_);
+TaskbarWindow::TrayIcons TaskbarWindow::SplitTrayIcons() const {
+  TrayIcons split;
+  if (!tray_) return split;
+  const auto icons = tray_->VisibleIcons();
+  for (size_t i = 0; i < icons.size(); ++i) {
+    const bool shown =
+        IsTrayIconShown(settings_, std::wstring(icons[i].identity), icons[i].windowsShows);
+    (shown ? split.shown : split.hidden).push_back(i);
+  }
+  return split;
 }
 
-Rect TaskbarWindow::TrayIconRect(size_t index) const {
-  const int slot = ScaleForDpi(kSlot, dpi_);
-  const int left = layout_.tray.left + ScaleForDpi(kInset, dpi_) + static_cast<int>(index) * slot;
-  const int top = layout_.tray.top + (layout_.tray.Height() - slot) / 2;
-  return {left, top, left + slot, top + slot};
+TrayAreaLayout TaskbarWindow::TrayArea() const {
+  const TrayIcons split = SplitTrayIcons();
+  return ComputeTrayArea(layout_.tray, split.shown.size(), !split.hidden.empty(), dpi_);
+}
+
+int TaskbarWindow::TrayWidth() const {
+  if (!tray_) return 0;
+  const TrayIcons split = SplitTrayIcons();
+  return TrayAreaWidth(split.shown.size(), !split.hidden.empty(), dpi_);
 }
 
 int TaskbarWindow::TrayHit(int x, int y) const {
   if (!tray_ || !layout_.tray.Contains(x, y)) return kHitNone;
-  const size_t count = tray_->VisibleIcons().size();
-  for (size_t i = 0; i < count; ++i) {
-    if (TrayIconRect(i).Contains(x, y)) return kHitTrayFirst - static_cast<int>(i);
+  const TrayAreaLayout area = TrayArea();
+  if (area.arrow.Contains(x, y)) return kHitTrayArrow;
+  for (size_t i = 0; i < area.icons.size(); ++i) {
+    if (area.icons[i].Contains(x, y)) return kHitTrayFirst - static_cast<int>(i);
   }
   return kHitNone;
 }
 
 void TaskbarWindow::SendTrayMouse(int hit, TrayHost::Mouse mouse) {
   if (!tray_ || !IsTrayHit(hit)) return;
-  const auto index = static_cast<size_t>(kHitTrayFirst - hit);
+  const auto place = static_cast<size_t>(kHitTrayFirst - hit);
+  const TrayIcons split = SplitTrayIcons();
+  const TrayAreaLayout area = TrayArea();
+  if (place >= split.shown.size() || place >= area.icons.size()) return;
   // Programs place their menus and balloons at the icon.
-  const Rect rect = TrayIconRect(index);
+  const Rect& rect = area.icons[place];
   POINT anchor{(rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2};
   ClientToScreen(hwnd_, &anchor);
   if (mouse == TrayHost::Mouse::LeftClick) {
@@ -51,7 +65,7 @@ void TaskbarWindow::SendTrayMouse(int hit, TrayHost::Mouse mouse) {
     lastTrayClickTime_ = now;
     if (twice) mouse = TrayHost::Mouse::DoubleClick;
   }
-  tray_->Send(index, mouse, anchor);
+  tray_->Send(split.shown[place], mouse, anchor);
 }
 
 void TaskbarWindow::PlaceTray() {
@@ -68,12 +82,92 @@ void TaskbarWindow::PlaceTray() {
 void TaskbarWindow::AddTrayIcons(BarModel& model) const {
   if (!tray_) return;
   const auto icons = tray_->VisibleIcons();
+  const TrayIcons split = SplitTrayIcons();
+  const TrayAreaLayout area = TrayArea();
   const int size = ScaleForDpi(kIcon, dpi_);
-  for (size_t i = 0; i < icons.size(); ++i) {
-    const Rect slot = TrayIconRect(i);
-    model.trayIcons.push_back({slot, CenteredSquare(slot, size), icons[i].icon,
+  for (size_t i = 0; i < split.shown.size() && i < area.icons.size(); ++i) {
+    const Rect& slot = area.icons[i];
+    model.trayIcons.push_back({slot, CenteredSquare(slot, size), icons[split.shown[i]].icon,
                                hovered_ == kHitTrayFirst - static_cast<int>(i)});
   }
+  model.trayArrow = area.arrow;
+  model.trayArrowHovered = hovered_ == kHitTrayArrow;
+  model.trayOpen = trayOverflow_ && trayOverflow_->IsOpen();
+}
+
+void TaskbarWindow::CreateTrayOverflow() {
+  TrayOverflow::Callbacks callbacks;
+  callbacks.items = [this] {
+    std::vector<TrayOverflow::Item> items;
+    if (!tray_) return items;
+    const auto icons = tray_->VisibleIcons();
+    for (size_t index : SplitTrayIcons().hidden) items.push_back({index, icons[index].icon});
+    return items;
+  };
+  callbacks.send = [this](size_t index, TrayHost::Mouse mouse, POINT anchor) {
+    if (tray_) tray_->Send(index, mouse, anchor);
+  };
+  callbacks.dropped = [this](size_t index, POINT point) {
+    // Dropped on the bar: the icon moves onto it, as on Windows 7.
+    RECT bar{};
+    GetWindowRect(hwnd_, &bar);
+    if (PtInRect(&bar, point)) MoveTrayIcon(index, true);
+  };
+  callbacks.closed = [this] { InvalidateRect(hwnd_, nullptr, FALSE); };
+  trayOverflow_ = std::make_unique<TrayOverflow>(module_, hwnd_, std::move(callbacks));
+}
+
+void TaskbarWindow::ToggleTrayOverflow() {
+  if (!trayOverflow_) return;
+  if (trayOverflow_->IsOpen()) {
+    trayOverflow_->Hide();
+    return;
+  }
+  // The user may have changed Windows' choices in Settings meanwhile.
+  tray_->ReloadChoices();
+  UpdateLayout();
+  const Rect arrow = TrayArea().arrow;
+  POINT topLeft{arrow.left, arrow.top};
+  POINT bottomRight{arrow.right, arrow.bottom};
+  ClientToScreen(hwnd_, &topLeft);
+  ClientToScreen(hwnd_, &bottomRight);
+  trayOverflow_->Show({topLeft.x, topLeft.y, bottomRight.x, bottomRight.y},
+                      settings_.edge == Edge::Top, dpi_);
+  InvalidateRect(hwnd_, nullptr, FALSE);
+}
+
+void TaskbarWindow::MoveTrayIcon(size_t index, bool shown) {
+  if (!tray_) return;
+  const auto icons = tray_->VisibleIcons();
+  if (index >= icons.size() || icons[index].identity.empty()) return;
+  SetTrayIconShown(settings_, std::wstring(icons[index].identity), shown);
+  manager_.SaveTrayChoices();
+  UpdateLayout();
+  if (trayOverflow_) trayOverflow_->Refresh();
+}
+
+void TaskbarWindow::OnTrayPressed(int x, int y) {
+  if (!IsTrayHit(pressedHit_)) return;
+  // Capture, so a release off the bar still arrives: that drags the icon off.
+  trayPress_ = {x, y};
+  SetCapture(hwnd_);
+}
+
+bool TaskbarWindow::OnTrayReleased(int pressed, int x, int y) {
+  if (pressed == kHitTrayArrow && TrayHit(x, y) == kHitTrayArrow) {
+    ToggleTrayOverflow();
+    return true;
+  }
+  if (!IsTrayHit(pressed)) return false;
+  if (GetCapture() == hwnd_) ReleaseCapture();
+  const bool dragged = std::abs(x - trayPress_.x) > GetSystemMetrics(SM_CXDRAG) ||
+                       std::abs(y - trayPress_.y) > GetSystemMetrics(SM_CYDRAG);
+  if (!dragged || layout_.tray.Contains(x, y)) return false;
+  // Dragged off the bar: the icon goes behind the arrow, as on Windows 7.
+  const TrayIcons split = SplitTrayIcons();
+  const auto place = static_cast<size_t>(kHitTrayFirst - pressed);
+  if (place < split.shown.size()) MoveTrayIcon(split.shown[place], false);
+  return true;
 }
 
 }  // namespace throwback

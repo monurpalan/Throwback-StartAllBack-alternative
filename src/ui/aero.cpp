@@ -23,6 +23,9 @@ constexpr int kFlashingTaskFrame = 6;
 constexpr int kHotFrame = 1;  // push buttons and pane items
 constexpr int kGlassItemHotFrame = 0;
 constexpr int kShowDesktopHotFrame = 2;
+// The tray arrow at 96 DPI, drawn at its own size in the middle of its slot.
+constexpr int kTrayArrowWidth = 21;
+constexpr int kTrayArrowHeight = 20;
 
 int TaskFrame(ButtonVariant variant, bool hovered) {
   if (variant == ButtonVariant::FlashingTask) return kFlashingTaskFrame;
@@ -89,6 +92,9 @@ void Canvas::Panel(const Rect& rect, PanelVariant variant) {
     case PanelVariant::Power:
       Skin(SkinImage::MenuPower, 0, rect);
       return;
+    case PanelVariant::FlyoutLink:
+      if (!Skin(SkinImage::FlyoutLink, 0, rect)) Fill(rect, aero::kPane);
+      return;
   }
   FillRound(pane, kCornerRadius, aero::kPane);
   StrokeRound(pane, kCornerRadius, aero::kPaneBorder);
@@ -110,6 +116,18 @@ void Canvas::TaskButton(const Rect& rect, ButtonVariant variant, bool hovered) {
   if (hovered) FillGlow(rect, aero::kHotGlow);
   StrokeRound(rect, kCornerRadius, aero::kGlassItemBorder);
   StrokeRound(Inset(rect, std::max(1, Scale(1))), kCornerRadius - 1.0f, aero::kTaskInner);
+}
+
+void Canvas::TrayArrow(const Rect& rect, bool open, bool hovered) {
+  const int left = rect.left + (rect.Width() - Scale(kTrayArrowWidth)) / 2;
+  const int top = rect.top + (rect.Height() - Scale(kTrayArrowHeight)) / 2;
+  const Rect button{left, top, left + Scale(kTrayArrowWidth), top + Scale(kTrayArrowHeight)};
+  if (Skin(open ? SkinImage::TrayArrowOpen : SkinImage::TrayArrow, hovered ? kHotFrame : 0,
+           button)) {
+    return;
+  }
+  Button(button, ButtonVariant::GlassItem, hovered);
+  DrawTriangle(button, !open, aero::kGlassText);
 }
 
 void Canvas::Button(const Rect& rect, ButtonVariant variant, bool hovered) {
@@ -147,6 +165,14 @@ void Canvas::Button(const Rect& rect, ButtonVariant variant, bool hovered) {
       StrokeRound(inner, kCornerRadius - 1.0f, aero::kItemInner);
       return;
     }
+    case ButtonVariant::TrayItem:
+      if (!hovered || Skin(SkinImage::TrayItem, kHotFrame, rect)) return;
+      Button(rect, ButtonVariant::GlassItem, hovered);
+      return;
+    case ButtonVariant::TrayArrow:
+    case ButtonVariant::TrayArrowOpen:
+      TrayArrow(rect, variant == ButtonVariant::TrayArrowOpen, hovered);
+      return;
     case ButtonVariant::ShowDesktop:
       if (Skin(SkinImage::ShowDesktop, hovered ? kShowDesktopHotFrame : 0, rect)) return;
       FillGradient(rect, 0.0f, aero::kTaskTop, aero::kTaskBottom);

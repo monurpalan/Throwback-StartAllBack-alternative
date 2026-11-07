@@ -106,7 +106,11 @@ TaskbarWindow::TaskbarWindow(HINSTANCE instance, BarManager& manager, HMONITOR m
   if (IsMain()) {
     SystemTaskbar::RecoverFromCrash();
     taskbandHook_ = std::make_unique<TaskbandHook>(hwnd_);
-    tray_ = std::make_unique<TrayHost>(instance, hwnd_, [this] { UpdateLayout(); });
+    tray_ = std::make_unique<TrayHost>(instance, hwnd_, [this] {
+      UpdateLayout();
+      if (trayOverflow_) trayOverflow_->Refresh();
+    });
+    CreateTrayOverflow();
   }
   ApplySystemTaskbar();
 
@@ -293,6 +297,7 @@ LRESULT TaskbarWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam)
       appBar_.reset();  // gives the reserved screen space back
       orb_.reset();
       taskbandHook_.reset();
+      trayOverflow_.reset();
       tray_.reset();
       systemTaskbar_.reset();
       if (IsMain()) PostQuitMessage(0);
@@ -507,6 +512,7 @@ void TaskbarWindow::OnButtonDown(int x, int y) {
   HideThumbnail();
   pressedHit_ = HitTest(x, y);
   pressedTask_ = nullptr;
+  OnTrayPressed(x, y);
   if (pressedHit_ >= 0) {
     pressedTask_ = tracker_->Items()[static_cast<size_t>(pressedHit_)].hwnd;
     pressedState_ = ReadClickState(pressedTask_);
@@ -516,6 +522,7 @@ void TaskbarWindow::OnButtonDown(int x, int y) {
 void TaskbarWindow::OnButtonUp(int x, int y) {
   const int hit = HitTest(x, y);
   const int pressed = std::exchange(pressedHit_, kHitNone);
+  if (OnTrayReleased(pressed, x, y)) return;
   if (hit != pressed) return;  // released somewhere else: cancel
 
   if (IsTrayHit(hit)) {

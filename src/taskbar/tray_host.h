@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "core/notify_icon.h"
+#include "taskbar/notify_icon_settings.h"
 
 namespace throwback {
 
@@ -20,6 +21,8 @@ class TrayHost {
   struct Visible {
     HICON icon = nullptr;
     std::wstring_view tip;
+    std::wstring_view identity;  // see IconIdentity; empty when unknown
+    bool windowsShows = false;   // Windows 11 keeps it on the taskbar
   };
   enum class Mouse { Move, LeftClick, DoubleClick, RightClick };
 
@@ -38,6 +41,8 @@ class TrayHost {
   void Send(size_t visibleIndex, Mouse mouse, POINT point);
   // Forgets icons whose program exited without removing them.
   void Prune();
+  // Reads Windows' choices of which icons sit on the taskbar again.
+  void ReloadChoices();
 
  private:
   static LRESULT CALLBACK WindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -52,6 +57,8 @@ class TrayHost {
   TrayIconList list_;
   // Our copies of the programs' icons, by icon identity.
   std::unordered_map<std::wstring, HICON> icons_;
+  std::unordered_map<std::wstring, std::wstring> identities_;  // by the same key
+  WindowsIconChoices choices_;
   UINT taskbarCreated_ = 0;
 };
 

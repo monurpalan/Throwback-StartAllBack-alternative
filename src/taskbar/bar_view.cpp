@@ -72,8 +72,13 @@ void DrawBar(ui::Canvas& canvas, const BarModel& model) {
 
   for (const auto& button : model.buttons) DrawTaskButton(canvas, button);
 
+  if (model.trayArrow.Width() > 0) {
+    canvas.Button(model.trayArrow,
+                  model.trayOpen ? ui::ButtonVariant::TrayArrowOpen : ui::ButtonVariant::TrayArrow,
+                  model.trayArrowHovered);
+  }
   for (const auto& icon : model.trayIcons) {
-    canvas.Button(icon.slot, ui::ButtonVariant::GlassItem, icon.hovered);
+    canvas.Button(icon.slot, ui::ButtonVariant::TrayItem, icon.hovered);
     canvas.Icon(icon.icon, icon.handle);
   }
 

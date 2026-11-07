@@ -176,6 +176,9 @@ void Canvas::Text(const Rect& rect, std::wstring_view text, TextStyle style, Tex
     case TextTone::Muted:
       DrawTextRun(rect, text, format, aero::kHintText, 0.0f, 0.0f);
       break;
+    case TextTone::Link:
+      DrawTextRun(rect, text, format, aero::kLink, 0.0f, 0.0f);
+      break;
     case TextTone::Light: {
       // White text on glass keeps readable over any wallpaper thanks to a
       // dark halo around the glyphs.

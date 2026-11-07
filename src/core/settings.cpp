@@ -74,6 +74,8 @@ SettingValues ToValues(const Settings& settings) {
       {L"HideSystemTaskbar", settings.hideSystemTaskbar ? L"1" : L"0"},
       {L"WindowsKeyOpensMenu", settings.windowsKeyOpensMenu ? L"1" : L"0"},
       {L"Pinned", JoinLines(settings.pinned)},
+      {L"TrayShown", JoinLines(settings.trayShown)},
+      {L"TrayHidden", JoinLines(settings.trayHidden)},
   };
 }
 
@@ -86,6 +88,12 @@ Settings FromValues(const SettingValues& values) {
   ReadBool(values, L"WindowsKeyOpensMenu", settings.windowsKeyOpensMenu);
   if (const auto it = values.find(L"Pinned"); it != values.end()) {
     for (auto& target : SplitLines(it->second)) Pin(settings, target);
+  }
+  if (const auto it = values.find(L"TrayShown"); it != values.end()) {
+    for (auto& identity : SplitLines(it->second)) SetTrayIconShown(settings, identity, true);
+  }
+  if (const auto it = values.find(L"TrayHidden"); it != values.end()) {
+    for (auto& identity : SplitLines(it->second)) SetTrayIconShown(settings, identity, false);
   }
   return settings;
 }
@@ -105,6 +113,19 @@ void Unpin(Settings& settings, const std::wstring& target) { std::erase(settings
 
 bool IsPinned(const Settings& settings, const std::wstring& target) {
   return std::ranges::find(settings.pinned, target) != settings.pinned.end();
+}
+
+bool IsTrayIconShown(const Settings& settings, const std::wstring& identity, bool windowsShows) {
+  if (std::ranges::find(settings.trayShown, identity) != settings.trayShown.end()) return true;
+  if (std::ranges::find(settings.trayHidden, identity) != settings.trayHidden.end()) return false;
+  return windowsShows;
+}
+
+void SetTrayIconShown(Settings& settings, const std::wstring& identity, bool shown) {
+  if (identity.empty()) return;
+  std::erase(settings.trayShown, identity);
+  std::erase(settings.trayHidden, identity);
+  (shown ? settings.trayShown : settings.trayHidden).push_back(identity);
 }
 
 }  // namespace throwback

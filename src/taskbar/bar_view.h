@@ -40,6 +40,9 @@ struct BarModel {
   bool drawOrb = true;  // false while an OrbWindow shows the orb
   std::vector<TaskButtonModel> buttons;
   std::vector<TrayIconModel> trayIcons;
+  Rect trayArrow;  // empty when no icon is hidden
+  bool trayArrowHovered = false;
+  bool trayOpen = false;  // the hidden icons are showing
   Rect clock;
   std::wstring_view time;
   std::wstring_view date;

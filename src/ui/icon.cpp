@@ -67,6 +67,25 @@ void Canvas::DrawChevron(const Rect& rect, bool right, const Color& color) {
   target_->FillGeometry(path.Get(), Brush(color));
 }
 
+void Canvas::DrawTriangle(const Rect& rect, bool up, const Color& color) {
+  const float half = static_cast<float>(Scale(kSpace4));
+  const float cx = std::round(static_cast<float>(rect.left + rect.right) / 2.0f);
+  const float cy = std::round(static_cast<float>(rect.top + rect.bottom) / 2.0f);
+  const float tip = up ? -half / 2.0f : half / 2.0f;
+  ComPtr<ID2D1PathGeometry> path;
+  ComPtr<ID2D1GeometrySink> sink;
+  if (FAILED(factory_->CreatePathGeometry(path.GetAddressOf())) ||
+      FAILED(path->Open(sink.GetAddressOf()))) {
+    return;
+  }
+  sink->BeginFigure(D2D1::Point2F(cx - half, cy - tip), D2D1_FIGURE_BEGIN_FILLED);
+  sink->AddLine(D2D1::Point2F(cx, cy + tip));
+  sink->AddLine(D2D1::Point2F(cx + half, cy - tip));
+  sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+  sink->Close();
+  target_->FillGeometry(path.Get(), Brush(color));
+}
+
 void Canvas::DrawSearchGlyph(const Rect& rect) {
   // A magnifying glass: a ring with a short handle toward the bottom right.
   const float size = static_cast<float>(std::min(rect.Width(), rect.Height())) * 0.55f;

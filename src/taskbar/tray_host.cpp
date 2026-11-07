@@ -179,6 +179,7 @@ void RegisterClasses(HINSTANCE instance, WNDPROC proc) {
 
 TrayHost::TrayHost(HINSTANCE instance, HWND taskband, std::function<void()> onChanged)
     : taskband_(taskband), onChanged_(std::move(onChanged)) {
+  choices_.Load();
   RegisterClasses(instance, WindowProc);
   hwnd_ = CreateWindowExW(WS_EX_TOOLWINDOW | WS_EX_TOPMOST, kTrayClass, L"", WS_POPUP, 0, 0, 0, 0,
                           nullptr, nullptr, instance, this);
@@ -257,10 +258,15 @@ void TrayHost::SyncIcon(const NotifyIconMessage& message) {
     // The program owns its icon and may destroy it right after the call.
     copy = message.icon ? CopyIcon(reinterpret_cast<HICON>(static_cast<ULONG_PTR>(message.icon)))
                         : nullptr;
+    auto& identity = identities_[KeyOf(message.window, message.id, message.guid, useGuid)];
+    if (identity.empty()) {
+      identity = IconIdentity(ToWindow(message.window), message.id, message.guid, useGuid);
+    }
   }
   // Drop the copies of icons that are gone.
   std::set<std::wstring> live;
   for (const auto& icon : list_.Icons()) live.insert(KeyOf(icon));
+  std::erase_if(identities_, [&live](const auto& entry) { return !live.contains(entry.first); });
   for (auto it = icons_.begin(); it != icons_.end();) {
     if (live.contains(it->first)) {
       ++it;
@@ -282,9 +288,17 @@ std::vector<const TrayIcon*> TrayHost::Shown() const {
 
 std::vector<TrayHost::Visible> TrayHost::VisibleIcons() const {
   std::vector<Visible> visible;
-  for (const TrayIcon* icon : Shown()) visible.push_back({icons_.at(KeyOf(*icon)), icon->tip});
+  for (const TrayIcon* icon : Shown()) {
+    const std::wstring key = KeyOf(*icon);
+    const auto identity = identities_.find(key);
+    const std::wstring_view id =
+        identity != identities_.end() ? std::wstring_view(identity->second) : std::wstring_view();
+    visible.push_back({icons_.at(key), icon->tip, id, choices_.Shows(std::wstring(id))});
+  }
   return visible;
 }
+
+void TrayHost::ReloadChoices() { choices_.Load(); }
 
 void TrayHost::Place(const RECT& bar, const RECT& area) {
   SetWindowPos(hwnd_, HWND_TOPMOST, bar.left, bar.top, bar.right - bar.left, bar.bottom - bar.top,

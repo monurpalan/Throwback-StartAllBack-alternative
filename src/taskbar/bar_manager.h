@@ -33,6 +33,7 @@ class BarManager {
   void ApplySettings(const Settings& edited);
   // Saves the start menu pins without this run's command-line overrides.
   void SavePinned();
+  void SaveTrayChoices();
   // A window event every bar should refresh for.
   void RequestRefresh();
   // ITaskbarList3 messages, which reach the main bar only; true if handled.

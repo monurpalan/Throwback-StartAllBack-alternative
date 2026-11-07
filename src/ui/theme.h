@@ -81,6 +81,7 @@ inline constexpr Color kFieldBorder = FromRgb(0x000000, 0.45f);
 inline constexpr Color kText = FromRgb(0x000000);
 inline constexpr Color kHintText = FromRgb(0x6D6D6D);
 inline constexpr Color kGlassText = FromRgb(0xFFFFFF);
+inline constexpr Color kLink = FromRgb(0x0066CC);
 inline constexpr Color kTextShadow = FromRgb(0x000000, 0.55f);
 
 // The start orb: a dark glass sphere with the four-color flag.

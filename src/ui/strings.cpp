@@ -32,6 +32,7 @@ constexpr std::array<Translation, kStringCount> kTable = {{
     {StringId::UnpinFromStartMenu, L"Unpin from Start menu", L"Başlat menüsünden kaldır"},
     {StringId::Properties, L"Properties", L"Özellikler"},
     {StringId::Recent, L"Recent", L"Son"},
+    {StringId::CustomizeIcons, L"Customize...", L"Özelleştir..."},
     {StringId::SettingsTitle, L"Taskbar and Start Menu Properties",
      L"Görev Çubuğu ve Başlat Menüsü Özellikleri"},
     {StringId::TaskbarAppearance, L"Taskbar appearance", L"Görev çubuğu görünümü"},
