@@ -72,6 +72,23 @@ enum class SkinImage {
   W81Glow,
   W11Logo,  // Windows 11's Start button
   W10Logo,  // Windows 10's: the flat logo, as 8.1 drew it small
+  // The taskbars of XP, Vista and 8.
+  XpTaskbar,
+  XpTaskButton,
+  XpTaskFlash,
+  XpTray,
+  XpTrayArrow,
+  XpTrayArrowOpen,
+  VistaTaskbar,
+  VistaTaskButton,
+  VistaTrayArrow,
+  VistaTrayArrowOpen,
+  W8Taskbar,
+  W8TaskButton,
+  W8ShowDesktop,
+  W8TrayArrow,
+  W8TrayArrowOpen,
+  W8TrayItem,
 };
 
 // How an image is cut, as the Windows 7 theme describes it: its states are

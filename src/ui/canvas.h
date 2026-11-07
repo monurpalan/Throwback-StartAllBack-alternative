@@ -122,6 +122,10 @@ class Canvas {
   void ClassicFace(const Rect& rect, ClassicLook look, bool sunken = false);
   // A menu row, filled with the selection color while selected.
   void ClassicItem(const Rect& rect, ClassicLook look, bool selected);
+  // The classic taskbar: a face with a light edge toward the screen.
+  void ClassicBar(const Rect& rect, ClassicLook look, bool top);
+  // A one-pixel sunken box, like the classic notification area.
+  void ClassicWell(const Rect& rect, ClassicLook look);
   // An etched line across the middle of rect.
   void ClassicSeparator(const Rect& rect, ClassicLook look);
   void ClassicText(const Rect& rect, std::wstring_view text, ClassicLook look, bool selected,
@@ -153,6 +157,11 @@ class Canvas {
   void ModernPicture(const Rect& rect, const std::wstring& path, std::wstring_view initial,
                      ModernLook look);
   void ModernStartButton(const Rect& rect, ModernStartVariant variant, OrbState state);
+  // Windows 10's and 11's taskbar and their icon-only task buttons: 10
+  // underlines a running window, 11 marks it with a short pill.
+  void ModernTaskbar(const Rect& rect, ModernLook look, bool top);
+  void ModernTaskButton(const Rect& rect, ModernLook look, bool active, bool flashing,
+                        bool hovered);
 
   // Windows XP components (xp.cpp).
   void XpBackground(const Rect& rect, XpPanel panel);

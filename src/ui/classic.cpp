@@ -47,6 +47,26 @@ void Canvas::ClassicFace(const Rect& rect, ClassicLook look, bool sunken) {
        innerDark);
 }
 
+void Canvas::ClassicBar(const Rect& rect, ClassicLook look, bool top) {
+  const int line = std::max(1, Scale(1));
+  Fill(rect, FaceOf(look));
+  if (top) {
+    Fill({rect.left, rect.bottom - 2 * line, rect.right, rect.bottom - line}, classic::kShadow);
+    Fill({rect.left, rect.bottom - line, rect.right, rect.bottom}, DarkShadowOf(look));
+  } else {
+    Fill({rect.left, rect.top + line, rect.right, rect.top + 2 * line}, classic::kHighlight);
+  }
+}
+
+void Canvas::ClassicWell(const Rect& rect, ClassicLook look) {
+  const int line = std::max(1, Scale(1));
+  Fill(rect, FaceOf(look));
+  Fill({rect.left, rect.top, rect.right, rect.top + line}, classic::kShadow);
+  Fill({rect.left, rect.top, rect.left + line, rect.bottom}, classic::kShadow);
+  Fill({rect.left, rect.bottom - line, rect.right, rect.bottom}, classic::kHighlight);
+  Fill({rect.right - line, rect.top, rect.right, rect.bottom}, classic::kHighlight);
+}
+
 void Canvas::ClassicItem(const Rect& rect, ClassicLook look, bool selected) {
   if (!selected) return;
   if (look == ClassicLook::WinXp) {

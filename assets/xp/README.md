@@ -6,6 +6,7 @@ Original images from Windows XP for the XP start menu style, embedded into
 | File | Source |
 |---|---|
 | `start-button.png`, `user-*.png`, `programs*.png`, `more-*.png`, `places*.png`, `logoff*.png`, `menu*.png` | `luna.msstyles` (Blue), the `StartPanel` and `StartMenu` parts; the theme's key colors made transparent |
+| `xp-taskbar.png`, `xp-task-*.png`, `xp-tray*.png` | `luna.msstyles` (Blue): the taskbar, task buttons, notification area and its chevron |
 | `xp-flag.png` | `explorer.exe` bitmap 143, the Start button's flag |
 | `xp-*.ico` | `shell32.dll` icons, by their ID |
 

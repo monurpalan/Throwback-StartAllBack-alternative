@@ -23,6 +23,7 @@ target_compile_options(throwback_options INTERFACE /W4 /WX /permissive- /utf-8)
 
 # Pure logic with no Win32 dependencies: easy to unit test.
 add_library(throwback_core STATIC
+  src/core/bar_style.cpp
   src/core/layout.cpp
   src/core/monitor_diff.cpp
   src/core/notify_icon.cpp
@@ -114,7 +115,7 @@ target_link_libraries(throwback PRIVATE
 # that is there; without one, the UI kit draws its own version of its parts.
 set(THROWBACK_ASSET_DIRS "${CMAKE_SOURCE_DIR}/src")
 set(THROWBACK_ASSET_DEFINES "")
-foreach(folder win7 classic xp vista modern)
+foreach(folder win7 classic xp vista win8 modern)
   if(EXISTS ${CMAKE_SOURCE_DIR}/assets/${folder})
     list(APPEND THROWBACK_ASSET_DIRS "${CMAKE_SOURCE_DIR}/assets/${folder}")
     string(TOUPPER ${folder} upper)

@@ -5,6 +5,7 @@
 #include <string_view>
 #include <vector>
 
+#include "core/bar_style.h"
 #include "core/layout.h"
 #include "core/options.h"
 #include "core/task_progress.h"
@@ -40,6 +41,10 @@ struct BarModel {
   bool startOpen = false;
   bool drawOrb = true;  // false while an OrbWindow shows the orb
   StartStyle startStyle = StartStyle::Win7;
+  BarFamily family = BarFamily::Win7;
+  bool labels = true;    // task buttons show titles
+  bool dateLine = true;  // the clock shows the date too
+  bool light = false;    // Windows 11 in light mode
   std::vector<TaskButtonModel> buttons;
   std::vector<TrayIconModel> trayIcons;
   Rect trayArrow;  // empty when no icon is hidden
@@ -54,6 +59,7 @@ struct BarModel {
 
 // Draws the bar using UI kit components only.
 ui::OrbState OrbStateFor(const BarModel& model);
+void DrawStartButton(ui::Canvas& canvas, const BarModel& model);
 
 void DrawBar(ui::Canvas& canvas, const BarModel& model);
 

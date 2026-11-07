@@ -1,5 +1,7 @@
 #include "taskbar/taskbar_window.h"
 
+#include "core/bar_style.h"
+
 #include <windowsx.h>
 
 #include <algorithm>
@@ -25,7 +27,6 @@ constexpr UINT kRefreshRequest = WM_APP + 2;
 constexpr UINT_PTR kRefreshTimer = 1;
 constexpr UINT_PTR kThumbnailTimer = 2;
 constexpr UINT kRefreshIntervalMs = 1000;
-constexpr int kBarHeight = 40;
 
 // Undocumented but stable shell hook codes (Windows 8 and later).
 constexpr WPARAM kShellWindowReplaced = 13;
@@ -35,17 +36,6 @@ constexpr WPARAM kShellFullscreenExit = 54;
 
 constexpr UINT kMenuExit = 1;
 constexpr UINT kMenuProperties = 2;
-
-// At 96 DPI; width and height come from the window at layout time.
-constexpr BarMetrics kBaseMetrics = {
-    .startButtonWidth = 56,
-    .clockWidth = 80,
-    .showDesktopWidth = 16,
-    .minButtonWidth = 64,
-    .maxButtonWidth = 160,
-    .spacing = ui::kSpace2,
-    .padding = ui::kSpace2,
-};
 
 std::wstring FormatTime() {
   wchar_t buffer[64] = {};
@@ -379,7 +369,9 @@ void TaskbarWindow::RegisterAppBar() {
 }
 
 void TaskbarWindow::Dock() {
-  if (appBar_) appBar_->Dock(settings_.edge, ScaleForDpi(kBarHeight, dpi_), monitor_);
+  if (appBar_)
+    appBar_->Dock(settings_.edge, ScaleForDpi(BarStyleOf(settings_.startStyle).height, dpi_),
+                  monitor_);
 }
 
 void TaskbarWindow::RefreshTasks() {
@@ -393,7 +385,7 @@ void TaskbarWindow::UpdateLayout() {
   if (!tracker_) return;
   RECT client{};
   GetClientRect(hwnd_, &client);
-  BarMetrics metrics = ScaleMetrics(kBaseMetrics, dpi_);
+  BarMetrics metrics = ScaleMetrics(BarStyleOf(settings_.startStyle).metrics, dpi_);
   metrics.barWidth = client.right - client.left;
   metrics.barHeight = client.bottom - client.top;
   metrics.trayWidth = TrayWidth();
@@ -422,6 +414,11 @@ void TaskbarWindow::Paint() {
       .startOpen = startMenu_ && startMenu_->IsOpen(),
       .drawOrb = !orb_,
       .startStyle = settings_.startStyle,
+      .family = BarFamilyOf(settings_.startStyle),
+      .labels = BarStyleOf(settings_.startStyle).labels,
+      .dateLine = BarStyleOf(settings_.startStyle).dateLine,
+      .light = settings_.theme == ThemeMode::Light ||
+               (settings_.theme == ThemeMode::System && ui::SystemUsesLightTheme()),
       .clock = layout_.clock,
       .time = time,
       .date = date,

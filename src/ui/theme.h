@@ -154,6 +154,11 @@ inline constexpr Color kWin10Hover = FromRgb(0xFFFFFF, 0.12f);
 inline constexpr Color kWin10Accent = FromRgb(0x0078D7);
 inline constexpr Color kWin10Text = FromRgb(0xFFFFFF);
 inline constexpr Color kWin10Secondary = FromRgb(0xC8C8C8);
+inline constexpr Color kWin10Taskbar = FromRgb(0x101010, 0.88f);
+inline constexpr Color kWin10Active = FromRgb(0xFFFFFF, 0.16f);
+inline constexpr Color kWin10Underline = FromRgb(0x76B9ED);
+inline constexpr Color kWin10Divider = FromRgb(0x7F7F7F);
+inline constexpr Color kFlashing = FromRgb(0xFF8C00, 0.75f);
 
 // Windows 11, dark and light.
 inline constexpr Color kWin11DarkSurface = FromRgb(0x202020, 0.97f);
@@ -172,6 +177,9 @@ inline constexpr Color kWin11LightField = FromRgb(0xFFFFFF);
 inline constexpr Color kWin11LightText = FromRgb(0x1B1B1B);
 inline constexpr Color kWin11LightSecondary = FromRgb(0x5F5F5F);
 inline constexpr Color kWin11LightAccent = FromRgb(0x0067C0);
+inline constexpr Color kWin11DarkTaskbar = FromRgb(0x1C1C1C, 0.88f);
+inline constexpr Color kWin11LightTaskbar = FromRgb(0xEEEEEE, 0.88f);
+inline constexpr Color kWin11Running = FromRgb(0x9D9D9D);
 
 }  // namespace modern
 

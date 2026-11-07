@@ -117,6 +117,12 @@ button. Three engines cover the ten styles:
 - `ModernStartMenu` (8, 8.1, 10, 11): each view draws its arrangement and
   returns the regions the mouse can hit, so layout lives in one place.
 
+The taskbar follows the style too (`core/bar_style`): each generation's
+height, button widths, labels or icons only, and clock; `DrawBar` draws
+that generation's background, task buttons, notification area, arrow and
+Show desktop from its own images (98 to 2000 drawn in classic 3D, 10 and 11
+flat).
+
 Images come from each version's own files under `assets/` (one folder per
 family, all in one resource script so icon IDs stay unique) and are cut the
 way that version's theme describes them. Sizes, colors and fonts follow the

@@ -14,6 +14,9 @@
 #ifdef THROWBACK_ASSETS_VISTA
 #include "vista.rc"
 #endif
+#ifdef THROWBACK_ASSETS_WIN8
+#include "win8.rc"
+#endif
 #ifdef THROWBACK_ASSETS_MODERN
 #include "modern.rc"
 #endif

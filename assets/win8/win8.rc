@@ -1,0 +1,9 @@
+// The Windows 8 style's images; see README.md.
+#include "ui/skin_ids.h"
+
+THROWBACK_SKIN_W8_TASKBAR RCDATA "w8-taskbar.png"
+THROWBACK_SKIN_W8_TASK_BUTTON RCDATA "w8-task-button.png"
+THROWBACK_SKIN_W8_SHOW_DESKTOP RCDATA "w8-show-desktop.png"
+THROWBACK_SKIN_W8_TRAY_ARROW RCDATA "w8-tray-arrow.png"
+THROWBACK_SKIN_W8_TRAY_ARROW_OPEN RCDATA "w8-tray-arrow-open.png"
+THROWBACK_SKIN_W8_TRAY_ITEM RCDATA "w8-tray-item.png"

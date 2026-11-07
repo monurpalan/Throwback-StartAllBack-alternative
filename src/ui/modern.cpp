@@ -189,4 +189,44 @@ void Canvas::ModernStartButton(const Rect& rect, ModernStartVariant variant, Orb
   }
 }
 
+void Canvas::ModernTaskbar(const Rect& rect, ModernLook look, bool top) {
+  if (look == ModernLook::Win10) {
+    Fill(rect, modern::kWin10Taskbar);
+    return;
+  }
+  const bool light = look == ModernLook::Win11Light;
+  Fill(rect, light ? modern::kWin11LightTaskbar : modern::kWin11DarkTaskbar);
+  const int line = std::max(1, Scale(1));
+  const Color& edge = light ? modern::kWin11LightBorder : modern::kWin11DarkBorder;
+  Fill(top ? Rect{rect.left, rect.bottom - line, rect.right, rect.bottom}
+           : Rect{rect.left, rect.top, rect.right, rect.top + line},
+       edge);
+}
+
+void Canvas::ModernTaskButton(const Rect& rect, ModernLook look, bool active, bool flashing,
+                              bool hovered) {
+  const int line = std::max(1, Scale(2));
+  if (look == ModernLook::Win10) {
+    if (flashing) Fill(rect, modern::kFlashing);
+    if (active) Fill(rect, modern::kWin10Active);
+    if (hovered) Fill(rect, modern::kWin10Hover);
+    Fill({rect.left, rect.bottom - line, rect.right, rect.bottom}, modern::kWin10Underline);
+    return;
+  }
+  const bool light = look == ModernLook::Win11Light;
+  if (active || hovered || flashing) {
+    FillRound(rect, kHoverRadius,
+              flashing ? modern::kFlashing
+              : light  ? modern::kWin11LightHover
+                       : modern::kWin11DarkHover);
+  }
+  // The pill: long and in the accent color for the active window.
+  const int width = Scale(active ? 16 : 6);
+  const int left = rect.left + (rect.Width() - width) / 2;
+  const Rect pill{left, rect.bottom - Scale(5), left + width, rect.bottom - Scale(2)};
+  FillRound(pill, 1.5f,
+            active ? (light ? modern::kWin11LightAccent : modern::kWin11DarkAccent)
+                   : modern::kWin11Running);
+}
+
 }  // namespace throwback::ui

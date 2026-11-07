@@ -30,7 +30,8 @@ patching or injecting into Explorer.
 - Every Windows start menu from 98 to 11, each with its own Start button, drawn
   from that version's original images: the cascading menus of 98, Me and
   2000, XP's Luna menu, Vista's and 7's Aero menus, the start screens of 8
-  and 8.1, and the menus of 10 and 11 (`--start-style=` or Properties)
+  and 8.1, and the menus of 10 and 11 (`--start-style=` or Properties); the
+  taskbar changes with it: its height, buttons, notification area and clock
 - The Windows 7 layout: frequent programs, All Programs, search, places and power
 - Pinned programs, a right-click menu (run as administrator, open file location, ...)
   and jump lists with each program's recent documents

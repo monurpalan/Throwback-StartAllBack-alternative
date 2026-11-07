@@ -76,7 +76,11 @@ void TaskbarWindow::CreateStartMenuForStyle() {
 }
 
 void TaskbarWindow::OnSettingsChanged(bool moved) {
-  if (settings_.startStyle != startStyle_) CreateStartMenuForStyle();
+  // A new style also brings its taskbar's height.
+  if (settings_.startStyle != startStyle_) {
+    CreateStartMenuForStyle();
+    moved = true;
+  }
   ApplyTheme();
   ApplyWindowsKey();
   ApplySystemTaskbar();
