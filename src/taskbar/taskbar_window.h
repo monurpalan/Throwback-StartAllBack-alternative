@@ -17,6 +17,7 @@
 #include "taskbar/tray_host.h"
 #include "taskbar/window_tracker.h"
 #include "ui/canvas.h"
+#include "ui/orb_window.h"
 #include "ui/theme.h"
 
 namespace throwback {
@@ -112,6 +113,7 @@ class TaskbarWindow {
   BarLayout layout_;
   std::unique_ptr<WindowTracker> tracker_;
   std::unique_ptr<ui::Canvas> canvas_;
+  std::unique_ptr<ui::OrbWindow> orb_;  // null without the Windows 7 orb image
   std::unique_ptr<AppBar> appBar_;
   std::unique_ptr<SystemTaskbar> systemTaskbar_;
   std::unique_ptr<ThumbnailPopup> thumbnail_;

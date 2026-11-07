@@ -1,5 +1,9 @@
 #pragma once
 
+#include <windows.h>
+#include <wincodec.h>
+#include <wrl/client.h>
+
 #include <cstddef>
 
 namespace throwback::ui {
@@ -42,5 +46,9 @@ const SkinPart& PartOf(SkinImage image);
 // The resource of a part for a DPI: the smallest file at least as large, or
 // the largest one.
 int ResourceFor(const SkinPart& part, unsigned dpi);
+
+// Decodes an embedded image as premultiplied BGRA; null when it isn't
+// embedded.
+Microsoft::WRL::ComPtr<IWICBitmapSource> LoadSkinImage(IWICImagingFactory* wic, int resource);
 
 }  // namespace throwback::ui

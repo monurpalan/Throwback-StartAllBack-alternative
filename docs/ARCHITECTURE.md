@@ -53,6 +53,9 @@ embedded as resources); everything else is drawn in code:
   stretches. The theme stores premultiplied alpha; the copies in
   `assets/win7` are straight alpha. Without the folder, each component draws
   its own version.
+- **Orb:** with the Windows 7 image it lives in its own layered window
+  (`ui::OrbWindow`) above the bar, so its glow can reach past the bar's edge.
+  The window lets clicks through; the bar still handles the start button.
 - All colors live in `src/ui/theme.h`. Screens only draw through `ui::Canvas`,
   whose components accept fixed variants (`MenuItem`, `Task`, `Command`...),
   never raw colors or sizes.

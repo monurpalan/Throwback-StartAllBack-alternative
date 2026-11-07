@@ -37,6 +37,7 @@ struct BarModel {
   Rect startButton;
   bool startHovered = false;
   bool startOpen = false;
+  bool drawOrb = true;  // false while an OrbWindow shows the orb
   std::vector<TaskButtonModel> buttons;
   std::vector<TrayIconModel> trayIcons;
   Rect clock;
@@ -47,6 +48,8 @@ struct BarModel {
 };
 
 // Draws the bar using UI kit components only.
+ui::OrbState OrbStateFor(const BarModel& model);
+
 void DrawBar(ui::Canvas& canvas, const BarModel& model);
 
 }  // namespace throwback

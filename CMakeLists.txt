@@ -47,6 +47,7 @@ add_library(throwback_ui STATIC
   src/ui/fonts.cpp
   src/ui/glass.cpp
   src/ui/icon.cpp
+  src/ui/orb_window.cpp
   src/ui/skin.cpp
   src/ui/strings.cpp
   src/ui/system_language.cpp

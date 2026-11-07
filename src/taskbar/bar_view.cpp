@@ -15,11 +15,6 @@ ui::ButtonVariant VariantFor(const TaskButtonModel& button) {
   return ui::ButtonVariant::Task;
 }
 
-ui::OrbState OrbStateFor(const BarModel& model) {
-  if (model.startOpen) return ui::OrbState::Pressed;
-  return model.startHovered ? ui::OrbState::Hot : ui::OrbState::Normal;
-}
-
 void DrawProgress(ui::Canvas& canvas, const TaskButtonModel& button) {
   switch (button.progress) {
     case ProgressState::None:
@@ -64,9 +59,16 @@ void DrawTaskButton(ui::Canvas& canvas, const TaskButtonModel& button) {
 
 }  // namespace
 
+ui::OrbState OrbStateFor(const BarModel& model) {
+  if (model.startOpen) return ui::OrbState::Pressed;
+  return model.startHovered ? ui::OrbState::Hot : ui::OrbState::Normal;
+}
+
 void DrawBar(ui::Canvas& canvas, const BarModel& model) {
   canvas.Glass(model.bounds, model.top ? ui::GlassVariant::BarTop : ui::GlassVariant::BarBottom);
-  canvas.Orb(CenteredSquare(model.startButton, canvas.Scale(kOrbSize)), OrbStateFor(model));
+  if (model.drawOrb) {
+    canvas.Orb(CenteredSquare(model.startButton, canvas.Scale(kOrbSize)), OrbStateFor(model));
+  }
 
   for (const auto& button : model.buttons) DrawTaskButton(canvas, button);
 

@@ -70,10 +70,7 @@ int ResourceFor(const SkinPart& part, unsigned dpi) {
   return part.resource + static_cast<int>(kDpis.size()) - 1;
 }
 
-ID2D1Bitmap* Canvas::SkinBitmap(int resource) {
-  if (const auto it = skins_.find(resource); it != skins_.end()) return it->second.Get();
-
-  ComPtr<ID2D1Bitmap> bitmap;
+ComPtr<IWICBitmapSource> LoadSkinImage(IWICImagingFactory* wic, int resource) {
   const HMODULE module = GetModuleHandleW(nullptr);
   const HRSRC info = FindResourceW(module, MAKEINTRESOURCEW(resource), RT_RCDATA);
   const HGLOBAL data = info ? LoadResource(module, info) : nullptr;
@@ -82,16 +79,26 @@ ID2D1Bitmap* Canvas::SkinBitmap(int resource) {
   ComPtr<IWICBitmapDecoder> decoder;
   ComPtr<IWICBitmapFrameDecode> frame;
   ComPtr<IWICFormatConverter> converter;
-  if (bytes && SUCCEEDED(wic_->CreateStream(stream.GetAddressOf())) &&
+  if (bytes && SUCCEEDED(wic->CreateStream(stream.GetAddressOf())) &&
       SUCCEEDED(stream->InitializeFromMemory(bytes, SizeofResource(module, info))) &&
-      SUCCEEDED(wic_->CreateDecoderFromStream(stream.Get(), nullptr, WICDecodeMetadataCacheOnLoad,
-                                              decoder.GetAddressOf())) &&
+      SUCCEEDED(wic->CreateDecoderFromStream(stream.Get(), nullptr, WICDecodeMetadataCacheOnLoad,
+                                             decoder.GetAddressOf())) &&
       SUCCEEDED(decoder->GetFrame(0, frame.GetAddressOf())) &&
-      SUCCEEDED(wic_->CreateFormatConverter(converter.GetAddressOf())) &&
+      SUCCEEDED(wic->CreateFormatConverter(converter.GetAddressOf())) &&
       SUCCEEDED(converter->Initialize(frame.Get(), GUID_WICPixelFormat32bppPBGRA,
                                       WICBitmapDitherTypeNone, nullptr, 0.0,
                                       WICBitmapPaletteTypeMedianCut))) {
-    target_->CreateBitmapFromWicBitmap(converter.Get(), nullptr, bitmap.GetAddressOf());
+    return converter;
+  }
+  return nullptr;
+}
+
+ID2D1Bitmap* Canvas::SkinBitmap(int resource) {
+  if (const auto it = skins_.find(resource); it != skins_.end()) return it->second.Get();
+
+  ComPtr<ID2D1Bitmap> bitmap;
+  if (const ComPtr<IWICBitmapSource> source = LoadSkinImage(wic_.Get(), resource)) {
+    target_->CreateBitmapFromWicBitmap(source.Get(), nullptr, bitmap.GetAddressOf());
   }
   // A missing image is remembered too: the component then draws itself.
   return skins_.emplace(resource, bitmap).first->second.Get();

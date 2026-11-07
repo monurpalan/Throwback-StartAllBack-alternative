@@ -94,6 +94,7 @@ TaskbarWindow::TaskbarWindow(HINSTANCE instance, BarManager& manager, HMONITOR m
   tracker_->SetMonitor(monitor_);
   canvas_ = std::make_unique<ui::Canvas>(hwnd_);
   canvas_->SetDpi(dpi_);
+  orb_ = ui::OrbWindow::Create(instance, hwnd_);
   ui::EnableGlass(hwnd_, ui::GlassCorners::Square);
   thumbnail_ = std::make_unique<ThumbnailPopup>(instance, hwnd_);
   startMenu_ = std::make_unique<StartMenu>(
@@ -228,6 +229,10 @@ LRESULT TaskbarWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam)
       break;
     case WM_WINDOWPOSCHANGED:
       if (appBar_) appBar_->OnWindowPosChanged();
+      // The orb follows the bar: painting moves it, hiding hides it.
+      if (orb_ && (reinterpret_cast<const WINDOWPOS*>(lParam)->flags & SWP_HIDEWINDOW))
+        orb_->Hide();
+      InvalidateRect(hwnd_, nullptr, FALSE);
       break;  // DefWindowProc turns this into WM_SIZE
     case WM_SIZE:
       if (canvas_) canvas_->Resize(LOWORD(lParam), HIWORD(lParam));
@@ -286,6 +291,7 @@ LRESULT TaskbarWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam)
       if (cloakHook_) UnhookWinEvent(cloakHook_);
       DeregisterShellHookWindow(hwnd_);
       appBar_.reset();  // gives the reserved screen space back
+      orb_.reset();
       taskbandHook_.reset();
       tray_.reset();
       systemTaskbar_.reset();
@@ -407,6 +413,7 @@ void TaskbarWindow::Paint() {
       .startButton = layout_.startButton,
       .startHovered = hovered_ == kHitStart,
       .startOpen = startMenu_ && startMenu_->IsOpen(),
+      .drawOrb = !orb_,
       .clock = layout_.clock,
       .time = time,
       .date = date,
@@ -432,6 +439,12 @@ void TaskbarWindow::Paint() {
   canvas_->BeginFrame();
   DrawBar(*canvas_, model);
   canvas_->EndFrame();
+  if (orb_) {
+    POINT center{(layout_.startButton.left + layout_.startButton.right) / 2,
+                 (layout_.startButton.top + layout_.startButton.bottom) / 2};
+    ClientToScreen(hwnd_, &center);
+    orb_->Show(center, dpi_, OrbStateFor(model));
+  }
 
   EndPaint(hwnd_, &paint);
 }
