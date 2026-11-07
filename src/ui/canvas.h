@@ -59,6 +59,8 @@ enum class IconKind {
   MenuArrow,  // the arrow on the glass push button
 };
 enum class OrbState { Normal, Hot, Pressed };
+// The classic styles: Windows Me looks like Windows 98.
+enum class ClassicLook { Win98, Win2000 };
 
 // A window's drawing surface plus the UI kit components. Screens draw only
 // through these calls; colors, fonts and sizes come from the theme. All
@@ -96,6 +98,25 @@ class Canvas {
   void Orb(const Rect& rect, OrbState state);
   // The framed account picture; shows the initial when there is no image.
   void AccountPicture(const Rect& rect, const std::wstring& path, std::wstring_view initial);
+
+  // Classic components (classic.cpp). A face is the raised gray surface of
+  // menus and buttons inside a four-line 3D edge; sunken for a pressed
+  // button.
+  void ClassicFace(const Rect& rect, ClassicLook look, bool sunken = false);
+  // A menu row, filled with the selection color while selected.
+  void ClassicItem(const Rect& rect, ClassicLook look, bool selected);
+  // An etched line across the middle of rect.
+  void ClassicSeparator(const Rect& rect);
+  void ClassicText(const Rect& rect, std::wstring_view text, ClassicLook look, bool selected,
+                   bool bold = false);
+  // The small triangle of a row with a submenu.
+  void ClassicArrow(const Rect& rect, bool selected);
+  // A start menu banner standing on the bottom of rect; above it, rect
+  // takes the banner's top color.
+  void ClassicBanner(const Rect& rect, SkinImage banner);
+  // The Start button: a face with the flag and a bold label.
+  void ClassicStartButton(const Rect& rect, ClassicLook look, std::wstring_view label,
+                          bool pressed);
 
  private:
   void CreateDeviceResources();

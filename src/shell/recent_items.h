@@ -18,4 +18,8 @@ std::wstring AppIdForTarget(const std::wstring& target);
 // The program's recent documents, newest first, as its jump list shows them.
 std::vector<RecentItem> LoadRecentItems(const std::wstring& appId, size_t limit);
 
+// The documents opened last, newest first, as the classic Documents menu
+// lists them (the shortcuts in the Recent folder).
+std::vector<RecentItem> LoadRecentDocuments(size_t limit);
+
 }  // namespace throwback::shell

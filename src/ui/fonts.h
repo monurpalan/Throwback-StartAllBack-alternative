@@ -9,7 +9,8 @@ namespace throwback::ui {
 
 enum class TextAlign { Leading, Center };
 
-// Creates Segoe UI text formats, the Windows 7 system font.
+// Creates the text formats of each style: Segoe UI, the Windows 7 system
+// font, and the classic fonts of older styles.
 class Fonts {
  public:
   explicit Fonts(IDWriteFactory* factory) : factory_(factory) {}

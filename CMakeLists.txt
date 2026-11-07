@@ -45,6 +45,7 @@ target_link_libraries(throwback_core PRIVATE throwback_options)
 add_library(throwback_ui STATIC
   src/ui/aero.cpp
   src/ui/canvas.cpp
+  src/ui/classic.cpp
   src/ui/fonts.cpp
   src/ui/glass.cpp
   src/ui/icon.cpp
@@ -64,6 +65,8 @@ add_executable(throwback WIN32
   src/shell/recent_items.cpp
   src/shell/settings_store.cpp
   src/shell/shell_icons.cpp
+  src/startmenu/classic_menu.cpp
+  src/startmenu/classic_start_menu.cpp
   src/startmenu/frequent.cpp
   src/startmenu/places.cpp
   src/startmenu/power.cpp
@@ -104,6 +107,11 @@ if(EXISTS ${CMAKE_SOURCE_DIR}/assets/win7/win7.rc)
   target_sources(throwback PRIVATE assets/win7/win7.rc)
   set_source_files_properties(assets/win7/win7.rc PROPERTIES
     INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/src;${CMAKE_SOURCE_DIR}/assets/win7")
+endif()
+if(EXISTS ${CMAKE_SOURCE_DIR}/assets/classic/classic.rc)
+  target_sources(throwback PRIVATE assets/classic/classic.rc)
+  set_source_files_properties(assets/classic/classic.rc PROPERTIES
+    INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/src;${CMAKE_SOURCE_DIR}/assets/classic")
 endif()
 
 if(THROWBACK_BUILD_TESTS)

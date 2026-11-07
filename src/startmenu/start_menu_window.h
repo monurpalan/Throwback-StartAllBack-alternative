@@ -9,6 +9,10 @@
 
 namespace throwback {
 
+// Posted to the bar by a start menu item that opens Taskbar and Start Menu
+// Properties.
+constexpr UINT kOpenSettingsMessage = WM_APP + 4;
+
 // A start menu of any style, as the bar sees it.
 class StartMenuWindow {
  public:

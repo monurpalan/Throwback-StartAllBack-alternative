@@ -32,3 +32,12 @@
 #define THROWBACK_SKIN_TRAY_ARROW_OPEN_192 248
 #define THROWBACK_SKIN_TRAY_ITEM 249
 #define THROWBACK_SKIN_FLYOUT_LINK 250
+
+// The classic styles' images (assets/classic).
+#define THROWBACK_SKIN_BANNER_98 401
+#define THROWBACK_SKIN_BANNER_ME 402
+#define THROWBACK_SKIN_BANNER_2000 403
+#define THROWBACK_SKIN_FLAG 404
+// Their menu icons: base + the icon's ID in that version's shell32.dll.
+#define THROWBACK_CLASSIC_ICONS_98 500
+#define THROWBACK_CLASSIC_ICONS_2000 600

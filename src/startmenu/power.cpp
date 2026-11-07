@@ -2,6 +2,8 @@
 
 #include <windows.h>
 #include <powrprof.h>
+#include <shldisp.h>
+#include <wrl/client.h>
 
 namespace throwback {
 namespace {
@@ -47,6 +49,14 @@ void RunPowerAction(PowerAction action) {
     case PowerAction::Lock:
       LockWorkStation();
       break;
+  }
+}
+
+void ShowShutDownDialog() {
+  Microsoft::WRL::ComPtr<IShellDispatch> shell;
+  if (SUCCEEDED(CoCreateInstance(CLSID_Shell, nullptr, CLSCTX_INPROC_SERVER,
+                                 IID_PPV_ARGS(shell.GetAddressOf())))) {
+    shell->ShutdownWindows();
   }
 }
 

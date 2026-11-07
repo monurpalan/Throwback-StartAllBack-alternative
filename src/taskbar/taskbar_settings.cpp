@@ -38,6 +38,24 @@ void TaskbarWindow::OpenSettings() {
                      [this](const Settings& edited) { manager_.ApplySettings(edited); });
 }
 
+int TaskbarWindow::StartButtonWidth() const {
+  // The classic button: its flag, label and margins (at 96 DPI).
+  constexpr int kClassicChrome = 16 + 3 + 2 * 6 + 2 * 2;
+  switch (settings_.startStyle) {
+    case StartStyle::Win98:
+    case StartStyle::WinMe:
+    case StartStyle::Win2000: {
+      const ui::TextStyle style = settings_.startStyle == StartStyle::Win2000
+                                      ? ui::TextStyle::Classic2000Bold
+                                      : ui::TextStyle::Classic98Bold;
+      return canvas_->MeasureText(ui::Tr(ui::StringId::ClassicStart), style) +
+             ScaleForDpi(kClassicChrome, dpi_);
+    }
+    default:
+      return 0;
+  }
+}
+
 void TaskbarWindow::CreateStartMenuForStyle() {
   if (startMenu_) startMenu_->Close();
   startMenu_.reset();

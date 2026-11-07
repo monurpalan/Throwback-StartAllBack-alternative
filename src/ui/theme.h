@@ -99,6 +99,27 @@ inline constexpr Color kFlagYellow = FromRgb(0xFFBA08);
 
 }  // namespace aero
 
+// The classic look of Windows 98, Me and 2000: raised gray faces with a
+// four-line 3D edge, and a blue selection.
+namespace classic {
+
+inline constexpr Color kFace98 = FromRgb(0xC0C0C0);
+inline constexpr Color kFace2000 = FromRgb(0xD4D0C8);
+inline constexpr Color kHighlight = FromRgb(0xFFFFFF);
+inline constexpr Color kShadow = FromRgb(0x808080);
+inline constexpr Color kDarkShadow98 = FromRgb(0x000000);
+inline constexpr Color kDarkShadow2000 = FromRgb(0x404040);
+inline constexpr Color kSelection98 = FromRgb(0x000080);
+inline constexpr Color kSelection2000 = FromRgb(0x0A246A);
+inline constexpr Color kText = FromRgb(0x000000);
+inline constexpr Color kSelectedText = FromRgb(0xFFFFFF);
+inline constexpr Color kDisabledText = FromRgb(0x808080);
+// The start menu banners' top colors, which fill the strip above them.
+inline constexpr Color kBannerTop98 = FromRgb(0x000080);
+inline constexpr Color kBannerTop = FromRgb(0x000000);
+
+}  // namespace classic
+
 // Spacing in pixels at 96 DPI.
 inline constexpr int kSpace2 = 2;
 inline constexpr int kSpace4 = 4;
@@ -116,10 +137,19 @@ enum class TextStyle {
   Body,
   Hint,   // italic, like the search box prompt
   Title,  // the account initial when there is no picture
+  // 8 pt MS Sans Serif of Windows 98 and Me, 8 pt Tahoma of Windows 2000.
+  Classic98,
+  Classic98Bold,
+  Classic2000,
+  Classic2000Bold,
 };
 
 float FontSize(TextStyle style);
 bool IsItalic(TextStyle style);
+bool IsBold(TextStyle style);
+const wchar_t* FontFamily(TextStyle style);
+// Classic text is drawn without smoothing, as those systems did.
+bool IsClassic(TextStyle style);
 
 // Reads the Windows "taskbar and Start" light/dark setting.
 bool SystemUsesLightTheme();

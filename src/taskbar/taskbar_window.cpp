@@ -223,6 +223,9 @@ LRESULT TaskbarWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam)
     case kStartMenuRequest:
       ToggleStartMenu();
       return 0;
+    case kOpenSettingsMessage:
+      OpenSettings();
+      return 0;
     case WM_TIMER:
       OnTimer(wParam);
       return 0;
@@ -394,6 +397,7 @@ void TaskbarWindow::UpdateLayout() {
   metrics.barWidth = client.right - client.left;
   metrics.barHeight = client.bottom - client.top;
   metrics.trayWidth = TrayWidth();
+  metrics.startButtonWidth = std::max(metrics.startButtonWidth, StartButtonWidth());
   layout_ = ComputeLayout(metrics, tracker_->Items().size());
   PlaceTray();
   InvalidateRect(hwnd_, nullptr, FALSE);
@@ -417,6 +421,7 @@ void TaskbarWindow::Paint() {
       .startHovered = hovered_ == kHitStart,
       .startOpen = startMenu_ && startMenu_->IsOpen(),
       .drawOrb = !orb_,
+      .startStyle = settings_.startStyle,
       .clock = layout_.clock,
       .time = time,
       .date = date,
@@ -442,7 +447,10 @@ void TaskbarWindow::Paint() {
   canvas_->BeginFrame();
   DrawBar(*canvas_, model);
   canvas_->EndFrame();
-  if (orb_) {
+  const bool orbStyle =
+      settings_.startStyle == StartStyle::Win7 || settings_.startStyle == StartStyle::Vista;
+  if (orb_ && !orbStyle) orb_->Hide();
+  if (orb_ && orbStyle) {
     POINT center{(layout_.startButton.left + layout_.startButton.right) / 2,
                  (layout_.startButton.top + layout_.startButton.bottom) / 2};
     ClientToScreen(hwnd_, &center);

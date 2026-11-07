@@ -83,6 +83,8 @@ class TaskbarWindow {
   void HideThumbnail();
   void ToggleStartMenu();
   void CreateStartMenuForStyle();
+  // The start button grows with its label in styles that have one.
+  int StartButtonWidth() const;
   // Notification area (main bar only), in taskbar_tray.cpp.
   // Indices into TrayHost::VisibleIcons of the icons on the bar and of
   // those behind the arrow.

@@ -17,7 +17,8 @@ ComPtr<IDWriteTextFormat> Fonts::CreateFormat(TextStyle style, TextAlign align,
 
   ComPtr<IDWriteTextFormat> format;
   ThrowIfFailed(factory_->CreateTextFormat(
-                    L"Segoe UI", nullptr, DWRITE_FONT_WEIGHT_NORMAL,
+                    FontFamily(style), nullptr,
+                    IsBold(style) ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_NORMAL,
                     IsItalic(style) ? DWRITE_FONT_STYLE_ITALIC : DWRITE_FONT_STYLE_NORMAL,
                     DWRITE_FONT_STRETCH_NORMAL, size, locale, format.GetAddressOf()),
                 "CreateTextFormat");

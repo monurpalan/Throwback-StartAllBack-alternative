@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "core/layout.h"
+#include "core/options.h"
 #include "core/task_progress.h"
 #include "ui/canvas.h"
 
@@ -38,6 +39,7 @@ struct BarModel {
   bool startHovered = false;
   bool startOpen = false;
   bool drawOrb = true;  // false while an OrbWindow shows the orb
+  StartStyle startStyle = StartStyle::Win7;
   std::vector<TaskButtonModel> buttons;
   std::vector<TrayIconModel> trayIcons;
   Rect trayArrow;  // empty when no icon is hidden

@@ -8,6 +8,8 @@
 // Needs the property types from the shell headers above.
 #include <propkey.h>
 
+#include <algorithm>
+#include <filesystem>
 #include <string_view>
 #include <utility>
 
@@ -63,6 +65,28 @@ std::wstring AppIdForTarget(const std::wstring& target) {
   }
   PropVariantClear(&value);
   return appId;
+}
+
+std::vector<RecentItem> LoadRecentDocuments(size_t limit) {
+  std::vector<RecentItem> result;
+  PWSTR folder = nullptr;
+  if (FAILED(SHGetKnownFolderPath(FOLDERID_Recent, 0, nullptr, &folder))) return result;
+  const std::filesystem::path recent = folder;
+  CoTaskMemFree(folder);
+
+  std::vector<std::pair<std::filesystem::file_time_type, std::filesystem::path>> links;
+  std::error_code error;
+  for (const auto& entry : std::filesystem::directory_iterator(recent, error)) {
+    if (entry.path().extension() == L".lnk") {
+      links.emplace_back(entry.last_write_time(error), entry.path());
+    }
+  }
+  std::ranges::sort(links, [](const auto& a, const auto& b) { return a.first > b.first; });
+  for (const auto& [time, path] : links) {
+    if (result.size() >= limit) break;
+    result.push_back({path.stem().wstring(), path.wstring()});
+  }
+  return result;
 }
 
 std::vector<RecentItem> LoadRecentItems(const std::wstring& appId, size_t limit) {

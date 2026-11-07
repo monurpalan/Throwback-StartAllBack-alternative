@@ -29,6 +29,10 @@ enum class SkinImage {
   TrayArrowOpen,  // the same while they are shown
   TrayItem,       // a notification icon under the mouse
   FlyoutLink,     // the light strip at the bottom of a flyout
+  Banner98,       // the classic start menus' vertical banners
+  BannerMe,
+  Banner2000,
+  Flag,  // the four-color flag of the classic Start button
 };
 
 // How an image is cut, as the Windows 7 theme describes it: its states are

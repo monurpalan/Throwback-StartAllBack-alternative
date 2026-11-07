@@ -1,5 +1,7 @@
 #include "taskbar/bar_view.h"
 
+#include "ui/strings.h"
+
 namespace throwback {
 namespace {
 
@@ -8,6 +10,9 @@ namespace {
 constexpr int kIconSize = 24;
 constexpr int kOrbSize = 38;
 constexpr int kOverlaySize = 16;
+// The classic Start button keeps a margin inside its slot of the bar.
+constexpr int kClassicButtonInsetX = 2;
+constexpr int kClassicButtonInsetY = 5;
 
 ui::ButtonVariant VariantFor(const TaskButtonModel& button) {
   if (button.flashing && !button.active) return ui::ButtonVariant::FlashingTask;
@@ -59,6 +64,34 @@ void DrawTaskButton(ui::Canvas& canvas, const TaskButtonModel& button) {
 
 }  // namespace
 
+ui::OrbState OrbStateFor(const BarModel& model);
+
+namespace {
+
+void DrawStartButton(ui::Canvas& canvas, const BarModel& model) {
+  switch (model.startStyle) {
+    case StartStyle::Win98:
+    case StartStyle::WinMe:
+    case StartStyle::Win2000: {
+      const Rect& area = model.startButton;
+      const int dx = canvas.Scale(kClassicButtonInsetX);
+      const int dy = canvas.Scale(kClassicButtonInsetY);
+      canvas.ClassicStartButton({area.left + dx, area.top + dy, area.right - dx, area.bottom - dy},
+                                model.startStyle == StartStyle::Win2000 ? ui::ClassicLook::Win2000
+                                                                        : ui::ClassicLook::Win98,
+                                ui::Tr(ui::StringId::ClassicStart), model.startOpen);
+      return;
+    }
+    default:
+      if (model.drawOrb) {
+        canvas.Orb(CenteredSquare(model.startButton, canvas.Scale(kOrbSize)), OrbStateFor(model));
+      }
+      return;
+  }
+}
+
+}  // namespace
+
 ui::OrbState OrbStateFor(const BarModel& model) {
   if (model.startOpen) return ui::OrbState::Pressed;
   return model.startHovered ? ui::OrbState::Hot : ui::OrbState::Normal;
@@ -66,9 +99,7 @@ ui::OrbState OrbStateFor(const BarModel& model) {
 
 void DrawBar(ui::Canvas& canvas, const BarModel& model) {
   canvas.Glass(model.bounds, model.top ? ui::GlassVariant::BarTop : ui::GlassVariant::BarBottom);
-  if (model.drawOrb) {
-    canvas.Orb(CenteredSquare(model.startButton, canvas.Scale(kOrbSize)), OrbStateFor(model));
-  }
+  DrawStartButton(canvas, model);
 
   for (const auto& button : model.buttons) DrawTaskButton(canvas, button);
 
