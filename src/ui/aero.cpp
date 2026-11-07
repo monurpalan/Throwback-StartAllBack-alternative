@@ -14,11 +14,31 @@ Rect Inset(const Rect& rect, int amount) {
   return {rect.left + amount, rect.top + amount, rect.right - amount, rect.bottom - amount};
 }
 
+// Frames of the Windows 7 images (skin.h) for each state.
+constexpr int kTaskFrame = 0;
+constexpr int kTaskHotFrame = 1;
+constexpr int kActiveTaskFrame = 3;
+constexpr int kActiveTaskHotFrame = 4;
+constexpr int kFlashingTaskFrame = 6;
+constexpr int kHotFrame = 1;  // push buttons and pane items
+constexpr int kGlassItemHotFrame = 0;
+constexpr int kShowDesktopHotFrame = 2;
+
+int TaskFrame(ButtonVariant variant, bool hovered) {
+  if (variant == ButtonVariant::FlashingTask) return kFlashingTaskFrame;
+  if (variant == ButtonVariant::ActiveTask) return hovered ? kActiveTaskHotFrame : kActiveTaskFrame;
+  return hovered ? kTaskHotFrame : kTaskFrame;
+}
+
 }  // namespace
 
 void Canvas::Glass(const Rect& rect, GlassVariant variant) {
   Fill(rect, aero::kGlassVeil);
   Fill(rect, aero::kGlassTint);
+  // The Windows 7 images bring their own edges: the bar's, and the menu's
+  // with its panels.
+  if (variant != GlassVariant::Menu && Skin(SkinImage::Taskbar, 0, rect)) return;
+  if (variant == GlassVariant::Menu && HasSkin(SkinImage::MenuPrograms)) return;
   const int line = std::max(1, Scale(1));
   switch (variant) {
     case GlassVariant::BarBottom: {
@@ -46,42 +66,74 @@ void Canvas::Glass(const Rect& rect, GlassVariant variant) {
   }
 }
 
-void Canvas::Panel(const Rect& rect) {
-  FillRound(rect, kCornerRadius, aero::kPane);
-  StrokeRound(rect, kCornerRadius, aero::kPaneBorder);
+void Canvas::Panel(const Rect& rect, PanelVariant variant) {
+  // Without the images only the white panes are drawn, inside the menu's
+  // padding; the rest is plain glass.
+  const int padding = Scale(kSpace8);
+  Rect pane = rect;
+  switch (variant) {
+    case PanelVariant::Programs:
+      if (Skin(SkinImage::MenuPrograms, 0, rect)) return;
+      pane = {rect.left + padding, rect.top + padding, rect.right, rect.bottom};
+      break;
+    case PanelVariant::JumpList:
+      if (Skin(SkinImage::MenuJumpList, 0, rect)) return;
+      pane = {rect.left + padding, rect.top + padding, rect.right - padding, rect.bottom};
+      break;
+    case PanelVariant::Search:
+      Skin(SkinImage::MenuSearch, 0, rect);
+      return;
+    case PanelVariant::Places:
+      Skin(SkinImage::MenuPlaces, 0, rect);
+      return;
+    case PanelVariant::Power:
+      Skin(SkinImage::MenuPower, 0, rect);
+      return;
+  }
+  FillRound(pane, kCornerRadius, aero::kPane);
+  StrokeRound(pane, kCornerRadius, aero::kPaneBorder);
+}
+
+void Canvas::TaskButton(const Rect& rect, ButtonVariant variant, bool hovered) {
+  if (Skin(SkinImage::TaskButton, TaskFrame(variant, hovered), rect)) {
+    // Windows 7 lights the hovered button with a glow from below.
+    if (hovered) FillGlow(rect, aero::kHotGlow);
+    return;
+  }
+  if (variant == ButtonVariant::FlashingTask) {
+    FillGradient(rect, kCornerRadius, aero::kFlashTop, aero::kFlashBottom);
+  } else if (variant == ButtonVariant::ActiveTask) {
+    FillGradient(rect, kCornerRadius, aero::kActiveTaskTop, aero::kActiveTaskBottom);
+  } else {
+    FillGradient(rect, kCornerRadius, aero::kTaskTop, aero::kTaskBottom);
+  }
+  if (hovered) FillGlow(rect, aero::kHotGlow);
+  StrokeRound(rect, kCornerRadius, aero::kGlassItemBorder);
+  StrokeRound(Inset(rect, std::max(1, Scale(1))), kCornerRadius - 1.0f, aero::kTaskInner);
 }
 
 void Canvas::Button(const Rect& rect, ButtonVariant variant, bool hovered) {
   const int line = std::max(1, Scale(1));
   switch (variant) {
     case ButtonVariant::MenuItem:
-      if (!hovered) return;
+      if (!hovered || Skin(SkinImage::PaneItem, kHotFrame, rect)) return;
       FillGradient(rect, kCornerRadius, aero::kItemTop, aero::kItemBottom);
       StrokeRound(rect, kCornerRadius, aero::kItemBorder);
       StrokeRound(Inset(rect, line), kCornerRadius - 1.0f, aero::kItemInner);
       return;
     case ButtonVariant::GlassItem:
-      if (!hovered) return;
+      if (!hovered || Skin(SkinImage::GlassItem, kGlassItemHotFrame, rect)) return;
       FillGradient(rect, kCornerRadius, aero::kGlassItemTop, aero::kGlassItemBottom);
       StrokeRound(rect, kCornerRadius, aero::kGlassItemBorder);
       StrokeRound(Inset(rect, line), kCornerRadius - 1.0f, aero::kGlassItemInner);
       return;
     case ButtonVariant::Task:
     case ButtonVariant::ActiveTask:
-    case ButtonVariant::FlashingTask: {
-      if (variant == ButtonVariant::FlashingTask) {
-        FillGradient(rect, kCornerRadius, aero::kFlashTop, aero::kFlashBottom);
-      } else if (variant == ButtonVariant::ActiveTask) {
-        FillGradient(rect, kCornerRadius, aero::kActiveTaskTop, aero::kActiveTaskBottom);
-      } else {
-        FillGradient(rect, kCornerRadius, aero::kTaskTop, aero::kTaskBottom);
-      }
-      if (hovered) FillGlow(rect, aero::kHotGlow);
-      StrokeRound(rect, kCornerRadius, aero::kGlassItemBorder);
-      StrokeRound(Inset(rect, line), kCornerRadius - 1.0f, aero::kTaskInner);
+    case ButtonVariant::FlashingTask:
+      TaskButton(rect, variant, hovered);
       return;
-    }
     case ButtonVariant::Command: {
+      if (Skin(SkinImage::ShutDown, hovered ? kHotFrame : 0, rect)) return;
       // Gloss on the upper half, a deeper body below that lights up blue on
       // hover.
       const Rect inner = Inset(rect, line);
@@ -96,6 +148,7 @@ void Canvas::Button(const Rect& rect, ButtonVariant variant, bool hovered) {
       return;
     }
     case ButtonVariant::ShowDesktop:
+      if (Skin(SkinImage::ShowDesktop, hovered ? kShowDesktopHotFrame : 0, rect)) return;
       FillGradient(rect, 0.0f, aero::kTaskTop, aero::kTaskBottom);
       if (hovered) Fill(rect, aero::kGlassItemTop);
       Fill({rect.left, rect.top, rect.left + line, rect.bottom}, aero::kGlassEdge);
@@ -143,10 +196,12 @@ void Canvas::Separator(const Rect& rect, SeparatorVariant variant) {
 
 void Canvas::AccountPicture(const Rect& rect, const std::wstring& path, std::wstring_view initial) {
   // A glossy frame around the picture, as on the Windows 7 start menu.
-  const Rect frame = Inset(rect, -Scale(kSpace4));
-  FillGradient(frame, kCornerRadius, aero::kGlassItemInner, aero::kGlassItemBottom);
-  StrokeRound(frame, kCornerRadius, aero::kGlassItemBorder);
-  StrokeRound(Inset(frame, std::max(1, Scale(1))), kCornerRadius - 1.0f, aero::kGlassItemInner);
+  if (!Skin(SkinImage::PictureFrame, 0, Inset(rect, -Scale(kSpace8)))) {
+    const Rect frame = Inset(rect, -Scale(kSpace4));
+    FillGradient(frame, kCornerRadius, aero::kGlassItemInner, aero::kGlassItemBottom);
+    StrokeRound(frame, kCornerRadius, aero::kGlassItemBorder);
+    StrokeRound(Inset(frame, std::max(1, Scale(1))), kCornerRadius - 1.0f, aero::kGlassItemInner);
+  }
 
   if (ID2D1Bitmap* bitmap = PictureBitmap(path)) {
     target_->DrawBitmap(

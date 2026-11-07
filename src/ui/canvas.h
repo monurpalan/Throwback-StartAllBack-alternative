@@ -15,6 +15,7 @@
 
 #include "core/layout.h"
 #include "ui/fonts.h"
+#include "ui/skin.h"
 #include "ui/theme.h"
 
 namespace throwback::ui {
@@ -30,6 +31,15 @@ enum class ButtonVariant {
   Command,       // the glossy push button
   ShowDesktop,   // the slim button at the end of the bar
 };
+// The parts of the start menu's background, each covering one corner area of
+// the menu up to its outer edge.
+enum class PanelVariant {
+  Programs,  // the white program pane, top left
+  Search,    // the strip under it that holds the search box
+  Places,    // the right column
+  JumpList,  // the right column while a jump list replaces it
+  Power,     // the corner under the right column with the shut down button
+};
 enum class SeparatorVariant { Pane, Glass };
 enum class ProgressVariant { Normal, Paused, Error, Indeterminate };
 enum class TextTone {
@@ -37,7 +47,12 @@ enum class TextTone {
   Light,  // on glass: white with a dark glow
   Muted,  // prompts and messages
 };
-enum class IconKind { ChevronRight, ChevronLeft, Search };
+enum class IconKind {
+  ChevronRight,
+  ChevronLeft,
+  Search,
+  MenuArrow,  // the arrow on the glass push button
+};
 enum class OrbState { Normal, Hot, Pressed };
 
 // A window's drawing surface plus the UI kit components. Screens draw only
@@ -58,8 +73,8 @@ class Canvas {
   void EndFrame();
 
   void Glass(const Rect& rect, GlassVariant variant);
-  // The white pane of the start menu that holds the program list.
-  void Panel(const Rect& rect);
+  // A part of the start menu's background; rect is its whole area.
+  void Panel(const Rect& rect, PanelVariant variant);
   void Button(const Rect& rect, ButtonVariant variant, bool hovered);
   // A taskbar button's progress, filling fraction of it from the left.
   void Progress(const Rect& rect, ProgressVariant variant, float fraction);
@@ -67,6 +82,8 @@ class Canvas {
   void Separator(const Rect& rect, SeparatorVariant variant);
   void Text(const Rect& rect, std::wstring_view text, TextStyle style, TextTone tone,
             TextAlign align = TextAlign::Leading);
+  // The width of a line of text in pixels, rounded up.
+  int MeasureText(std::wstring_view text, TextStyle style);
   // The search box; shows the prompt while text is empty.
   void TextField(const Rect& rect, std::wstring_view text, std::wstring_view prompt, bool focused);
   void Icon(const Rect& rect, IconKind kind);
@@ -84,9 +101,16 @@ class Canvas {
   float TextWidth(std::wstring_view text, TextStyle style);
   void DrawTextRun(const Rect& rect, std::wstring_view text, IDWriteTextFormat* format,
                    const Color& color, float dx, float dy);
-  void DrawChevron(const Rect& rect, bool right);
+  void TaskButton(const Rect& rect, ButtonVariant variant, bool hovered);
+  void DrawChevron(const Rect& rect, bool right, const Color& color);
   void DrawSearchGlyph(const Rect& rect);
   void DrawFlag(float cx, float cy, float size);
+
+  // The Windows 7 images (see skin.h). Skin draws a frame of one stretched
+  // over rect and returns false when the image isn't embedded.
+  ID2D1Bitmap* SkinBitmap(int resource);
+  bool HasSkin(SkinImage image);
+  bool Skin(SkinImage image, int frame, const Rect& rect);
 
   // Primitives behind the components.
   void Fill(const Rect& rect, const Color& color);
@@ -111,6 +135,7 @@ class Canvas {
   std::unordered_map<HICON, Microsoft::WRL::ComPtr<ID2D1Bitmap>> iconCache_;
   std::unordered_set<HICON> usedIcons_;
   std::unordered_map<std::wstring, Microsoft::WRL::ComPtr<ID2D1Bitmap>> pictures_;
+  std::unordered_map<int, Microsoft::WRL::ComPtr<ID2D1Bitmap>> skins_;
 };
 
 }  // namespace throwback::ui

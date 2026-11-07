@@ -35,7 +35,8 @@ patching or injecting into Explorer.
 
 **Everywhere**
 
-- The Windows 7 Aero look: blurred glass, the start orb, glossy buttons, Segoe UI
+- The Windows 7 Aero look: blurred glass and Segoe UI, with the original orb,
+  taskbar buttons and start menu images from Windows 7
 - Native menus follow the Windows light/dark setting or `--theme=light` / `--theme=dark`
 - English and Turkish, following the Windows display language or forced with `--lang=en` / `--lang=tr`
 - Taskbar and Start Menu Properties (right-click the bar) saves settings per

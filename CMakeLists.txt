@@ -47,6 +47,7 @@ add_library(throwback_ui STATIC
   src/ui/fonts.cpp
   src/ui/glass.cpp
   src/ui/icon.cpp
+  src/ui/skin.cpp
   src/ui/strings.cpp
   src/ui/system_language.cpp
   src/ui/system_theme.cpp
@@ -91,6 +92,14 @@ add_executable(throwback WIN32
   src/taskbar/window_tracker.cpp)
 target_link_libraries(throwback PRIVATE
   throwback_ui throwback_options dwmapi shell32 shlwapi ole32 secur32 powrprof)
+
+# The original Windows 7 images (assets/win7) are embedded when the folder is
+# there; without it the UI kit draws its own version of each part.
+if(EXISTS ${CMAKE_SOURCE_DIR}/assets/win7/win7.rc)
+  target_sources(throwback PRIVATE assets/win7/win7.rc)
+  set_source_files_properties(assets/win7/win7.rc PROPERTIES
+    INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/src;${CMAKE_SOURCE_DIR}/assets/win7")
+endif()
 
 if(THROWBACK_BUILD_TESTS)
   enable_testing()

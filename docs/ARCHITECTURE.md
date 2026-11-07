@@ -34,8 +34,9 @@ inject into `explorer.exe` (see [ADR 0001](adr/0001-standalone-appbar.md)).
 
 ## Design system
 
-The look is Windows 7 Aero, reproduced as closely as possible and drawn
-entirely in code (no bitmaps from Windows):
+The look is Windows 7 Aero. The orb, the account picture frame, taskbar
+buttons and the start menu's panes come from Windows 7 itself (`assets/win7`,
+embedded as resources); everything else is drawn in code:
 
 - **Glass:** the bar, the start menu and previews are blurred glass
   (`SetWindowCompositionAttribute` blur behind, premultiplied-alpha Direct2D
@@ -47,6 +48,11 @@ entirely in code (no bitmaps from Windows):
   on glass, black on the pane, an italic prompt in the search box.
 - **Light and dark:** Windows 7 had one Aero look, so the glass is the same in
   both; the Windows setting only themes native menus.
+- **Windows 7 images:** `ui/skin` cuts them the way the Windows 7 theme does:
+  states stacked as frames, edges that keep their size while the middle
+  stretches. The theme stores premultiplied alpha; the copies in
+  `assets/win7` are straight alpha. Without the folder, each component draws
+  its own version.
 - All colors live in `src/ui/theme.h`. Screens only draw through `ui::Canvas`,
   whose components accept fixed variants (`MenuItem`, `Task`, `Command`...),
   never raw colors or sizes.

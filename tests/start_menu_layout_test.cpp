@@ -12,15 +12,43 @@ bool Inside(const Rect& inner, const Rect& outer) {
 
 TEST(StartMenuLayoutTest, ClassicSizeAt96Dpi) {
   const StartMenuLayout layout = ComputeStartMenuLayout(96);
-  EXPECT_EQ(layout.frame, (Rect{0, 0, 400, 512}));
+  EXPECT_EQ(layout.frame, (Rect{0, 0, 400, 518}));
   EXPECT_EQ(layout.leftPane, (Rect{8, 8, 256, 464}));
   EXPECT_EQ(layout.list, (Rect{8, 8, 256, 408}));
   EXPECT_EQ(layout.allPrograms, (Rect{8, 424, 256, 464}));
-  EXPECT_EQ(layout.search, (Rect{16, 476, 248, 500}));
+  EXPECT_EQ(layout.search, (Rect{21, 476, 238, 498}));
   EXPECT_EQ(layout.picture, (Rect{304, 8, 352, 56}));
-  EXPECT_EQ(layout.power, (Rect{264, 476, 368, 500}));
-  EXPECT_EQ(layout.powerArrow, (Rect{368, 476, 392, 500}));
+  EXPECT_EQ(layout.power, (Rect{264, 475, 340, 499}));
+  EXPECT_EQ(layout.powerArrow, (Rect{340, 475, 364, 499}));
   EXPECT_EQ(layout.jumpList, (Rect{264, 8, 392, 464}));
+  EXPECT_EQ(layout.programsArea, (Rect{0, 0, 256, 464}));
+  EXPECT_EQ(layout.searchArea, (Rect{0, 464, 256, 518}));
+  EXPECT_EQ(layout.placesArea, (Rect{256, 0, 400, 464}));
+  EXPECT_EQ(layout.powerArea, (Rect{256, 464, 400, 518}));
+}
+
+TEST(StartMenuLayoutTest, BackgroundAreasCoverTheFrame) {
+  for (unsigned dpi : {96u, 120u, 144u, 192u}) {
+    const StartMenuLayout layout = ComputeStartMenuLayout(dpi);
+    long long area = 0;
+    for (const Rect& part :
+         {layout.programsArea, layout.searchArea, layout.placesArea, layout.powerArea}) {
+      EXPECT_TRUE(Inside(part, layout.frame)) << dpi;
+      area += static_cast<long long>(part.Width()) * part.Height();
+    }
+    EXPECT_EQ(area, static_cast<long long>(layout.frame.Width()) * layout.frame.Height()) << dpi;
+    EXPECT_TRUE(Inside(layout.search, layout.searchArea)) << dpi;
+    EXPECT_TRUE(Inside(layout.powerArrow, layout.powerArea)) << dpi;
+  }
+}
+
+TEST(StartMenuLayoutTest, ShutDownButtonFitsItsLabel) {
+  // Short labels keep the narrowest button, long ones grow it up to the
+  // column's width.
+  EXPECT_EQ(ComputeStartMenuLayout(96, 40).power.Width(), 76);
+  EXPECT_EQ(ComputeStartMenuLayout(96, 70).power.Width(), 94);
+  const StartMenuLayout widest = ComputeStartMenuLayout(96, 1000);
+  EXPECT_EQ(widest.powerArrow.right, widest.frame.right - 8);
 }
 
 TEST(StartMenuLayoutTest, PartsStayInsideTheirAreas) {
@@ -40,7 +68,7 @@ TEST(StartMenuLayoutTest, PartsStayInsideTheirAreas) {
 }
 
 TEST(StartMenuLayoutTest, ScalesWithDpi) {
-  EXPECT_EQ(ComputeStartMenuLayout(192).frame, (Rect{0, 0, 800, 1024}));
+  EXPECT_EQ(ComputeStartMenuLayout(192).frame, (Rect{0, 0, 800, 1036}));
   EXPECT_EQ(ComputeStartMenuLayout(192).rowHeight, 80);
 }
 

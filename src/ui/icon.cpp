@@ -17,13 +17,29 @@ D2D1_RECT_F ToRectF(const Rect& rect) {
                      static_cast<float>(rect.right), static_cast<float>(rect.bottom));
 }
 
+// The Windows 7 orb and arrow at 96 DPI; the orb's glow reaches past the bar.
+constexpr int kOrbImageSize = 54;
+constexpr int kArrowWidth = 6;
+constexpr int kArrowHeight = 9;
+
+Rect Centered(const Rect& rect, int width, int height) {
+  const int left = rect.left + (rect.Width() - width) / 2;
+  const int top = rect.top + (rect.Height() - height) / 2;
+  return {left, top, left + width, top + height};
+}
+
 }  // namespace
 
 void Canvas::Icon(const Rect& rect, IconKind kind) {
   switch (kind) {
     case IconKind::ChevronRight:
     case IconKind::ChevronLeft:
-      DrawChevron(rect, kind == IconKind::ChevronRight);
+      DrawChevron(rect, kind == IconKind::ChevronRight, aero::kText);
+      break;
+    case IconKind::MenuArrow:
+      if (!Skin(SkinImage::Arrow, 0, Centered(rect, Scale(kArrowWidth), Scale(kArrowHeight)))) {
+        DrawChevron(rect, true, aero::kGlassText);
+      }
       break;
     case IconKind::Search:
       DrawSearchGlyph(rect);
@@ -31,7 +47,7 @@ void Canvas::Icon(const Rect& rect, IconKind kind) {
   }
 }
 
-void Canvas::DrawChevron(const Rect& rect, bool right) {
+void Canvas::DrawChevron(const Rect& rect, bool right, const Color& color) {
   // A small solid triangle, like the arrows of classic menus.
   const float size = static_cast<float>(Scale(kSpace8));
   const float cx = std::round(static_cast<float>(rect.left + rect.right) / 2.0f);
@@ -48,7 +64,7 @@ void Canvas::DrawChevron(const Rect& rect, bool right) {
   sink->AddLine(D2D1::Point2F(cx - tip, cy + size / 2.0f));
   sink->EndFigure(D2D1_FIGURE_END_CLOSED);
   sink->Close();
-  target_->FillGeometry(path.Get(), Brush(aero::kText));
+  target_->FillGeometry(path.Get(), Brush(color));
 }
 
 void Canvas::DrawSearchGlyph(const Rect& rect) {
@@ -68,6 +84,8 @@ void Canvas::DrawSearchGlyph(const Rect& rect) {
 }
 
 void Canvas::Orb(const Rect& rect, OrbState state) {
+  const int imageSize = Scale(kOrbImageSize);
+  if (Skin(SkinImage::Orb, static_cast<int>(state), Centered(rect, imageSize, imageSize))) return;
   const float diameter = static_cast<float>(std::min(rect.Width(), rect.Height()));
   const float r = diameter / 2.0f;
   const float cx = static_cast<float>(rect.left + rect.right) / 2.0f;

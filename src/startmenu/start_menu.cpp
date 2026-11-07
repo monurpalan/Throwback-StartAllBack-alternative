@@ -123,13 +123,13 @@ LRESULT StartMenu::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam) {
 void StartMenu::Open(const RECT& anchor, bool below, unsigned dpi) {
   folders_.clear();  // may point into the catalog that LoadData replaces
   dpi_ = dpi;
-  layout_ = ComputeStartMenuLayout(dpi);
+  canvas_->SetDpi(dpi);
+  layout_ = ComputeStartMenuLayout(
+      dpi, canvas_->MeasureText(ui::Tr(ui::StringId::ShutDown), ui::TextStyle::Body));
   LoadData();
   query_.clear();
   hover_ = {};
   SetMode(Mode::Home);
-
-  canvas_->SetDpi(dpi);
   const int width = layout_.frame.Width();
   const int height = layout_.frame.Height();
   MONITORINFO monitor{};

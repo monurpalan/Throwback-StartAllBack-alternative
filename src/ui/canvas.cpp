@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <string>
 
 #include "ui/com_util.h"
@@ -73,6 +74,7 @@ void Canvas::CreateDeviceResources() {
 void Canvas::DiscardDeviceResources() {
   iconCache_.clear();
   pictures_.clear();
+  skins_.clear();
   brush_.Reset();
   target_.Reset();
 }
@@ -186,6 +188,10 @@ void Canvas::Text(const Rect& rect, std::wstring_view text, TextStyle style, Tex
   }
 }
 
+int Canvas::MeasureText(std::wstring_view text, TextStyle style) {
+  return static_cast<int>(std::ceil(TextWidth(text, style)));
+}
+
 float Canvas::TextWidth(std::wstring_view text, TextStyle style) {
   ComPtr<IDWriteTextLayout> layout;
   if (FAILED(dwrite_->CreateTextLayout(text.data(), static_cast<UINT32>(text.size()),
@@ -200,8 +206,11 @@ float Canvas::TextWidth(std::wstring_view text, TextStyle style) {
 
 void Canvas::TextField(const Rect& rect, std::wstring_view text, std::wstring_view prompt,
                        bool focused) {
-  FillRound(rect, kCornerRadius, aero::kField);
-  StrokeRound(rect, kCornerRadius, aero::kFieldBorder);
+  // With the Windows 7 images the box is part of the menu's search strip.
+  if (!HasSkin(SkinImage::MenuSearch)) {
+    FillRound(rect, kCornerRadius, aero::kField);
+    StrokeRound(rect, kCornerRadius, aero::kFieldBorder);
+  }
 
   const int padding = Scale(kSpace4) + Scale(kSpace2);
   const int glyph = rect.Height();

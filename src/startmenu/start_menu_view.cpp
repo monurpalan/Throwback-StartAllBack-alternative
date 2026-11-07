@@ -50,7 +50,6 @@ void DrawRows(ui::Canvas& canvas, const StartMenuModel& model) {
 void DrawLeftPane(ui::Canvas& canvas, const StartMenuModel& model) {
   const StartMenuLayout& layout = model.layout;
   const int padding = canvas.Scale(ui::kSpace8);
-  canvas.Panel(layout.leftPane);
   DrawRows(canvas, model);
 
   canvas.Separator(HorizontalRule(layout.list.left + padding, layout.list.right - padding,
@@ -77,7 +76,6 @@ void DrawJumpList(ui::Canvas& canvas, const StartMenuModel& model) {
   const StartMenuLayout& layout = model.layout;
   const int padding = canvas.Scale(ui::kSpace8);
   const int inset = canvas.Scale(ui::kSpace2);
-  canvas.Panel(layout.jumpList);
   const Rect title{layout.jumpList.left + padding, layout.jumpList.top,
                    layout.jumpList.right - padding, layout.jumpList.top + layout.jumpRowHeight};
   canvas.Text(title, ui::Tr(ui::StringId::Recent), ui::TextStyle::Body, ui::TextTone::Muted);
@@ -130,10 +128,10 @@ void DrawRightColumn(ui::Canvas& canvas, const StartMenuModel& model) {
 void DrawPower(ui::Canvas& canvas, const StartMenuModel& model) {
   const StartMenuLayout& layout = model.layout;
   canvas.Button(layout.power, ui::ButtonVariant::Command, model.powerHovered);
-  canvas.Text(layout.power, ui::Tr(ui::StringId::ShutDown), ui::TextStyle::Body, ui::TextTone::Dark,
-              ui::TextAlign::Center);
+  canvas.Text(layout.power, ui::Tr(ui::StringId::ShutDown), ui::TextStyle::Body,
+              ui::TextTone::Light, ui::TextAlign::Center);
   canvas.Button(layout.powerArrow, ui::ButtonVariant::Command, model.powerArrowHovered);
-  canvas.Icon(layout.powerArrow, ui::IconKind::ChevronRight);
+  canvas.Icon(layout.powerArrow, ui::IconKind::MenuArrow);
 }
 
 }  // namespace
@@ -164,7 +162,13 @@ std::vector<Rect> PlaceRects(const StartMenuLayout& layout, const std::vector<bo
 }
 
 void DrawStartMenu(ui::Canvas& canvas, const StartMenuModel& model) {
-  canvas.Glass(model.layout.frame, ui::GlassVariant::Menu);
+  const StartMenuLayout& layout = model.layout;
+  canvas.Glass(layout.frame, ui::GlassVariant::Menu);
+  canvas.Panel(layout.programsArea, ui::PanelVariant::Programs);
+  canvas.Panel(layout.searchArea, ui::PanelVariant::Search);
+  canvas.Panel(layout.placesArea,
+               model.jumpListOpen ? ui::PanelVariant::JumpList : ui::PanelVariant::Places);
+  canvas.Panel(layout.powerArea, ui::PanelVariant::Power);
   DrawLeftPane(canvas, model);
   DrawRightColumn(canvas, model);
 }

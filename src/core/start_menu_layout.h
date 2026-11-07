@@ -9,6 +9,11 @@ namespace throwback {
 // the shut down button in the bottom right corner.
 struct StartMenuLayout {
   Rect frame;
+  // The background's four areas, split where the program pane ends.
+  Rect programsArea;
+  Rect searchArea;
+  Rect placesArea;
+  Rect powerArea;
   Rect leftPane;
   Rect list;  // programs, or search results while searching
   Rect allPrograms;
@@ -24,6 +29,8 @@ struct StartMenuLayout {
   int jumpRowHeight = 0;
 };
 
-StartMenuLayout ComputeStartMenuLayout(unsigned dpi);
+// The shut down button grows with its label, as on Windows 7; powerLabelWidth
+// is the label's width in pixels.
+StartMenuLayout ComputeStartMenuLayout(unsigned dpi, int powerLabelWidth = 0);
 
 }  // namespace throwback
