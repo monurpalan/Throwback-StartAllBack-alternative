@@ -104,6 +104,36 @@ std::vector<Place> LoadPlaces() {
   return places;
 }
 
+std::vector<Place> LoadXpPlaces() {
+  using ui::StringId;
+  struct Item {
+    StringId name;
+    const wchar_t* target;
+    int icon;
+    bool bold;
+    bool separatorBefore;
+  };
+  static constexpr Item kItems[] = {
+      {StringId::XpMyDocuments, L"shell:Personal", 235, true, false},
+      {StringId::XpMyRecentDocuments, L"shell:Recent", 21, true, false},
+      {StringId::XpMyPictures, L"shell:My Pictures", 236, true, false},
+      {StringId::XpMyMusic, L"shell:My Music", 237, true, false},
+      {StringId::XpMyComputer, L"shell:::{20D04FE0-3AEA-1069-A2D8-08002B30309D}", 16, true, false},
+      {StringId::ClassicControlPanel, L"shell:::{26EE0668-A00A-44D7-9371-BEB064C98683}", 137, false,
+       true},
+      {StringId::XpPrinters, L"shell:::{2227A280-3AEA-1069-A2DE-08002B30309D}", 138, false, false},
+      {StringId::XpHelp, L"ms-contact-support:", 24, false, true},
+      {StringId::ClassicSearch, L"search-ms:", 23, false, false},
+      {StringId::Run, L"shell:::{2559A1F3-21D7-11D4-BDAF-00C04F60B9F0}", 25, false, false},
+  };
+  std::vector<Place> places;
+  for (const Item& item : kItems) {
+    places.push_back(
+        {std::wstring(ui::Tr(item.name)), item.target, item.separatorBefore, item.icon, item.bold});
+  }
+  return places;
+}
+
 Account LoadAccount() {
   Account account;
   wchar_t name[256] = {};

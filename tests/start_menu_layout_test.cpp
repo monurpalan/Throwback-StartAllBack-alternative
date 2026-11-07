@@ -72,5 +72,22 @@ TEST(StartMenuLayoutTest, ScalesWithDpi) {
   EXPECT_EQ(ComputeStartMenuLayout(192).rowHeight, 80);
 }
 
+TEST(StartMenuLayoutTest, XpFollowsItsTheme) {
+  const StartMenuLayout layout = ComputeXpStartMenuLayout(96, 40, 100);
+  EXPECT_EQ(layout.frame, (Rect{0, 0, 380, 440}));
+  EXPECT_EQ(layout.userPane, (Rect{0, 0, 380, 64}));
+  EXPECT_EQ(layout.programsArea, (Rect{0, 64, 190, 370}));
+  EXPECT_EQ(layout.allPrograms, (Rect{0, 370, 190, 400}));
+  EXPECT_EQ(layout.placesArea, (Rect{190, 64, 380, 400}));
+  EXPECT_EQ(layout.powerArea, (Rect{0, 400, 380, 440}));
+  EXPECT_LE(layout.list.bottom, layout.allPrograms.top);
+  // Turn Off Computer ends near the right edge, Log Off sits left of it.
+  EXPECT_EQ(layout.powerArrow.right, 372);
+  EXPECT_EQ(layout.powerArrow.Width(), 136);
+  EXPECT_EQ(layout.power.right, layout.powerArrow.left);
+  EXPECT_EQ(layout.power.Width(), 76);
+  EXPECT_EQ(layout.search, Rect{});
+}
+
 }  // namespace
 }  // namespace throwback

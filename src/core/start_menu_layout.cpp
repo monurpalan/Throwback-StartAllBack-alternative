@@ -78,4 +78,62 @@ StartMenuLayout ComputeStartMenuLayout(unsigned dpi, int powerLabelWidth) {
   return layout;
 }
 
+StartMenuLayout ComputeXpStartMenuLayout(unsigned dpi, int logOffLabelWidth,
+                                         int turnOffLabelWidth) {
+  // Luna's NormalBlue.ini at 96 DPI: a 380 x 440 panel of a 64 px banner,
+  // two 190 px wide columns and a 40 px log off bar.
+  constexpr int kXpWidth = 380;
+  constexpr int kXpBanner = 64;
+  constexpr int kXpColumn = 190;
+  constexpr int kXpColumns = 336;
+  constexpr int kXpMorePrograms = 30;
+  constexpr int kXpBar = 40;
+  constexpr int kXpRow = 36;
+  constexpr int kXpRows = 8;
+  constexpr int kXpPlace = 26;
+  constexpr int kXpPicture = 48;
+  constexpr int kXpPictureLeft = 8;
+  constexpr int kXpButtonIcon = 24;
+  constexpr int kXpButtonGap = 4;
+  constexpr int kXpButtonPadding = 8;
+  const auto s = [dpi](int value) { return ScaleForDpi(value, dpi); };
+
+  StartMenuLayout layout;
+  const int width = s(kXpWidth);
+  const int columnsTop = s(kXpBanner);
+  const int barTop = columnsTop + s(kXpColumns);
+  const int middle = s(kXpColumn);
+  layout.frame = {0, 0, width, barTop + s(kXpBar)};
+  layout.userPane = {0, 0, width, columnsTop};
+  const int pictureTop = (columnsTop - s(kXpPicture)) / 2 + s(2);
+  layout.picture = {s(kXpPictureLeft), pictureTop, s(kXpPictureLeft) + s(kXpPicture),
+                    pictureTop + s(kXpPicture)};
+
+  const int moreTop = barTop - s(kXpMorePrograms);
+  layout.programsArea = {0, columnsTop, middle, moreTop};
+  layout.searchArea = {0, moreTop, middle, barTop};
+  layout.placesArea = {middle, columnsTop, width, barTop};
+  layout.powerArea = {0, barTop, width, layout.frame.bottom};
+  layout.leftPane = layout.programsArea;
+
+  layout.rowHeight = s(kXpRow);
+  layout.listRows = kXpRows;
+  const int listTop = columnsTop + s(9);
+  layout.list = {s(6), listTop, middle - s(4), listTop + kXpRows * layout.rowHeight};
+  layout.allPrograms = layout.searchArea;
+  layout.placeHeight = s(kXpPlace);
+  layout.places = {middle + s(4), listTop, width - s(6), barTop - s(5)};
+
+  // Turn Off Computer on the right, Log Off left of it.
+  const int buttonTop = barTop + (s(kXpBar) - s(kXpButtonIcon)) / 2;
+  const int buttonBottom = buttonTop + s(kXpButtonIcon);
+  const int turnOffWidth = s(kXpButtonIcon + kXpButtonGap + kXpButtonPadding) + turnOffLabelWidth;
+  const int logOffWidth = s(kXpButtonIcon + kXpButtonGap + kXpButtonPadding) + logOffLabelWidth;
+  layout.powerArrow = {width - s(kXpButtonPadding) - turnOffWidth, buttonTop,
+                       width - s(kXpButtonPadding), buttonBottom};
+  layout.power = {layout.powerArrow.left - logOffWidth, buttonTop, layout.powerArrow.left,
+                  buttonBottom};
+  return layout;
+}
+
 }  // namespace throwback

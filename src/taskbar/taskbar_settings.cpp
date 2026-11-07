@@ -1,5 +1,7 @@
 // The bar's settings: applying them live, saving them and the properties
 // dialog.
+#include <algorithm>
+
 #include "taskbar/bar_manager.h"
 #include "taskbar/settings_dialog.h"
 #include "taskbar/taskbar_window.h"
@@ -50,6 +52,14 @@ int TaskbarWindow::StartButtonWidth() const {
                                       : ui::TextStyle::Classic98Bold;
       return canvas_->MeasureText(ui::Tr(ui::StringId::ClassicStart), style) +
              ScaleForDpi(kClassicChrome, dpi_);
+    }
+    case StartStyle::WinXp: {
+      // XP's button: 99 px with "start", its flag and margins.
+      constexpr int kXpMinWidth = 99;
+      constexpr int kXpChrome = 10 + 25 + 4 + 24;
+      return std::max(ScaleForDpi(kXpMinWidth, dpi_),
+                      canvas_->MeasureText(ui::Tr(ui::StringId::XpStart), ui::TextStyle::XpStart) +
+                          ScaleForDpi(kXpChrome, dpi_));
     }
     default:
       return 0;

@@ -162,6 +162,10 @@ std::vector<Rect> PlaceRects(const StartMenuLayout& layout, const std::vector<bo
 }
 
 void DrawStartMenu(ui::Canvas& canvas, const StartMenuModel& model) {
+  if (model.style == StartStyle::WinXp) {
+    DrawXpStartMenu(canvas, model);
+    return;
+  }
   const StartMenuLayout& layout = model.layout;
   canvas.Glass(layout.frame, ui::GlassVariant::Menu);
   canvas.Panel(layout.programsArea, ui::PanelVariant::Programs);

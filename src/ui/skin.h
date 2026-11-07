@@ -33,6 +33,23 @@ enum class SkinImage {
   BannerMe,
   Banner2000,
   Flag,  // the four-color flag of the classic Start button
+  XpStartButton,
+  XpFlag,
+  XpUserPane,
+  XpUserTile,
+  XpPrograms,
+  XpProgramsSeparator,
+  XpMorePrograms,
+  XpMoreArrow,
+  XpMoreArrowHot,
+  XpPlaces,
+  XpPlacesSeparator,
+  XpLogOff,
+  XpLogOffButtons,
+  XpLogOffButtonsHot,
+  XpMenu,
+  XpMenuItem,
+  XpMenuSeparator,
 };
 
 // How an image is cut, as the Windows 7 theme describes it: its states are

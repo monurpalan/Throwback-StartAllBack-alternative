@@ -82,6 +82,9 @@ void DrawStartButton(ui::Canvas& canvas, const BarModel& model) {
                                 ui::Tr(ui::StringId::ClassicStart), model.startOpen);
       return;
     }
+    case StartStyle::WinXp:
+      canvas.XpStartButton(model.startButton, ui::Tr(ui::StringId::XpStart), OrbStateFor(model));
+      return;
     default:
       if (model.drawOrb) {
         canvas.Orb(CenteredSquare(model.startButton, canvas.Scale(kOrbSize)), OrbStateFor(model));

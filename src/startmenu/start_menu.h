@@ -3,6 +3,7 @@
 #include <windows.h>
 
 #include <functional>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -11,6 +12,7 @@
 #include "core/start_menu_layout.h"
 #include "shell/async_icons.h"
 #include "shell/recent_items.h"
+#include "startmenu/classic_menu.h"
 #include "startmenu/frequent.h"
 #include "startmenu/places.h"
 #include "startmenu/programs.h"
@@ -20,14 +22,16 @@
 
 namespace throwback {
 
-// The classic Windows 7 start menu: frequent programs, All Programs and
-// search on the left; the account picture, places and power on the right.
+// The two-column start menus: Windows 7's (frequent programs, All Programs
+// and search on the left; the account picture, places and power on the
+// right) and Windows XP's, which shares its behavior with a banner on top,
+// a cascading All Programs menu and Log Off / Turn Off buttons.
 class StartMenu : public StartMenuWindow {
  public:
   // The menu is owned by the bar, so closing requests reach the bar.
   // Pinning changes settings.pinned and then calls onPinnedChanged to save.
-  StartMenu(HINSTANCE instance, HWND owner, Settings& settings, std::function<void()> onClosed,
-            std::function<void()> onPinnedChanged);
+  StartMenu(HINSTANCE instance, HWND owner, Settings& settings, StartStyle style,
+            std::function<void()> onClosed, std::function<void()> onPinnedChanged);
   ~StartMenu() override;
   StartMenu(const StartMenu&) = delete;
   StartMenu& operator=(const StartMenu&) = delete;
@@ -73,6 +77,14 @@ class StartMenu : public StartMenuWindow {
 
   void LoadData();
   void AddHomeRows();
+  std::wstring JumpIdFor(const std::wstring& target) const;
+  // Windows XP (start_menu_xp.cpp).
+  bool IsXp() const { return style_ == StartStyle::WinXp; }
+  void ComputeLayout();
+  void CreateXpPrograms(HINSTANCE instance, HWND owner);
+  void OpenXpPrograms();
+  void CloseXpPrograms();
+  HICON XpIcon(int id, int size);
   // The display name of a launchable target; empty once it is uninstalled.
   std::wstring ProgramName(const std::wstring& target) const;
   void ShowRowMenu(int index, POINT point);
@@ -105,6 +117,7 @@ class StartMenu : public StartMenuWindow {
 
   HWND hwnd_ = nullptr;
   Settings& settings_;
+  StartStyle style_;
   std::function<void()> onClosed_;
   std::function<void()> onPinnedChanged_;
   std::unique_ptr<ui::Canvas> canvas_;
@@ -131,6 +144,10 @@ class StartMenu : public StartMenuWindow {
   std::vector<shell::RecentItem> jumpItems_;
   bool keepOpen_ = false;  // a popup menu of ours is showing
   HWND previousForeground_ = nullptr;
+  // Windows XP: the cascading All Programs menu and its icons.
+  ClassicMenuHost xpHost_;
+  std::unique_ptr<ClassicMenu> xpPrograms_;
+  std::map<std::pair<int, int>, HICON> xpIcons_;
 };
 
 }  // namespace throwback

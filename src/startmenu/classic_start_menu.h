@@ -15,6 +15,10 @@
 
 namespace throwback {
 
+// A program folder as menu rows: subfolders (with folderIcon, the style's
+// own shell32 icon) first, then programs, each in name order.
+std::vector<ClassicEntry> ProgramMenuEntries(const Program& folder, int folderIcon);
+
 // The cascading start menu of Windows 98, Me and 2000: a banner and large
 // icons, with Programs, Documents, Settings and Find (Search) opening
 // submenus beside it.
@@ -32,7 +36,6 @@ class ClassicStartMenu : public StartMenuWindow {
 
  private:
   std::vector<ClassicEntry> RootEntries();
-  std::vector<ClassicEntry> ProgramEntries(const Program& folder);
   std::vector<ClassicEntry> DocumentEntries();
   std::vector<ClassicEntry> SettingsEntries();
   std::vector<ClassicEntry> FindEntries();

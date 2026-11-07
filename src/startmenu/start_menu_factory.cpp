@@ -18,8 +18,8 @@ std::unique_ptr<StartMenuWindow> CreateStartMenu(HINSTANCE instance, HWND owner,
     default:
       break;
   }
-  return std::make_unique<StartMenu>(instance, owner, settings, std::move(onClosed),
-                                     std::move(onPinnedChanged));
+  return std::make_unique<StartMenu>(instance, owner, settings, settings.startStyle,
+                                     std::move(onClosed), std::move(onPinnedChanged));
 }
 
 }  // namespace throwback

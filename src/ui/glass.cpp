@@ -48,4 +48,11 @@ void EnableGlass(HWND hwnd, GlassCorners corners) {
   DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &preference, sizeof(preference));
 }
 
+void EnableTransparency(HWND hwnd) {
+  const MARGINS margins{-1, -1, -1, -1};
+  DwmExtendFrameIntoClientArea(hwnd, &margins);
+  DWM_WINDOW_CORNER_PREFERENCE preference = DWMWCP_DONOTROUND;
+  DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &preference, sizeof(preference));
+}
+
 }  // namespace throwback::ui

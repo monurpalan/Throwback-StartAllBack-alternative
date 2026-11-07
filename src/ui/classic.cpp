@@ -12,16 +12,21 @@ constexpr int kFlagSize = 16;
 constexpr int kFlagGap = 3;
 
 const Color& FaceOf(ClassicLook look) {
-  return look == ClassicLook::Win98 ? classic::kFace98 : classic::kFace2000;
+  return look == ClassicLook::Win2000 ? classic::kFace2000 : classic::kFace98;
 }
 
 const Color& DarkShadowOf(ClassicLook look) {
-  return look == ClassicLook::Win98 ? classic::kDarkShadow98 : classic::kDarkShadow2000;
+  return look == ClassicLook::Win2000 ? classic::kDarkShadow2000 : classic::kDarkShadow98;
 }
 
 }  // namespace
 
 void Canvas::ClassicFace(const Rect& rect, ClassicLook look, bool sunken) {
+  // XP's menu: white with a blue edge, from the theme.
+  if (look == ClassicLook::WinXp) {
+    if (!Skin(SkinImage::XpMenu, 0, rect)) Fill(rect, classic::kHighlight);
+    return;
+  }
   const int line = std::max(1, Scale(1));
   const Color& face = FaceOf(look);
   Fill(rect, face);
@@ -44,10 +49,15 @@ void Canvas::ClassicFace(const Rect& rect, ClassicLook look, bool sunken) {
 
 void Canvas::ClassicItem(const Rect& rect, ClassicLook look, bool selected) {
   if (!selected) return;
+  if (look == ClassicLook::WinXp) {
+    if (!Skin(SkinImage::XpMenuItem, 1, rect)) Fill(rect, xp::kProgramHot);
+    return;
+  }
   Fill(rect, look == ClassicLook::Win98 ? classic::kSelection98 : classic::kSelection2000);
 }
 
-void Canvas::ClassicSeparator(const Rect& rect) {
+void Canvas::ClassicSeparator(const Rect& rect, ClassicLook look) {
+  if (look == ClassicLook::WinXp && Skin(SkinImage::XpMenuSeparator, 0, rect)) return;
   const int line = std::max(1, Scale(1));
   const int middle = (rect.top + rect.bottom) / 2;
   Fill({rect.left, middle - line, rect.right, middle}, classic::kShadow);
@@ -57,6 +67,12 @@ void Canvas::ClassicSeparator(const Rect& rect) {
 void Canvas::ClassicText(const Rect& rect, std::wstring_view text, ClassicLook look, bool selected,
                          bool bold) {
   if (text.empty() || rect.Width() <= 0 || rect.Height() <= 0) return;
+  if (look == ClassicLook::WinXp) {
+    DrawTextRun(rect, text,
+                Format(bold ? TextStyle::XpBold : TextStyle::XpBody, TextAlign::Leading),
+                selected ? xp::kLightText : xp::kMenuText, 0.0f, 0.0f);
+    return;
+  }
   const TextStyle style = look == ClassicLook::Win98
                               ? (bold ? TextStyle::Classic98Bold : TextStyle::Classic98)
                               : (bold ? TextStyle::Classic2000Bold : TextStyle::Classic2000);
@@ -92,7 +108,7 @@ void Canvas::ClassicStartButton(const Rect& rect, ClassicLook look, std::wstring
   const int flag = Scale(kFlagSize);
   const int gap = Scale(kFlagGap);
   const int textWidth = MeasureText(
-      label, look == ClassicLook::Win98 ? TextStyle::Classic98Bold : TextStyle::Classic2000Bold);
+      label, look == ClassicLook::Win2000 ? TextStyle::Classic2000Bold : TextStyle::Classic98Bold);
   const int left = rect.left + (rect.Width() - flag - gap - textWidth) / 2 + shift;
   const int top = rect.top + (rect.Height() - flag) / 2 + shift;
   Skin(SkinImage::Flag, 0, {left, top, left + flag, top + flag});

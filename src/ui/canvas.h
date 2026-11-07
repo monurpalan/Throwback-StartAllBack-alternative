@@ -59,8 +59,14 @@ enum class IconKind {
   MenuArrow,  // the arrow on the glass push button
 };
 enum class OrbState { Normal, Hot, Pressed };
-// The classic styles: Windows Me looks like Windows 98.
-enum class ClassicLook { Win98, Win2000 };
+// The cascading menus: Windows Me looks like Windows 98; Windows XP's All
+// Programs menu cascades the same way in Luna colors.
+enum class ClassicLook { Win98, Win2000, WinXp };
+// Windows XP's start menu parts.
+enum class XpPanel { UserPane, Programs, MorePrograms, Places, LogOff };
+enum class XpList { Programs, Places };
+enum class XpTextVariant { Program, ProgramBold, Place, PlaceBold, User, LogOff, MorePrograms };
+enum class XpPowerButton { LogOff, TurnOff };
 
 // A window's drawing surface plus the UI kit components. Screens draw only
 // through these calls; colors, fonts and sizes come from the theme. All
@@ -106,7 +112,7 @@ class Canvas {
   // A menu row, filled with the selection color while selected.
   void ClassicItem(const Rect& rect, ClassicLook look, bool selected);
   // An etched line across the middle of rect.
-  void ClassicSeparator(const Rect& rect);
+  void ClassicSeparator(const Rect& rect, ClassicLook look);
   void ClassicText(const Rect& rect, std::wstring_view text, ClassicLook look, bool selected,
                    bool bold = false);
   // The small triangle of a row with a submenu.
@@ -117,6 +123,22 @@ class Canvas {
   // The Start button: a face with the flag and a bold label.
   void ClassicStartButton(const Rect& rect, ClassicLook look, std::wstring_view label,
                           bool pressed);
+
+  // Windows XP components (xp.cpp).
+  void XpBackground(const Rect& rect, XpPanel panel);
+  // A row of a list; filled with the list's hot color while hovered.
+  void XpItem(const Rect& rect, XpList list, bool hovered);
+  void XpText(const Rect& rect, std::wstring_view text, XpTextVariant variant, bool hovered);
+  // The list's separator line, at its own size, centered in rect.
+  void XpSeparator(const Rect& rect, XpList list);
+  // The account picture on its white tile; the initial without a picture.
+  void XpUserPicture(const Rect& picture, const std::wstring& path, std::wstring_view initial);
+  // The green arrow of "All Programs".
+  void XpMoreArrow(const Rect& rect, bool hovered);
+  void XpLogOffButton(const Rect& rect, XpPowerButton button, std::wstring_view label,
+                      bool hovered);
+  // The green Start button with the flag and its italic label.
+  void XpStartButton(const Rect& rect, std::wstring_view label, OrbState state);
 
  private:
   void CreateDeviceResources();
@@ -133,6 +155,8 @@ class Canvas {
   void DrawChevron(const Rect& rect, bool right, const Color& color);
   void DrawSearchGlyph(const Rect& rect);
   void DrawFlag(float cx, float cy, float size);
+  void DrawShadowedText(const Rect& rect, std::wstring_view text, TextStyle style,
+                        const Color& color, const Color& shadow);
 
   // The Windows 7 images (see skin.h). Skin draws a frame of one stretched
   // over rect and returns false when the image isn't embedded.

@@ -5,18 +5,23 @@ namespace {
 
 // 8 pt at 96 DPI.
 constexpr float kClassicSize = 11.0f;
+// 14 pt at 96 DPI.
+constexpr float kXpLargeSize = 18.67f;
 
 }  // namespace
 
 float FontSize(TextStyle style) {
   if (IsClassic(style)) return kClassicSize;
+  if (style == TextStyle::XpBody || style == TextStyle::XpBold) return kClassicSize;
+  if (style == TextStyle::XpUser || style == TextStyle::XpStart) return kXpLargeSize;
   return style == TextStyle::Title ? kTitleSize : kBodySize;
 }
 
-bool IsItalic(TextStyle style) { return style == TextStyle::Hint; }
+bool IsItalic(TextStyle style) { return style == TextStyle::Hint || style == TextStyle::XpStart; }
 
 bool IsBold(TextStyle style) {
-  return style == TextStyle::Classic98Bold || style == TextStyle::Classic2000Bold;
+  return style == TextStyle::Classic98Bold || style == TextStyle::Classic2000Bold ||
+         style == TextStyle::XpBold;
 }
 
 const wchar_t* FontFamily(TextStyle style) {
@@ -27,7 +32,12 @@ const wchar_t* FontFamily(TextStyle style) {
       return L"Microsoft Sans Serif";
     case TextStyle::Classic2000:
     case TextStyle::Classic2000Bold:
+    case TextStyle::XpBody:
+    case TextStyle::XpBold:
       return L"Tahoma";
+    case TextStyle::XpUser:
+    case TextStyle::XpStart:
+      return L"Franklin Gothic Medium";
     case TextStyle::Body:
     case TextStyle::Hint:
     case TextStyle::Title:

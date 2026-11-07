@@ -54,7 +54,8 @@ add_library(throwback_ui STATIC
   src/ui/strings.cpp
   src/ui/system_language.cpp
   src/ui/system_theme.cpp
-  src/ui/theme.cpp)
+  src/ui/theme.cpp
+  src/ui/xp.cpp)
 target_link_libraries(throwback_ui
   PUBLIC throwback_core d2d1 dwrite windowscodecs dwmapi
   PRIVATE throwback_options)
@@ -78,6 +79,8 @@ add_executable(throwback WIN32
   src/startmenu/start_menu_factory.cpp
   src/startmenu/start_menu_jump.cpp
   src/startmenu/start_menu_view.cpp
+  src/startmenu/start_menu_xp.cpp
+  src/startmenu/start_menu_xp_view.cpp
   src/startmenu/win_key_hook.cpp
   src/taskbar/app_icons.cpp
   src/taskbar/appbar.cpp
@@ -101,18 +104,21 @@ add_executable(throwback WIN32
 target_link_libraries(throwback PRIVATE
   throwback_ui throwback_options dwmapi shell32 shlwapi ole32 secur32 powrprof)
 
-# The original Windows 7 images (assets/win7) are embedded when the folder is
-# there; without it the UI kit draws its own version of each part.
-if(EXISTS ${CMAKE_SOURCE_DIR}/assets/win7/win7.rc)
-  target_sources(throwback PRIVATE assets/win7/win7.rc)
-  set_source_files_properties(assets/win7/win7.rc PROPERTIES
-    INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/src;${CMAKE_SOURCE_DIR}/assets/win7")
-endif()
-if(EXISTS ${CMAKE_SOURCE_DIR}/assets/classic/classic.rc)
-  target_sources(throwback PRIVATE assets/classic/classic.rc)
-  set_source_files_properties(assets/classic/classic.rc PROPERTIES
-    INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/src;${CMAKE_SOURCE_DIR}/assets/classic")
-endif()
+# The original Windows images (assets/<folder>) are embedded for every folder
+# that is there; without one, the UI kit draws its own version of its parts.
+set(THROWBACK_ASSET_DIRS "${CMAKE_SOURCE_DIR}/src")
+set(THROWBACK_ASSET_DEFINES "")
+foreach(folder win7 classic xp)
+  if(EXISTS ${CMAKE_SOURCE_DIR}/assets/${folder})
+    list(APPEND THROWBACK_ASSET_DIRS "${CMAKE_SOURCE_DIR}/assets/${folder}")
+    string(TOUPPER ${folder} upper)
+    list(APPEND THROWBACK_ASSET_DEFINES "THROWBACK_ASSETS_${upper}")
+  endif()
+endforeach()
+target_sources(throwback PRIVATE assets/throwback.rc)
+set_source_files_properties(assets/throwback.rc PROPERTIES
+  INCLUDE_DIRECTORIES "${THROWBACK_ASSET_DIRS}"
+  COMPILE_DEFINITIONS "${THROWBACK_ASSET_DEFINES}")
 
 if(THROWBACK_BUILD_TESTS)
   enable_testing()

@@ -120,6 +120,20 @@ inline constexpr Color kBannerTop = FromRgb(0x000000);
 
 }  // namespace classic
 
+// Windows XP's Luna (Blue), from the theme's NormalBlue.ini.
+namespace xp {
+
+inline constexpr Color kProgramText = FromRgb(0x373738);
+inline constexpr Color kProgramHot = FromRgb(0x3070D0);
+inline constexpr Color kPlaceText = FromRgb(0x0A246A);
+inline constexpr Color kPlaceHot = FromRgb(0x5096F8);
+inline constexpr Color kLightText = FromRgb(0xFFFFFF);
+inline constexpr Color kUserShadow = FromRgb(0x09428B);
+inline constexpr Color kStartShadow = FromRgb(0x454C10);
+inline constexpr Color kMenuText = FromRgb(0x000000);
+
+}  // namespace xp
+
 // Spacing in pixels at 96 DPI.
 inline constexpr int kSpace2 = 2;
 inline constexpr int kSpace4 = 4;
@@ -142,6 +156,12 @@ enum class TextStyle {
   Classic98Bold,
   Classic2000,
   Classic2000Bold,
+  // Windows XP: 8 pt Tahoma, and 14 pt Franklin Gothic Medium for the user
+  // name and the Start button.
+  XpBody,
+  XpBold,
+  XpUser,
+  XpStart,
 };
 
 float FontSize(TextStyle style);

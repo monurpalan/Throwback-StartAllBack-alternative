@@ -11,7 +11,7 @@ namespace throwback::ui {
 namespace {
 
 // Frames and stretch edges as the Windows 7 theme (aero.msstyles) sets them.
-constexpr std::array<SkinPart, 22> kParts{{
+constexpr std::array<SkinPart, 39> kParts{{
     {.resource = THROWBACK_SKIN_ORB_96, .frames = 3, .perDpi = true},
     {.resource = THROWBACK_SKIN_PICTURE_FRAME_96, .perDpi = true},
     {.resource = THROWBACK_SKIN_TASKBAR, .top = 12},
@@ -64,6 +64,28 @@ constexpr std::array<SkinPart, 22> kParts{{
     {.resource = THROWBACK_SKIN_BANNER_ME},
     {.resource = THROWBACK_SKIN_BANNER_2000},
     {.resource = THROWBACK_SKIN_FLAG},
+    {.resource = THROWBACK_SKIN_XP_START_BUTTON,
+     .frames = 3,
+     .left = 6,
+     .right = 52,
+     .top = 13,
+     .bottom = 14},
+    {.resource = THROWBACK_SKIN_XP_FLAG},
+    {.resource = THROWBACK_SKIN_XP_USER_PANE, .left = 59, .right = 60, .top = 62},
+    {.resource = THROWBACK_SKIN_XP_USER_TILE},
+    {.resource = THROWBACK_SKIN_XP_PROGRAMS, .left = 2, .right = 153, .top = 3},
+    {.resource = THROWBACK_SKIN_XP_PROGRAMS_SEPARATOR},
+    {.resource = THROWBACK_SKIN_XP_MORE_PROGRAMS, .left = 3, .bottom = 1},
+    {.resource = THROWBACK_SKIN_XP_MORE_ARROW},
+    {.resource = THROWBACK_SKIN_XP_MORE_ARROW_HOT},
+    {.resource = THROWBACK_SKIN_XP_PLACES, .left = 172, .right = 7, .top = 3, .bottom = 1},
+    {.resource = THROWBACK_SKIN_XP_PLACES_SEPARATOR},
+    {.resource = THROWBACK_SKIN_XP_LOGOFF, .left = 49, .right = 47, .bottom = 38},
+    {.resource = THROWBACK_SKIN_XP_LOGOFF_BUTTONS},
+    {.resource = THROWBACK_SKIN_XP_LOGOFF_BUTTONS_HOT},
+    {.resource = THROWBACK_SKIN_XP_MENU, .left = 6, .right = 5, .top = 3, .bottom = 4},
+    {.resource = THROWBACK_SKIN_XP_MENU_ITEM, .frames = 3, .left = 6, .right = 1},
+    {.resource = THROWBACK_SKIN_XP_MENU_SEPARATOR, .left = 6, .right = 1, .top = 3},
 }};
 
 D2D1_RECT_F RectF(float left, float top, float right, float bottom) {

@@ -51,6 +51,9 @@ class ClassicMenu {
   // Shows the root level with its bottom-left (or top-left, below) corner
   // at the anchor's matching corner.
   void ShowRoot(std::vector<ClassicEntry> entries, const RECT& anchor, bool below);
+  // Shows a level that isn't the start menu itself next to a row (screen
+  // pixels): a submenu, or Windows XP's All Programs menu.
+  void ShowBeside(std::vector<ClassicEntry> entries, const RECT& row);
   void Hide();
   bool IsOpen() const;
   HWND Hwnd() const { return hwnd_; }
@@ -63,8 +66,6 @@ class ClassicMenu {
   static LRESULT CALLBACK WindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
   LRESULT HandleMessage(UINT message, WPARAM wParam, LPARAM lParam);
 
-  // Opens as a submenu next to a parent row (screen pixels).
-  void ShowBeside(std::vector<ClassicEntry> entries, const RECT& row);
   void Measure();
   void Paint();
   int HitTest(POINT point) const;

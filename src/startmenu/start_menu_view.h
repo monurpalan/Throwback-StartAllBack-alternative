@@ -6,6 +6,7 @@
 #include <string_view>
 #include <vector>
 
+#include "core/options.h"
 #include "core/start_menu_layout.h"
 #include "ui/canvas.h"
 
@@ -20,6 +21,7 @@ struct StartMenuModel {
     bool selected = false;
     bool separatorBefore = false;
     bool hasJumpList = false;
+    bool bold = false;  // Windows XP: a pinned program
   };
   struct JumpRow {
     std::wstring_view name;
@@ -30,9 +32,12 @@ struct StartMenuModel {
     std::wstring_view name;
     bool separatorBefore = false;
     bool hovered = false;
+    HICON icon = nullptr;  // Windows XP
+    bool bold = false;
   };
 
   StartMenuLayout layout;
+  StartStyle style = StartStyle::Win7;
   std::vector<Row> rows;
   int rowHeight = 0;
   int iconSize = 0;
@@ -45,6 +50,7 @@ struct StartMenuModel {
   std::vector<PlaceRow> places;
   bool powerHovered = false;
   bool powerArrowHovered = false;
+  bool xpProgramsOpen = false;  // Windows XP: All Programs stays lit while open
   // While open, the jump list replaces the picture and the places.
   bool jumpListOpen = false;
   std::vector<JumpRow> jumpRows;
@@ -59,5 +65,7 @@ std::vector<Rect> JumpItemRects(const StartMenuLayout& layout, size_t count);
 
 // Draws the start menu using UI kit components only.
 void DrawStartMenu(ui::Canvas& canvas, const StartMenuModel& model);
+// Windows XP's (start_menu_xp_view.cpp).
+void DrawXpStartMenu(ui::Canvas& canvas, const StartMenuModel& model);
 
 }  // namespace throwback

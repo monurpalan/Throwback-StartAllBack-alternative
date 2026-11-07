@@ -25,6 +25,8 @@ constexpr int kLargeIcon = 32;
 constexpr int kLargeIconLeft = 8;
 constexpr int kLargeTextGap = 4;
 constexpr int kSmallRow = 20;
+constexpr int kXpRow = 22;  // Windows XP's All Programs menu
+constexpr int kXpIconLeft = 8;
 constexpr int kSmallIcon = 16;
 constexpr int kSmallIconLeft = 2;
 constexpr int kSmallTextGap = 6;
@@ -33,8 +35,22 @@ constexpr int kArrowArea = 16;
 constexpr int kRootMinWidth = 140;
 constexpr int kSubmenuMinWidth = 100;
 
+int SmallRowOf(ui::ClassicLook look) { return look == ui::ClassicLook::WinXp ? kXpRow : kSmallRow; }
+
+int SmallIconLeftOf(ui::ClassicLook look) {
+  return look == ui::ClassicLook::WinXp ? kXpIconLeft : kSmallIconLeft;
+}
+
 ui::TextStyle TextStyleOf(ui::ClassicLook look) {
-  return look == ui::ClassicLook::Win98 ? ui::TextStyle::Classic98 : ui::TextStyle::Classic2000;
+  switch (look) {
+    case ui::ClassicLook::Win98:
+      return ui::TextStyle::Classic98;
+    case ui::ClassicLook::Win2000:
+      return ui::TextStyle::Classic2000;
+    case ui::ClassicLook::WinXp:
+      break;
+  }
+  return ui::TextStyle::XpBody;
 }
 
 RECT WorkAreaAt(POINT point) {
@@ -126,9 +142,9 @@ void ClassicMenu::Measure() {
   for (const auto& entry : entries_) {
     if (!entry.separator) textWidth = std::max(textWidth, canvas_->MeasureText(entry.text, style));
   }
-  const int rowHeight = s(root_ ? kLargeRow : kSmallRow);
+  const int rowHeight = s(root_ ? kLargeRow : SmallRowOf(host_.look));
   const int iconArea = root_ ? s(kLargeIconLeft + kLargeIcon + kLargeTextGap)
-                             : s(kSmallIconLeft + kSmallIcon + kSmallTextGap);
+                             : s(SmallIconLeftOf(host_.look) + kSmallIcon + kSmallTextGap);
   const int left = s(kInset) + (root_ ? s(kBanner) : 0);
   const int columnWidth =
       std::max(iconArea + textWidth + s(kArrowArea), s(root_ ? kRootMinWidth : kSubmenuMinWidth));
@@ -165,13 +181,14 @@ void ClassicMenu::Paint() {
                            host_.banner);
   }
   const int iconSize = s(root_ ? kLargeIcon : kSmallIcon);
-  const int iconLeft = s(root_ ? kLargeIconLeft : kSmallIconLeft);
+  const int iconLeft = s(root_ ? kLargeIconLeft : SmallIconLeftOf(host_.look));
   const int textGap = s(root_ ? kLargeTextGap : kSmallTextGap);
   for (size_t i = 0; i < entries_.size(); ++i) {
     const ClassicEntry& entry = entries_[i];
     const Rect& row = rows_[i];
     if (entry.separator) {
-      canvas_->ClassicSeparator({row.left + s(1), row.top, row.right - s(1), row.bottom});
+      canvas_->ClassicSeparator({row.left + s(1), row.top, row.right - s(1), row.bottom},
+                                host_.look);
       continue;
     }
     const bool selected = static_cast<int>(i) == selected_ && !entry.disabled;

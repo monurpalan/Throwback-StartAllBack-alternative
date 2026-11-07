@@ -29,6 +29,11 @@ std::wstring StartMenu::ProgramName(const std::wstring& target) const {
   return app == catalog_->appNames.end() ? std::wstring() : app->second;
 }
 
+std::wstring StartMenu::JumpIdFor(const std::wstring& target) const {
+  // Jump lists came with Windows 7.
+  return style_ == StartStyle::Win7 ? JumpListId(target) : std::wstring();
+}
+
 void StartMenu::AddHomeRows() {
   // Pinned programs on top, then a separator and the most used ones, as on
   // Windows 7. Pins of uninstalled programs stay saved but aren't shown.
@@ -36,7 +41,7 @@ void StartMenu::AddHomeRows() {
   for (const auto& target : settings_.pinned) {
     if (rows_.size() == limit) return;
     if (std::wstring name = ProgramName(target); !name.empty()) {
-      rows_.push_back({std::move(name), target, nullptr, {}, false, true, JumpListId(target)});
+      rows_.push_back({std::move(name), target, nullptr, {}, false, true, JumpIdFor(target)});
     }
   }
   const size_t pinnedCount = rows_.size();
@@ -44,7 +49,7 @@ void StartMenu::AddHomeRows() {
     if (rows_.size() == limit) break;
     if (IsPinned(settings_, program.target)) continue;
     rows_.push_back(
-        {program.name, program.target, nullptr, {}, false, true, JumpListId(program.target)});
+        {program.name, program.target, nullptr, {}, false, true, JumpIdFor(program.target)});
   }
   if (pinnedCount > 0 && rows_.size() > pinnedCount) rows_[pinnedCount].separatorBefore = true;
 }

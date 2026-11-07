@@ -54,6 +54,34 @@ bool NameLess(const Program* a, const Program* b) {
 
 }  // namespace
 
+std::vector<ClassicEntry> ProgramMenuEntries(const Program& folder, int folderIcon) {
+  // Folders first, then programs, each in name order, as Windows 98 sorted.
+  std::vector<const Program*> folders;
+  std::vector<const Program*> programs;
+  for (const auto& child : folder.children) {
+    (child->folder ? folders : programs).push_back(child.get());
+  }
+  std::ranges::sort(folders, NameLess);
+  std::ranges::sort(programs, NameLess);
+
+  std::vector<ClassicEntry> entries;
+  for (const Program* sub : folders) {
+    ClassicEntry entry;
+    entry.text = sub->name;
+    entry.classicIcon = folderIcon;
+    entry.submenu = [sub, folderIcon] { return ProgramMenuEntries(*sub, folderIcon); };
+    entries.push_back(std::move(entry));
+  }
+  for (const Program* program : programs) {
+    ClassicEntry entry;
+    entry.text = program->name;
+    entry.iconTarget = program->target;
+    entry.action = [target = program->target] { shell::Launch(target); };
+    entries.push_back(std::move(entry));
+  }
+  return entries;
+}
+
 ClassicStartMenu::ClassicStartMenu(HINSTANCE instance, HWND owner, StartStyle style,
                                    std::function<void()> onChanged)
     : owner_(owner), style_(style), onChanged_(std::move(onChanged)) {
@@ -106,7 +134,7 @@ std::vector<ClassicEntry> ClassicStartMenu::RootEntries() {
   ClassicEntry programs;
   programs.text = Text(StringId::ClassicPrograms);
   programs.classicIcon = kProgramsIcon;
-  programs.submenu = [this] { return ProgramEntries(catalog_->root); };
+  programs.submenu = [this] { return ProgramMenuEntries(catalog_->root, kProgramsIcon); };
   entries.push_back(std::move(programs));
 
   ClassicEntry documents;
@@ -149,34 +177,6 @@ std::vector<ClassicEntry> ClassicStartMenu::RootEntries() {
   shutDown.classicIcon = kShutDownIcon;
   shutDown.action = [] { ShowShutDownDialog(); };
   entries.push_back(std::move(shutDown));
-  return entries;
-}
-
-std::vector<ClassicEntry> ClassicStartMenu::ProgramEntries(const Program& folder) {
-  // Folders first, then programs, each in name order, as Windows 98 sorted.
-  std::vector<const Program*> folders;
-  std::vector<const Program*> programs;
-  for (const auto& child : folder.children) {
-    (child->folder ? folders : programs).push_back(child.get());
-  }
-  std::ranges::sort(folders, NameLess);
-  std::ranges::sort(programs, NameLess);
-
-  std::vector<ClassicEntry> entries;
-  for (const Program* sub : folders) {
-    ClassicEntry entry;
-    entry.text = sub->name;
-    entry.classicIcon = kProgramsIcon;
-    entry.submenu = [this, sub] { return ProgramEntries(*sub); };
-    entries.push_back(std::move(entry));
-  }
-  for (const Program* program : programs) {
-    ClassicEntry entry;
-    entry.text = program->name;
-    entry.iconTarget = program->target;
-    entry.action = [target = program->target] { shell::Launch(target); };
-    entries.push_back(std::move(entry));
-  }
   return entries;
 }
 

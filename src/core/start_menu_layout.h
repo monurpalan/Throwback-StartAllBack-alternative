@@ -9,6 +9,7 @@ namespace throwback {
 // the shut down button in the bottom right corner.
 struct StartMenuLayout {
   Rect frame;
+  Rect userPane;  // Windows XP: the account banner across the top
   // The background's four areas, split where the program pane ends.
   Rect programsArea;
   Rect searchArea;
@@ -32,5 +33,11 @@ struct StartMenuLayout {
 // The shut down button grows with its label, as on Windows 7; powerLabelWidth
 // is the label's width in pixels.
 StartMenuLayout ComputeStartMenuLayout(unsigned dpi, int powerLabelWidth = 0);
+
+// Windows XP's start menu, after its theme: the account banner on top, the
+// program list and "All Programs" on the left, places on the right, and the
+// Log Off (power) and Turn Off Computer (powerArrow) buttons in the bar at
+// the bottom, sized to their labels. It has no search box.
+StartMenuLayout ComputeXpStartMenuLayout(unsigned dpi, int logOffLabelWidth, int turnOffLabelWidth);
 
 }  // namespace throwback

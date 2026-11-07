@@ -1,0 +1,13 @@
+// The original Windows images, one script so their icons get distinct IDs.
+// CMake defines THROWBACK_ASSETS_<FOLDER> for each folder that is present.
+#include "ui/skin_ids.h"
+
+#ifdef THROWBACK_ASSETS_WIN7
+#include "win7.rc"
+#endif
+#ifdef THROWBACK_ASSETS_CLASSIC
+#include "classic.rc"
+#endif
+#ifdef THROWBACK_ASSETS_XP
+#include "xp.rc"
+#endif

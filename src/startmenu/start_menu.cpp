@@ -33,9 +33,10 @@ bool KeyDown(int key) { return (GetKeyState(key) & 0x8000) != 0; }
 
 }  // namespace
 
-StartMenu::StartMenu(HINSTANCE instance, HWND owner, Settings& settings,
+StartMenu::StartMenu(HINSTANCE instance, HWND owner, Settings& settings, StartStyle style,
                      std::function<void()> onClosed, std::function<void()> onPinnedChanged)
     : settings_(settings),
+      style_(style),
       onClosed_(std::move(onClosed)),
       onPinnedChanged_(std::move(onPinnedChanged)) {
   WNDCLASSEXW windowClass{};
@@ -51,10 +52,18 @@ StartMenu::StartMenu(HINSTANCE instance, HWND owner, Settings& settings,
   if (!hwnd_) throw std::runtime_error("CreateWindowEx failed for the start menu");
   canvas_ = std::make_unique<ui::Canvas>(hwnd_);
   icons_ = std::make_unique<shell::AsyncIconCache>(hwnd_, kIconsReady);
-  ui::EnableGlass(hwnd_, ui::GlassCorners::Round);
+  if (IsXp()) {
+    // Luna is opaque; only the banner's rounded corners show the desktop.
+    ui::EnableTransparency(hwnd_);
+    CreateXpPrograms(instance, owner);
+  } else {
+    ui::EnableGlass(hwnd_, ui::GlassCorners::Round);
+  }
 }
 
 StartMenu::~StartMenu() {
+  xpPrograms_.reset();
+  for (const auto& [key, icon] : xpIcons_) DestroyIcon(icon);
   if (IsWindow(hwnd_)) DestroyWindow(hwnd_);
 }
 
@@ -79,6 +88,7 @@ LRESULT StartMenu::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam) {
       return 1;
     case kIconsReady:
       if (IsOpen()) InvalidateRect(hwnd_, nullptr, FALSE);
+      if (xpPrograms_) xpPrograms_->Repaint();
       return 0;
     case WM_ACTIVATE:
       // Clicking anywhere else closes the menu, like the real one.
@@ -124,8 +134,7 @@ void StartMenu::Open(const RECT& anchor, bool below, unsigned dpi) {
   folders_.clear();  // may point into the catalog that LoadData replaces
   dpi_ = dpi;
   canvas_->SetDpi(dpi);
-  layout_ = ComputeStartMenuLayout(
-      dpi, canvas_->MeasureText(ui::Tr(ui::StringId::ShutDown), ui::TextStyle::Body));
+  ComputeLayout();
   LoadData();
   query_.clear();
   hover_ = {};
@@ -151,6 +160,7 @@ void StartMenu::Open(const RECT& anchor, bool below, unsigned dpi) {
 
 void StartMenu::Hide(bool restoreFocus) {
   if (!IsOpen()) return;
+  CloseXpPrograms();
   // Hand focus back before hiding; otherwise Windows activates our owner,
   // the bar, and the user's window loses the keyboard.
   if (restoreFocus && IsWindow(previousForeground_)) SetForegroundWindow(previousForeground_);
@@ -169,7 +179,7 @@ void StartMenu::LoadData() {
   }
   frequent_ = LoadFrequentPrograms(*catalog_, static_cast<size_t>(layout_.listRows));
   if (places_.empty()) {
-    places_ = LoadPlaces();
+    places_ = IsXp() ? LoadXpPlaces() : LoadPlaces();
     account_ = LoadAccount();
   }
 }
@@ -296,6 +306,7 @@ void StartMenu::Paint() {
 
   StartMenuModel model;
   model.layout = layout_;
+  model.style = style_;
   model.rowHeight = RowHeight();
   model.iconSize = IconSize();
   const int last = std::min(static_cast<int>(rows_.size()), scroll_ + VisibleRows());
@@ -305,7 +316,7 @@ void StartMenu::Paint() {
         {row.name,
          icons_->Get(row.iconTarget.empty() ? row.target : row.iconTarget, model.iconSize),
          row.folder != nullptr, i == selected_ || i == jumpRow_, row.separatorBefore,
-         !row.appId.empty()});
+         !row.appId.empty(), mode_ == Mode::Home && IsPinned(settings_, row.target)});
   }
   model.showBack = mode_ != Mode::Home;
   model.allProgramsHovered = hover_.kind == Hit::Kind::AllPrograms;
@@ -316,10 +327,14 @@ void StartMenu::Paint() {
   for (size_t i = 0; i < places_.size(); ++i) {
     model.places.push_back(
         {places_[i].name, places_[i].separatorBefore,
-         hover_.kind == Hit::Kind::Place && hover_.index == static_cast<int>(i)});
+         hover_.kind == Hit::Kind::Place && hover_.index == static_cast<int>(i),
+         places_[i].icon != 0 ? XpIcon(places_[i].icon, layout_.placeHeight - ScaleForDpi(2, dpi_))
+                              : nullptr,
+         places_[i].bold});
   }
   model.powerHovered = hover_.kind == Hit::Kind::Power;
   model.powerArrowHovered = hover_.kind == Hit::Kind::PowerArrow;
+  model.xpProgramsOpen = xpPrograms_ && xpPrograms_->IsOpen();
   model.jumpListOpen = jumpRow_ >= 0;
   for (size_t i = 0; i < jumpItems_.size(); ++i) {
     model.jumpRows.push_back(
@@ -350,6 +365,11 @@ void StartMenu::OnMouseMove(int x, int y) {
   // Like the classic menu, pointing at a program selects it.
   if (hit.kind == Hit::Kind::Row) selected_ = hit.index;
   if (mode_ == Mode::Home && hit.kind == Hit::Kind::Row) HoverJumpList(hit.index);
+  // XP's All Programs menu opens on pointing at it and closes on leaving.
+  if (IsXp() && hit.kind == Hit::Kind::AllPrograms) OpenXpPrograms();
+  if (IsXp() && hit.kind != Hit::Kind::AllPrograms && hit.kind != Hit::Kind::None) {
+    CloseXpPrograms();
+  }
   InvalidateRect(hwnd_, nullptr, FALSE);
 }
 
@@ -364,7 +384,9 @@ void StartMenu::OnClick(int x, int y) {
       ActivateRow(hit.index, KeyDown(VK_CONTROL) && KeyDown(VK_SHIFT));
       break;
     case Hit::Kind::AllPrograms:
-      if (mode_ == Mode::Home) {
+      if (IsXp()) {
+        OpenXpPrograms();
+      } else if (mode_ == Mode::Home) {
         SetMode(Mode::AllPrograms);
       } else {
         GoBack();
@@ -376,10 +398,15 @@ void StartMenu::OnClick(int x, int y) {
       break;
     case Hit::Kind::Power:
       Hide(/*restoreFocus=*/false);
-      RunPowerAction(PowerAction::ShutDown);
+      RunPowerAction(IsXp() ? PowerAction::SignOut : PowerAction::ShutDown);
       break;
     case Hit::Kind::PowerArrow:
-      ShowPowerMenu();
+      if (IsXp()) {
+        Hide(/*restoreFocus=*/false);
+        ShowShutDownDialog();
+      } else {
+        ShowPowerMenu();
+      }
       break;
     case Hit::Kind::JumpItem: {
       const std::wstring target = jumpItems_[static_cast<size_t>(hit.index)].target;
@@ -400,6 +427,7 @@ void StartMenu::OnWheel(int delta) {
 }
 
 void StartMenu::OnChar(wchar_t c) {
+  if (IsXp()) return;  // XP's start menu had no search
   if (c == L'\b') {
     if (query_.empty()) return;
     query_.pop_back();
