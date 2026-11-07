@@ -23,6 +23,7 @@ struct StartMenuLayout {
   Rect places;  // first place row starts at places.top
   Rect power;
   Rect powerArrow;
+  Rect lock;          // Windows Vista: the lock button between power and the arrow
   Rect jumpList;      // replaces the right column while a jump list is open
   int rowHeight = 0;  // program rows
   int placeHeight = 0;
@@ -39,5 +40,10 @@ StartMenuLayout ComputeStartMenuLayout(unsigned dpi, int powerLabelWidth = 0);
 // Log Off (power) and Turn Off Computer (powerArrow) buttons in the bar at
 // the bottom, sized to their labels. It has no search box.
 StartMenuLayout ComputeXpStartMenuLayout(unsigned dpi, int logOffLabelWidth, int turnOffLabelWidth);
+
+// Windows Vista's: Windows 7's program pane and places, with All Programs
+// closing the pane, the search box on the glass under it, and the power,
+// lock and arrow buttons at the bottom of the places column.
+StartMenuLayout ComputeVistaStartMenuLayout(unsigned dpi);
 
 }  // namespace throwback

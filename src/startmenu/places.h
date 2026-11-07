@@ -21,6 +21,9 @@ std::vector<Place> LoadPlaces();
 // The right column of the Windows XP start menu.
 std::vector<Place> LoadXpPlaces();
 
+// The right column of the Windows Vista start menu.
+std::vector<Place> LoadVistaPlaces();
+
 struct Account {
   std::wstring name;
   std::wstring picturePath;  // empty when the user has no account picture

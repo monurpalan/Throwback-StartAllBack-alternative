@@ -67,6 +67,7 @@ class StartMenu : public StartMenuWindow {
       Place,
       Power,
       PowerArrow,
+      Lock,
       JumpItem
     } kind = Kind::None;
     int index = -1;

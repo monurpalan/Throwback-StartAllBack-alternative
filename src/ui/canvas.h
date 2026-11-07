@@ -103,7 +103,14 @@ class Canvas {
   void Icon(const Rect& rect, HICON icon);
   void Orb(const Rect& rect, OrbState state);
   // The framed account picture; shows the initial when there is no image.
-  void AccountPicture(const Rect& rect, const std::wstring& path, std::wstring_view initial);
+  void AccountPicture(const Rect& rect, const std::wstring& path, std::wstring_view initial,
+                      SkinImage frame = SkinImage::PictureFrame, int frameInset = kSpace8);
+
+  // A part of a Windows version's own look (see skin.h), frame by frame and
+  // stretched the way its theme does; false when the image isn't embedded.
+  bool Image(SkinImage image, int frame, const Rect& rect) { return Skin(image, frame, rect); }
+  // One of count images side by side in a part (Vista's power buttons).
+  void ImageCell(SkinImage image, int index, int count, const Rect& rect);
 
   // Classic components (classic.cpp). A face is the raised gray surface of
   // menus and buttons inside a four-line 3D edge; sunken for a pressed

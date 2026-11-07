@@ -104,6 +104,25 @@ std::vector<Place> LoadPlaces() {
   return places;
 }
 
+std::vector<Place> LoadVistaPlaces() {
+  using ui::StringId;
+  std::vector<Place> places;
+  AddKnownFolder(places, FOLDERID_Profile);
+  AddKnownFolder(places, FOLDERID_Documents);
+  AddKnownFolder(places, FOLDERID_Pictures);
+  AddKnownFolder(places, FOLDERID_Music);
+  places.push_back({std::wstring(ui::Tr(StringId::ClassicSearch)), L"search-ms:", true});
+  places.push_back({std::wstring(ui::Tr(StringId::VistaRecentItems)), L"shell:Recent"});
+  AddShellPlace(places, L"shell:::{20D04FE0-3AEA-1069-A2D8-08002B30309D}");
+  places.push_back({std::wstring(ui::Tr(StringId::VistaNetwork)),
+                    L"shell:::{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}"});
+  AddShellPlace(places, L"shell:::{26EE0668-A00A-44D7-9371-BEB064C98683}", /*separator=*/true);
+  places.push_back(
+      {std::wstring(ui::Tr(StringId::VistaDefaultPrograms)), L"ms-settings:defaultapps"});
+  places.push_back({std::wstring(ui::Tr(StringId::XpHelp)), L"ms-contact-support:"});
+  return places;
+}
+
 std::vector<Place> LoadXpPlaces() {
   using ui::StringId;
   struct Item {

@@ -51,6 +51,7 @@ struct StartMenuModel {
   bool powerHovered = false;
   bool powerArrowHovered = false;
   bool xpProgramsOpen = false;  // Windows XP: All Programs stays lit while open
+  bool lockHovered = false;     // Windows Vista
   // While open, the jump list replaces the picture and the places.
   bool jumpListOpen = false;
   std::vector<JumpRow> jumpRows;
@@ -65,7 +66,8 @@ std::vector<Rect> JumpItemRects(const StartMenuLayout& layout, size_t count);
 
 // Draws the start menu using UI kit components only.
 void DrawStartMenu(ui::Canvas& canvas, const StartMenuModel& model);
-// Windows XP's (start_menu_xp_view.cpp).
+// Windows XP's (start_menu_xp_view.cpp) and Vista's (start_menu_vista_view.cpp).
 void DrawXpStartMenu(ui::Canvas& canvas, const StartMenuModel& model);
+void DrawVistaStartMenu(ui::Canvas& canvas, const StartMenuModel& model);
 
 }  // namespace throwback

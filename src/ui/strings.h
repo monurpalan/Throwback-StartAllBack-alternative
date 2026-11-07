@@ -60,6 +60,10 @@ enum class StringId {
   XpHelp,
   XpLogOff,
   XpTurnOff,
+  VistaRecentItems,
+  VistaNetwork,
+  VistaDefaultPrograms,
+  VistaSearchPlaceholder,
   // The properties dialog.
   SettingsTitle,
   TaskbarAppearance,

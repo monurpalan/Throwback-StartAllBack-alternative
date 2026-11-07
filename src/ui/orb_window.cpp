@@ -11,8 +11,12 @@ namespace throwback::ui {
 namespace {
 
 constexpr wchar_t kClassName[] = L"ThrowbackOrb";
-constexpr int kOrbSize = 54;  // one frame of the Windows 7 orb at 96 DPI
 constexpr int kFrames = 3;
+
+// One frame of each orb at 96 DPI.
+SIZE FrameSizeOf(SkinImage image) {
+  return image == SkinImage::VistaOrb ? SIZE{60, 46} : SIZE{54, 54};
+}
 
 }  // namespace
 
@@ -48,20 +52,21 @@ OrbWindow::~OrbWindow() {
   if (strip_) DeleteObject(strip_);
 }
 
-bool OrbWindow::LoadStrip(unsigned dpi) {
-  if (strip_ && stripDpi_ == dpi) return true;
-  const int size = ScaleForDpi(kOrbSize, dpi);
-  ComPtr<IWICBitmapSource> source =
-      LoadSkinImage(wic_.Get(), ResourceFor(PartOf(SkinImage::Orb), dpi));
+bool OrbWindow::LoadStrip(unsigned dpi, SkinImage image) {
+  if (strip_ && stripDpi_ == dpi && stripImage_ == image) return true;
+  const SIZE frame = FrameSizeOf(image);
+  const int width = ScaleForDpi(static_cast<int>(frame.cx), dpi);
+  const int height = ScaleForDpi(static_cast<int>(frame.cy), dpi);
+  ComPtr<IWICBitmapSource> source = LoadSkinImage(wic_.Get(), ResourceFor(PartOf(image), dpi));
   if (!source) return false;
-  UINT width = 0;
-  UINT height = 0;
-  source->GetSize(&width, &height);
-  if (width != static_cast<UINT>(size)) {
+  UINT fileWidth = 0;
+  UINT fileHeight = 0;
+  source->GetSize(&fileWidth, &fileHeight);
+  if (fileWidth != static_cast<UINT>(width) || fileHeight != static_cast<UINT>(height * kFrames)) {
     ComPtr<IWICBitmapScaler> scaler;
     if (FAILED(wic_->CreateBitmapScaler(scaler.GetAddressOf())) ||
-        FAILED(scaler->Initialize(source.Get(), static_cast<UINT>(size),
-                                  static_cast<UINT>(size * kFrames),
+        FAILED(scaler->Initialize(source.Get(), static_cast<UINT>(width),
+                                  static_cast<UINT>(height * kFrames),
                                   WICBitmapInterpolationModeHighQualityCubic))) {
       return false;
     }
@@ -70,16 +75,16 @@ bool OrbWindow::LoadStrip(unsigned dpi) {
 
   BITMAPINFO info{};
   info.bmiHeader.biSize = sizeof(info.bmiHeader);
-  info.bmiHeader.biWidth = size;
-  info.bmiHeader.biHeight = -size * kFrames;  // top-down, like the image
+  info.bmiHeader.biWidth = width;
+  info.bmiHeader.biHeight = -height * kFrames;  // top-down, like the image
   info.bmiHeader.biPlanes = 1;
   info.bmiHeader.biBitCount = 32;
   info.bmiHeader.biCompression = BI_RGB;
   void* bits = nullptr;
   const HBITMAP strip = CreateDIBSection(nullptr, &info, DIB_RGB_COLORS, &bits, nullptr, 0);
   if (!strip) return false;
-  const UINT stride = static_cast<UINT>(size) * 4;
-  if (FAILED(source->CopyPixels(nullptr, stride, stride * static_cast<UINT>(size * kFrames),
+  const UINT stride = static_cast<UINT>(width) * 4;
+  if (FAILED(source->CopyPixels(nullptr, stride, stride * static_cast<UINT>(height * kFrames),
                                 static_cast<BYTE*>(bits)))) {
     DeleteObject(strip);
     return false;
@@ -87,23 +92,25 @@ bool OrbWindow::LoadStrip(unsigned dpi) {
   if (strip_) DeleteObject(strip_);
   strip_ = strip;
   stripDpi_ = dpi;
-  size_ = size;
+  stripImage_ = image;
+  width_ = width;
+  height_ = height;
   return true;
 }
 
-void OrbWindow::Show(POINT center, unsigned dpi, OrbState state) {
-  if (shown_ && stripDpi_ == dpi && center.x == center_.x && center.y == center_.y &&
-      state == state_) {
+void OrbWindow::Show(POINT center, unsigned dpi, OrbState state, SkinImage image) {
+  if (shown_ && stripDpi_ == dpi && stripImage_ == image && center.x == center_.x &&
+      center.y == center_.y && state == state_) {
     return;
   }
-  if (!LoadStrip(dpi)) return;
+  if (!LoadStrip(dpi, image)) return;
 
   const HDC screen = GetDC(nullptr);
   const HDC memory = CreateCompatibleDC(screen);
   const HGDIOBJ previous = SelectObject(memory, strip_);
-  POINT position{center.x - size_ / 2, center.y - size_ / 2};
-  SIZE size{size_, size_};
-  POINT source{0, size_ * static_cast<int>(state)};
+  POINT position{center.x - width_ / 2, center.y - height_ / 2};
+  SIZE size{width_, height_};
+  POINT source{0, height_ * static_cast<int>(state)};
   BLENDFUNCTION blend{AC_SRC_OVER, 0, 255, AC_SRC_ALPHA};
   UpdateLayeredWindow(hwnd_, screen, &position, &size, memory, &source, 0, &blend, ULW_ALPHA);
   SelectObject(memory, previous);

@@ -179,7 +179,9 @@ void StartMenu::LoadData() {
   }
   frequent_ = LoadFrequentPrograms(*catalog_, static_cast<size_t>(layout_.listRows));
   if (places_.empty()) {
-    places_ = IsXp() ? LoadXpPlaces() : LoadPlaces();
+    places_ = IsXp()                        ? LoadXpPlaces()
+              : style_ == StartStyle::Vista ? LoadVistaPlaces()
+                                            : LoadPlaces();
     account_ = LoadAccount();
   }
 }
@@ -285,6 +287,7 @@ StartMenu::Hit StartMenu::HitTest(int x, int y) const {
   if (layout_.allPrograms.Contains(x, y)) return {Kind::AllPrograms};
   if (layout_.power.Contains(x, y)) return {Kind::Power};
   if (layout_.powerArrow.Contains(x, y)) return {Kind::PowerArrow};
+  if (layout_.lock.Contains(x, y)) return {Kind::Lock};
   if (jumpRow_ >= 0) {
     // The open jump list covers the places.
     const std::vector<Rect> items = JumpItemRects(layout_, jumpItems_.size());
@@ -335,6 +338,7 @@ void StartMenu::Paint() {
   model.powerHovered = hover_.kind == Hit::Kind::Power;
   model.powerArrowHovered = hover_.kind == Hit::Kind::PowerArrow;
   model.xpProgramsOpen = xpPrograms_ && xpPrograms_->IsOpen();
+  model.lockHovered = hover_.kind == Hit::Kind::Lock;
   model.jumpListOpen = jumpRow_ >= 0;
   for (size_t i = 0; i < jumpItems_.size(); ++i) {
     model.jumpRows.push_back(
@@ -407,6 +411,10 @@ void StartMenu::OnClick(int x, int y) {
       } else {
         ShowPowerMenu();
       }
+      break;
+    case Hit::Kind::Lock:
+      Hide(/*restoreFocus=*/false);
+      RunPowerAction(PowerAction::Lock);
       break;
     case Hit::Kind::JumpItem: {
       const std::wstring target = jumpItems_[static_cast<size_t>(hit.index)].target;

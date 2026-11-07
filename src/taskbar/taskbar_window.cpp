@@ -454,7 +454,9 @@ void TaskbarWindow::Paint() {
     POINT center{(layout_.startButton.left + layout_.startButton.right) / 2,
                  (layout_.startButton.top + layout_.startButton.bottom) / 2};
     ClientToScreen(hwnd_, &center);
-    orb_->Show(center, dpi_, OrbStateFor(model));
+    orb_->Show(
+        center, dpi_, OrbStateFor(model),
+        settings_.startStyle == StartStyle::Vista ? ui::SkinImage::VistaOrb : ui::SkinImage::Orb);
   }
 
   EndPaint(hwnd_, &paint);

@@ -136,4 +136,49 @@ StartMenuLayout ComputeXpStartMenuLayout(unsigned dpi, int logOffLabelWidth,
   return layout;
 }
 
+StartMenuLayout ComputeVistaStartMenuLayout(unsigned dpi) {
+  // At 96 DPI: Windows 7's columns, a 30 px All Programs piece closing the
+  // pane, a 40 px search row on the glass, and the theme's 24 px power and
+  // lock buttons beside a 23 x 30 arrow button.
+  constexpr int kVistaMorePrograms = 30;
+  constexpr int kVistaSearchRow = 40;
+  constexpr int kVistaSearchHeight = 24;
+  constexpr int kVistaButton = 24;
+  constexpr int kVistaButtonGap = 4;
+  constexpr int kVistaArrowWidth = 23;
+  constexpr int kVistaArrowHeight = 30;
+  constexpr int kVistaPlace = 30;
+  const auto s = [dpi](int value) { return ScaleForDpi(value, dpi); };
+  StartMenuLayout layout = ComputeStartMenuLayout(dpi);
+  const int padding = s(kPadding);
+  const int paneRight = layout.leftPane.right;
+  const int moreTop = layout.list.bottom + padding;
+  const int searchTop = moreTop + s(kVistaMorePrograms);
+  const int height = searchTop + s(kVistaSearchRow);
+  layout.frame.bottom = height;
+  layout.programsArea = {0, 0, paneRight, moreTop};
+  layout.searchArea = {0, moreTop, paneRight, searchTop};  // the All Programs piece
+  layout.placesArea = {paneRight, 0, layout.frame.right, height};
+  layout.powerArea = {};
+  layout.leftPane = {padding, padding, paneRight, searchTop};
+  layout.allPrograms = {padding, moreTop, paneRight, searchTop - s(2)};
+  const int fieldTop = searchTop + (s(kVistaSearchRow) - s(kVistaSearchHeight)) / 2;
+  layout.search = {padding * 2, fieldTop, paneRight - padding, fieldTop + s(kVistaSearchHeight)};
+
+  const int rightLeft = paneRight + padding;
+  const int arrowTop = height - padding - s(kVistaArrowHeight);
+  const int buttonTop = arrowTop + (s(kVistaArrowHeight) - s(kVistaButton)) / 2;
+  layout.power = {rightLeft, buttonTop, rightLeft + s(kVistaButton), buttonTop + s(kVistaButton)};
+  layout.lock = {layout.power.right + s(kVistaButtonGap), buttonTop,
+                 layout.power.right + s(kVistaButtonGap) + s(kVistaButton),
+                 buttonTop + s(kVistaButton)};
+  layout.powerArrow = {layout.lock.right + s(kVistaButtonGap), arrowTop,
+                       layout.lock.right + s(kVistaButtonGap) + s(kVistaArrowWidth),
+                       arrowTop + s(kVistaArrowHeight)};
+  layout.placeHeight = s(kVistaPlace);
+  layout.places.bottom = arrowTop - padding;
+  layout.jumpList = {};
+  return layout;
+}
+
 }  // namespace throwback

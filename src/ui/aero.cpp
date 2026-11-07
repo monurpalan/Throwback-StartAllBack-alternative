@@ -220,13 +220,28 @@ void Canvas::Separator(const Rect& rect, SeparatorVariant variant) {
        aero::kGlassRim.WithAlpha(0.18f));
 }
 
-void Canvas::AccountPicture(const Rect& rect, const std::wstring& path, std::wstring_view initial) {
+void Canvas::ImageCell(SkinImage image, int index, int count, const Rect& rect) {
+  ID2D1Bitmap* bitmap = SkinBitmap(ResourceFor(PartOf(image), dpi_));
+  if (!bitmap || count <= 0) return;
+  const D2D1_SIZE_U size = bitmap->GetPixelSize();
+  const float cell = static_cast<float>(size.width) / static_cast<float>(count);
+  target_->DrawBitmap(
+      bitmap,
+      D2D1::RectF(static_cast<float>(rect.left), static_cast<float>(rect.top),
+                  static_cast<float>(rect.right), static_cast<float>(rect.bottom)),
+      1.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
+      D2D1::RectF(cell * static_cast<float>(index), 0.0f, cell * static_cast<float>(index + 1),
+                  static_cast<float>(size.height)));
+}
+
+void Canvas::AccountPicture(const Rect& rect, const std::wstring& path, std::wstring_view initial,
+                            SkinImage frame, int frameInset) {
   // A glossy frame around the picture, as on the Windows 7 start menu.
-  if (!Skin(SkinImage::PictureFrame, 0, Inset(rect, -Scale(kSpace8)))) {
-    const Rect frame = Inset(rect, -Scale(kSpace4));
-    FillGradient(frame, kCornerRadius, aero::kGlassItemInner, aero::kGlassItemBottom);
-    StrokeRound(frame, kCornerRadius, aero::kGlassItemBorder);
-    StrokeRound(Inset(frame, std::max(1, Scale(1))), kCornerRadius - 1.0f, aero::kGlassItemInner);
+  if (!Skin(frame, 0, Inset(rect, -Scale(frameInset)))) {
+    const Rect drawn = Inset(rect, -Scale(kSpace4));
+    FillGradient(drawn, kCornerRadius, aero::kGlassItemInner, aero::kGlassItemBottom);
+    StrokeRound(drawn, kCornerRadius, aero::kGlassItemBorder);
+    StrokeRound(Inset(drawn, std::max(1, Scale(1))), kCornerRadius - 1.0f, aero::kGlassItemInner);
   }
 
   if (ID2D1Bitmap* bitmap = PictureBitmap(path)) {

@@ -11,3 +11,6 @@
 #ifdef THROWBACK_ASSETS_XP
 #include "xp.rc"
 #endif
+#ifdef THROWBACK_ASSETS_VISTA
+#include "vista.rc"
+#endif

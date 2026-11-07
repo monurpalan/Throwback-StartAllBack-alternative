@@ -1,5 +1,6 @@
 #include "ui/skin.h"
 
+#include <algorithm>
 #include <array>
 
 #include "ui/canvas.h"
@@ -11,7 +12,7 @@ namespace throwback::ui {
 namespace {
 
 // Frames and stretch edges as the Windows 7 theme (aero.msstyles) sets them.
-constexpr std::array<SkinPart, 39> kParts{{
+constexpr std::array<SkinPart, 57> kParts{{
     {.resource = THROWBACK_SKIN_ORB_96, .frames = 3, .perDpi = true},
     {.resource = THROWBACK_SKIN_PICTURE_FRAME_96, .perDpi = true},
     {.resource = THROWBACK_SKIN_TASKBAR, .top = 12},
@@ -86,6 +87,33 @@ constexpr std::array<SkinPart, 39> kParts{{
     {.resource = THROWBACK_SKIN_XP_MENU, .left = 6, .right = 5, .top = 3, .bottom = 4},
     {.resource = THROWBACK_SKIN_XP_MENU_ITEM, .frames = 3, .left = 6, .right = 1},
     {.resource = THROWBACK_SKIN_XP_MENU_SEPARATOR, .left = 6, .right = 1, .top = 3},
+    {.resource = THROWBACK_SKIN_VISTA_ORB_96, .frames = 3, .perDpi = true},
+    {.resource = THROWBACK_SKIN_VISTA_PANE, .left = 13, .right = 6, .top = 13},
+    {.resource = THROWBACK_SKIN_VISTA_MORE_PROGRAMS,
+     .left = 13,
+     .right = 6,
+     .top = 4,
+     .bottom = 18},
+    {.resource = THROWBACK_SKIN_VISTA_PLACES, .right = 7, .top = 7, .bottom = 2},
+    {.resource = THROWBACK_SKIN_VISTA_SEARCH, .left = 10, .right = 3, .top = 8, .bottom = 11},
+    {.resource = THROWBACK_SKIN_VISTA_PROGRAM_HOVER, .left = 3, .right = 3, .top = 3, .bottom = 3},
+    {.resource = THROWBACK_SKIN_VISTA_PLACE_HOVER, .left = 36, .right = 36, .top = 4, .bottom = 4},
+    {.resource = THROWBACK_SKIN_VISTA_POWER},
+    {.resource = THROWBACK_SKIN_VISTA_POWER_HOT},
+    {.resource = THROWBACK_SKIN_VISTA_ARROW_BUTTON,
+     .frames = 3,
+     .left = 3,
+     .right = 3,
+     .top = 3,
+     .bottom = 3},
+    {.resource = THROWBACK_SKIN_VISTA_ARROW, .frames = 3},
+    {.resource = THROWBACK_SKIN_VISTA_MORE_ARROW},
+    {.resource = THROWBACK_SKIN_VISTA_MORE_ARROW_HOT},
+    {.resource = THROWBACK_SKIN_VISTA_BACK_ARROW},
+    {.resource = THROWBACK_SKIN_VISTA_BACK_ARROW_HOT},
+    {.resource = THROWBACK_SKIN_VISTA_PICTURE_FRAME},
+    {.resource = THROWBACK_SKIN_VISTA_PROGRAM_SEPARATOR},
+    {.resource = THROWBACK_SKIN_VISTA_PLACE_SEPARATOR},
 }};
 
 D2D1_RECT_F RectF(float left, float top, float right, float bottom) {
@@ -151,7 +179,8 @@ bool Canvas::Skin(SkinImage image, int frame, const Rect& rect) {
 
   const D2D1_SIZE_U size = bitmap->GetPixelSize();
   const float frameHeight = static_cast<float>(size.height) / static_cast<float>(part.frames);
-  const float sourceTop = frameHeight * static_cast<float>(frame);
+  // A part with fewer frames than asked for shows its last one.
+  const float sourceTop = frameHeight * static_cast<float>(std::min(frame, part.frames - 1));
   // Edges are in pixels of the file and drawn scaled for the DPI. (Per-DPI
   // images have no edges: they are drawn whole.)
   const std::array<float, 4> sourceX{

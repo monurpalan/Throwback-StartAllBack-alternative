@@ -24,7 +24,7 @@ TEST(SkinTest, SingleFileImagesIgnoreTheDpi) {
 }
 
 TEST(SkinTest, EveryImageHasAFrameAndAFile) {
-  for (int i = 0; i <= static_cast<int>(SkinImage::XpMenuSeparator); ++i) {
+  for (int i = 0; i <= static_cast<int>(SkinImage::VistaPlaceSeparator); ++i) {
     const SkinPart& part = PartOf(static_cast<SkinImage>(i));
     EXPECT_GT(part.resource, 0) << i;
     EXPECT_GE(part.frames, 1) << i;

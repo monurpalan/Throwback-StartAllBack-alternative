@@ -79,6 +79,7 @@ add_executable(throwback WIN32
   src/startmenu/start_menu_factory.cpp
   src/startmenu/start_menu_jump.cpp
   src/startmenu/start_menu_view.cpp
+  src/startmenu/start_menu_vista_view.cpp
   src/startmenu/start_menu_xp.cpp
   src/startmenu/start_menu_xp_view.cpp
   src/startmenu/win_key_hook.cpp
@@ -108,7 +109,7 @@ target_link_libraries(throwback PRIVATE
 # that is there; without one, the UI kit draws its own version of its parts.
 set(THROWBACK_ASSET_DIRS "${CMAKE_SOURCE_DIR}/src")
 set(THROWBACK_ASSET_DEFINES "")
-foreach(folder win7 classic xp)
+foreach(folder win7 classic xp vista)
   if(EXISTS ${CMAKE_SOURCE_DIR}/assets/${folder})
     list(APPEND THROWBACK_ASSET_DIRS "${CMAKE_SOURCE_DIR}/assets/${folder}")
     string(TOUPPER ${folder} upper)

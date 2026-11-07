@@ -166,6 +166,10 @@ void DrawStartMenu(ui::Canvas& canvas, const StartMenuModel& model) {
     DrawXpStartMenu(canvas, model);
     return;
   }
+  if (model.style == StartStyle::Vista) {
+    DrawVistaStartMenu(canvas, model);
+    return;
+  }
   const StartMenuLayout& layout = model.layout;
   canvas.Glass(layout.frame, ui::GlassVariant::Menu);
   canvas.Panel(layout.programsArea, ui::PanelVariant::Programs);

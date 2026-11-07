@@ -89,5 +89,16 @@ TEST(StartMenuLayoutTest, XpFollowsItsTheme) {
   EXPECT_EQ(layout.search, Rect{});
 }
 
+TEST(StartMenuLayoutTest, VistaPutsSearchUnderThePane) {
+  const StartMenuLayout layout = ComputeVistaStartMenuLayout(96);
+  EXPECT_EQ(layout.frame, (Rect{0, 0, 400, 486}));
+  EXPECT_EQ(layout.allPrograms, (Rect{8, 416, 256, 444}));
+  EXPECT_GE(layout.search.top, layout.allPrograms.bottom);
+  EXPECT_LE(layout.search.bottom, layout.frame.bottom);
+  EXPECT_EQ(layout.power.right + 4, layout.lock.left);
+  EXPECT_EQ(layout.lock.right + 4, layout.powerArrow.left);
+  EXPECT_LE(layout.places.bottom, layout.powerArrow.top);
+}
+
 }  // namespace
 }  // namespace throwback

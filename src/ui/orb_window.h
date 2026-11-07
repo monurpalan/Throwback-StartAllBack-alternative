@@ -23,20 +23,23 @@ class OrbWindow {
   OrbWindow& operator=(const OrbWindow&) = delete;
   ~OrbWindow();
 
-  // Centers the orb on a point in screen pixels.
-  void Show(POINT center, unsigned dpi, OrbState state);
+  // Centers the orb on a point in screen pixels; image is Windows 7's orb
+  // or Vista's.
+  void Show(POINT center, unsigned dpi, OrbState state, SkinImage image = SkinImage::Orb);
   void Hide();
 
  private:
   OrbWindow(HWND hwnd, Microsoft::WRL::ComPtr<IWICImagingFactory> wic);
   // Renders the orb's frames for a DPI into strip_; false when that fails.
-  bool LoadStrip(unsigned dpi);
+  bool LoadStrip(unsigned dpi, SkinImage image);
 
   HWND hwnd_;
   Microsoft::WRL::ComPtr<IWICImagingFactory> wic_;
   HBITMAP strip_ = nullptr;  // the three states stacked, premultiplied
   unsigned stripDpi_ = 0;
-  int size_ = 0;  // one frame's width and height
+  SkinImage stripImage_ = SkinImage::Orb;
+  int width_ = 0;  // one frame's size
+  int height_ = 0;
 
   // What is on screen, so unchanged updates are skipped.
   bool shown_ = false;

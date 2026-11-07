@@ -21,6 +21,10 @@ void StartMenu::ComputeLayout() {
         canvas_->MeasureText(ui::Tr(ui::StringId::XpTurnOff), ui::TextStyle::XpBody));
     return;
   }
+  if (style_ == StartStyle::Vista) {
+    layout_ = ComputeVistaStartMenuLayout(dpi_);
+    return;
+  }
   layout_ = ComputeStartMenuLayout(
       dpi_, canvas_->MeasureText(ui::Tr(ui::StringId::ShutDown), ui::TextStyle::Body));
 }
