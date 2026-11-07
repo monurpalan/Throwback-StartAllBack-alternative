@@ -19,7 +19,8 @@ patching or injecting into Explorer.
 - Live window previews on hover, the classic window menu on right-click
 - Flashing buttons for windows that need attention
 - Progress and overlay icons that programs set on their buttons
-- The notification area with every program's icons, clicks passed through
+- The notification area with every program's icons, clicks passed through; icons
+  you don't keep on the bar wait behind the arrow, drag them in or out
 - Show desktop button, clock and date in your locale
 - A bar on every monitor, showing the windows on that monitor
 - Optionally hides Explorer's taskbar while running, and brings it back after

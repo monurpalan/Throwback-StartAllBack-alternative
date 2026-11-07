@@ -142,6 +142,13 @@ Throwback creates one of its own above Explorer's, so their
   windows on that message and briefly cover the screen.
 - Our own lookups of Explorer's taskbar skip our window (`ExplorerTray`).
 
+Which icons sit on the bar starts from Windows 11's own choice
+(`HKCU\Control Panel\NotifyIconSettings`, `IsPromoted`); the rest wait
+behind the arrow in `TrayOverflow`. Dragging an icon between the bar and the
+flyout overrides that per profile (`trayShown` / `trayHidden`), keyed by a
+stable identity: the icon's GUID, or its program's path and ID.
+"Customize..." opens Windows' taskbar settings.
+
 ## Known limitations
 
 - Secondary monitor bars are untested on real hardware (written against a
