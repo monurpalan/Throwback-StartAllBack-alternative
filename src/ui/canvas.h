@@ -114,7 +114,10 @@ class Canvas {
   // The width of a line of text in pixels, rounded up.
   int MeasureText(std::wstring_view text, TextStyle style);
   // The search box; shows the prompt while text is empty.
-  void TextField(const Rect& rect, std::wstring_view text, std::wstring_view prompt, bool focused);
+  // box draws the field's own white box, for strips (Vista's) that only
+  // frame it.
+  void TextField(const Rect& rect, std::wstring_view text, std::wstring_view prompt, bool focused,
+                 bool box = false);
   void Icon(const Rect& rect, IconKind kind);
   void Icon(const Rect& rect, HICON icon);
   void Orb(const Rect& rect, OrbState state);

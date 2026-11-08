@@ -208,10 +208,10 @@ float Canvas::TextWidth(std::wstring_view text, TextStyle style) {
 }
 
 void Canvas::TextField(const Rect& rect, std::wstring_view text, std::wstring_view prompt,
-                       bool focused) {
+                       bool focused, bool box) {
   // With the Windows 7 images the box is part of the menu's search strip;
   // Plain8's strip has none, so it gets a flat box like Windows 8's.
-  if (skinSet_ == SkinSet::Plain8) {
+  if (skinSet_ == SkinSet::Plain8 || box) {
     Fill(rect, aero::kField);
     StrokeRound(rect, 0.0f, aero::kFieldBorder);
   } else if (!HasSkin(SkinImage::MenuSearch)) {

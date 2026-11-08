@@ -120,8 +120,12 @@ void DrawVistaStartMenu(ui::Canvas& canvas, const StartMenuModel& model) {
   canvas.Image(SkinImage::VistaPlaces, 0, layout.placesArea);
   DrawRows(canvas, model);
   DrawAllPrograms(canvas, model);
+  // Vista's strip is a dark frame; the white box sits inside it.
   canvas.Image(SkinImage::VistaSearch, 0, layout.search);
-  canvas.TextField(layout.search, model.query, ui::Tr(ui::StringId::VistaSearchPlaceholder), true);
+  const int frame = canvas.Scale(2);
+  canvas.TextField({layout.search.left + frame, layout.search.top + frame,
+                    layout.search.right - frame, layout.search.bottom - frame},
+                   model.query, ui::Tr(ui::StringId::VistaSearchPlaceholder), true, true);
   DrawPlaces(canvas, model);
   DrawPowerButtons(canvas, model);
 }
