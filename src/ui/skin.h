@@ -22,9 +22,9 @@ enum class SkinImage {
   MenuJumpList,
   MenuPower,
   ShutDown,
-  Arrow,
-  PaneItem,
-  GlassItem,
+  Arrow,        // the white arrow of the shut down button's menu half
+  PlaceItem,    // a hovered row of the right column
+  ProgramItem,  // a program row: normal, hot, selected, newly installed
   TrayArrow,      // shows the hidden notification icons
   TrayArrowOpen,  // the same while they are shown
   TrayItem,       // a notification icon under the mouse
@@ -89,7 +89,21 @@ enum class SkinImage {
   W8TrayArrow,
   W8TrayArrowOpen,
   W8TrayItem,
+  // More of Windows 7's start menu.
+  PowerArrow,        // the menu half of the shut down button
+  ProgramSeparator,  // the line between pinned and frequent programs
+  PlaceSeparator,    // the line between groups of the right column
+  SearchGlyph,       // the magnifier at the end of the search box
+  SearchClear,       // the button that empties the search box
+  MoreArrow,         // the arrow of "All Programs"
+  BackArrow,         // the arrow of "Back"
+  SplitMain,         // a program row with a jump list: the program half
+  SplitArrow,        // and the half with the arrow that opens the list
 };
+
+// Which theme's images to draw with. Plain8 replaces the Windows 7 start
+// menu and taskbar parts it has with its flat ones; everything else stays.
+enum class SkinSet { Aero, Plain8 };
 
 // How an image is cut, as the Windows 7 theme describes it: its states are
 // frames stacked top to bottom, and the edges keep their size while the
@@ -105,7 +119,7 @@ struct SkinPart {
   int bottom = 0;
 };
 
-const SkinPart& PartOf(SkinImage image);
+const SkinPart& PartOf(SkinImage image, SkinSet set = SkinSet::Aero);
 
 // The resource of a part for a DPI: the smallest file at least as large, or
 // the largest one.

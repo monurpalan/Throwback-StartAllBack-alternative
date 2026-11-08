@@ -209,8 +209,12 @@ float Canvas::TextWidth(std::wstring_view text, TextStyle style) {
 
 void Canvas::TextField(const Rect& rect, std::wstring_view text, std::wstring_view prompt,
                        bool focused) {
-  // With the Windows 7 images the box is part of the menu's search strip.
-  if (!HasSkin(SkinImage::MenuSearch)) {
+  // With the Windows 7 images the box is part of the menu's search strip;
+  // Plain8's strip has none, so it gets a flat box like Windows 8's.
+  if (skinSet_ == SkinSet::Plain8) {
+    Fill(rect, aero::kField);
+    StrokeRound(rect, 0.0f, aero::kFieldBorder);
+  } else if (!HasSkin(SkinImage::MenuSearch)) {
     FillRound(rect, kCornerRadius, aero::kField);
     StrokeRound(rect, kCornerRadius, aero::kFieldBorder);
   }
@@ -218,7 +222,11 @@ void Canvas::TextField(const Rect& rect, std::wstring_view text, std::wstring_vi
   const int padding = Scale(kSpace4) + Scale(kSpace2);
   const int glyph = rect.Height();
   const Rect inner{rect.left + padding, rect.top, rect.right - glyph, rect.bottom};
-  DrawSearchGlyph({rect.right - glyph, rect.top, rect.right, rect.bottom});
+  const Rect glyphRect{rect.right - glyph, rect.top, rect.right, rect.bottom};
+  // Windows 7 turns the magnifier into a button that empties the box.
+  if (text.empty() || !SkinCentered(SkinImage::SearchClear, 0, glyphRect)) {
+    DrawSearchGlyph(glyphRect);
+  }
   if (text.empty()) {
     Text(inner, prompt, TextStyle::Hint, TextTone::Muted);
   } else {

@@ -40,6 +40,10 @@ inline constexpr Color kItemBorder = FromRgb(0x7DA2CE);
 inline constexpr Color kItemTop = FromRgb(0xDCEBFC);
 inline constexpr Color kItemBottom = FromRgb(0xC1DBFC);
 inline constexpr Color kItemInner = FromRgb(0xFFFFFF, 0.60f);
+// A newly installed program's row, without the Windows 7 images.
+inline constexpr Color kNewItemBorder = FromRgb(0xE3B66B);
+inline constexpr Color kNewItemTop = FromRgb(0xFDF2D2);
+inline constexpr Color kNewItemBottom = FromRgb(0xF9DC9E);
 
 // Highlights drawn on glass: start menu places and taskbar buttons.
 inline constexpr Color kGlassItemBorder = FromRgb(0x000000, 0.45f);

@@ -12,7 +12,7 @@ namespace throwback::ui {
 namespace {
 
 // Frames and stretch edges as the Windows 7 theme (aero.msstyles) sets them.
-constexpr std::array<SkinPart, 77> kParts{{
+constexpr std::array<SkinPart, 86> kParts{{
     {.resource = THROWBACK_SKIN_ORB_96, .frames = 3, .perDpi = true},
     {.resource = THROWBACK_SKIN_PICTURE_FRAME_96, .perDpi = true},
     {.resource = THROWBACK_SKIN_TASKBAR, .top = 12},
@@ -39,14 +39,9 @@ constexpr std::array<SkinPart, 77> kParts{{
      .right = 3,
      .top = 4,
      .bottom = 4},
-    {.resource = THROWBACK_SKIN_ARROW, .frames = 3},
-    {.resource = THROWBACK_SKIN_PANE_ITEM,
-     .frames = 8,
-     .left = 3,
-     .right = 2,
-     .top = 11,
-     .bottom = 9},
-    {.resource = THROWBACK_SKIN_GLASS_ITEM,
+    {.resource = THROWBACK_SKIN_ARROW_96, .frames = 3, .perDpi = true},
+    {.resource = THROWBACK_SKIN_PLACE_ITEM, .left = 3, .right = 3, .top = 3, .bottom = 3},
+    {.resource = THROWBACK_SKIN_PROGRAM_ITEM,
      .frames = 4,
      .left = 3,
      .right = 3,
@@ -159,6 +154,81 @@ constexpr std::array<SkinPart, 77> kParts{{
      .right = 2,
      .top = 14,
      .bottom = 14},
+    {.resource = THROWBACK_SKIN_POWER_ARROW,
+     .frames = 3,
+     .left = 1,
+     .right = 4,
+     .top = 4,
+     .bottom = 4},
+    {.resource = THROWBACK_SKIN_PROGRAM_SEPARATOR},
+    {.resource = THROWBACK_SKIN_PLACE_SEPARATOR},
+    {.resource = THROWBACK_SKIN_SEARCH_GLYPH_96, .perDpi = true},
+    {.resource = THROWBACK_SKIN_SEARCH_CLEAR_96, .frames = 3, .perDpi = true},
+    {.resource = THROWBACK_SKIN_MORE_ARROW_96, .perDpi = true},
+    {.resource = THROWBACK_SKIN_BACK_ARROW_96, .perDpi = true},
+    {.resource = THROWBACK_SKIN_SPLIT_MAIN,
+     .frames = 4,
+     .left = 3,
+     .right = 2,
+     .top = 3,
+     .bottom = 3},
+    {.resource = THROWBACK_SKIN_SPLIT_ARROW,
+     .frames = 4,
+     .left = 1,
+     .right = 2,
+     .top = 2,
+     .bottom = 2},
+}};
+
+// Plain8's parts, with the stretch edges its theme sets.
+struct SetPart {
+  SkinImage image;
+  SkinPart part;
+};
+constexpr std::array<SetPart, 23> kPlain8Parts{{
+    {SkinImage::Taskbar, {.resource = THROWBACK_P8_TASKBAR, .top = 2}},
+    {SkinImage::TaskButton,
+     {.resource = THROWBACK_P8_TASK_BUTTON, .frames = 10, .left = 3, .right = 3, .top = 3,
+      .bottom = 3}},
+    {SkinImage::ShowDesktop,
+     {.resource = THROWBACK_P8_SHOW_DESKTOP, .frames = 3, .left = 2, .right = 2, .top = 15,
+      .bottom = 2}},
+    {SkinImage::MenuPrograms, {.resource = THROWBACK_P8_MENU_PROGRAMS, .left = 9, .right = 2,
+                               .top = 9}},
+    {SkinImage::MenuSearch,
+     {.resource = THROWBACK_P8_MENU_SEARCH, .left = 9, .right = 2, .top = 1, .bottom = 9}},
+    {SkinImage::MenuPlaces, {.resource = THROWBACK_P8_MENU_PLACES, .right = 1, .top = 1}},
+    {SkinImage::MenuJumpList, {.resource = THROWBACK_P8_MENU_JUMP_LIST, .right = 9, .top = 9}},
+    {SkinImage::MenuPower, {.resource = THROWBACK_P8_MENU_POWER, .right = 1, .bottom = 1}},
+    {SkinImage::ShutDown,
+     {.resource = THROWBACK_P8_SHUT_DOWN, .frames = 3, .left = 1, .right = 1, .top = 1,
+      .bottom = 1}},
+    {SkinImage::Arrow, {.resource = THROWBACK_P8_ARROW_96, .frames = 3, .perDpi = true}},
+    {SkinImage::PlaceItem,
+     {.resource = THROWBACK_P8_PLACE_ITEM, .left = 1, .right = 1, .top = 1, .bottom = 1}},
+    {SkinImage::ProgramItem,
+     {.resource = THROWBACK_P8_PROGRAM_ITEM, .frames = 4, .left = 3, .right = 3, .top = 3,
+      .bottom = 3}},
+    {SkinImage::TrayArrow, {.resource = THROWBACK_P8_TRAY_ARROW_96, .frames = 3, .perDpi = true}},
+    {SkinImage::TrayArrowOpen,
+     {.resource = THROWBACK_P8_TRAY_ARROW_OPEN_96, .frames = 3, .perDpi = true}},
+    {SkinImage::TrayItem,
+     {.resource = THROWBACK_P8_TRAY_ITEM, .frames = 3, .left = 2, .right = 2, .top = 14,
+      .bottom = 14}},
+    {SkinImage::PowerArrow,
+     {.resource = THROWBACK_P8_POWER_ARROW, .frames = 3, .right = 1, .top = 1, .bottom = 1}},
+    {SkinImage::ProgramSeparator, {.resource = THROWBACK_P8_PROGRAM_SEPARATOR}},
+    {SkinImage::PlaceSeparator, {.resource = THROWBACK_P8_PLACE_SEPARATOR}},
+    {SkinImage::MoreArrow, {.resource = THROWBACK_P8_MORE_ARROW_96, .perDpi = true}},
+    {SkinImage::BackArrow, {.resource = THROWBACK_P8_BACK_ARROW_96, .perDpi = true}},
+    {SkinImage::SplitMain,
+     {.resource = THROWBACK_P8_SPLIT_MAIN, .frames = 4, .left = 3, .right = 3, .top = 3,
+      .bottom = 3}},
+    {SkinImage::SplitArrow,
+     {.resource = THROWBACK_P8_SPLIT_ARROW, .frames = 4, .left = 1, .right = 2, .top = 2,
+      .bottom = 2}},
+    // Plain8 has no search box images; Windows 7's stay.
+    {SkinImage::SearchGlyph, {.resource = THROWBACK_SKIN_SEARCH_GLYPH_96, .perDpi = true}},
 }};
 
 D2D1_RECT_F RectF(float left, float top, float right, float bottom) {
@@ -167,7 +237,14 @@ D2D1_RECT_F RectF(float left, float top, float right, float bottom) {
 
 }  // namespace
 
-const SkinPart& PartOf(SkinImage image) { return kParts.at(static_cast<std::size_t>(image)); }
+const SkinPart& PartOf(SkinImage image, SkinSet set) {
+  if (set == SkinSet::Plain8) {
+    for (const SetPart& entry : kPlain8Parts) {
+      if (entry.image == image) return entry.part;
+    }
+  }
+  return kParts.at(static_cast<std::size_t>(image));
+}
 
 int ResourceFor(const SkinPart& part, unsigned dpi) {
   if (!part.perDpi) return part.resource;
@@ -213,11 +290,11 @@ ID2D1Bitmap* Canvas::SkinBitmap(int resource) {
 }
 
 bool Canvas::HasSkin(SkinImage image) {
-  return SkinBitmap(ResourceFor(PartOf(image), dpi_)) != nullptr;
+  return SkinBitmap(ResourceFor(PartOf(image, skinSet_), dpi_)) != nullptr;
 }
 
 bool Canvas::Skin(SkinImage image, int frame, const Rect& rect) {
-  const SkinPart& part = PartOf(image);
+  const SkinPart& part = PartOf(image, skinSet_);
   ID2D1Bitmap* bitmap = SkinBitmap(ResourceFor(part, dpi_));
   if (!bitmap) return false;
   if (rect.Width() <= 0 || rect.Height() <= 0) return true;
@@ -259,6 +336,24 @@ bool Canvas::Skin(SkinImage image, int frame, const Rect& rect) {
     }
   }
   return true;
+}
+
+bool Canvas::SkinCentered(SkinImage image, int frame, const Rect& area) {
+  const SkinPart& part = PartOf(image, skinSet_);
+  ID2D1Bitmap* bitmap = SkinBitmap(ResourceFor(part, dpi_));
+  if (!bitmap) return false;
+  // The file picked for the DPI is drawn as is; past its DPI (no 192 DPI
+  // file, or a higher DPI) the 96 DPI size is scaled up instead.
+  ID2D1Bitmap* base = SkinBitmap(part.resource);
+  const D2D1_SIZE_U size = bitmap->GetPixelSize();
+  const D2D1_SIZE_U baseSize = base ? base->GetPixelSize() : size;
+  const int frames = std::max(1, part.frames);
+  const int width = std::max(static_cast<int>(size.width), Scale(static_cast<int>(baseSize.width)));
+  const int height = std::max(static_cast<int>(size.height) / frames,
+                              Scale(static_cast<int>(baseSize.height) / frames));
+  const int left = area.left + (area.Width() - width) / 2;
+  const int top = area.top + (area.Height() - height) / 2;
+  return Skin(image, frame, {left, top, left + width, top + height});
 }
 
 }  // namespace throwback::ui

@@ -24,11 +24,13 @@ namespace throwback::ui {
 enum class GlassVariant { BarBottom, BarTop, Menu };
 enum class ButtonVariant {
   MenuItem,       // a row on the white pane; drawn only while hovered
+  NewMenuItem,    // a newly installed program's row: lit even when not hovered
   GlassItem,      // a row on glass; drawn only while hovered
   Task,           // a taskbar button
   ActiveTask,     // the button of the foreground window
   FlashingTask,   // a window asking for attention
   Command,        // the glossy push button
+  CommandArrow,   // the menu half joined to its right
   ShowDesktop,    // the slim button at the end of the bar
   TrayItem,       // a notification icon; drawn only while hovered
   TrayArrow,      // the arrow that shows hidden notification icons
@@ -57,6 +59,8 @@ enum class IconKind {
   ChevronLeft,
   Search,
   MenuArrow,  // the arrow on the glass push button
+  MoreArrow,  // Windows 7's "All Programs" arrow; a chevron without it
+  BackArrow,  // and its "Back" arrow
 };
 enum class OrbState { Normal, Hot, Pressed };
 // The cascading menus: Windows Me looks like Windows 98; Windows XP's All
@@ -75,12 +79,16 @@ enum class ModernStartVariant { Win81, Win10, Win11 };
 // A window's drawing surface plus the UI kit components. Screens draw only
 // through these calls; colors, fonts and sizes come from the theme. All
 // coordinates are physical pixels.
+enum class TileState { Normal, Hot, Active, Flashing };
+
 class Canvas {
  public:
   explicit Canvas(HWND hwnd);
 
   void Resize(UINT width, UINT height);
   void SetDpi(unsigned dpi);
+  // Which theme's images the skinned components draw with.
+  void SetSkinSet(SkinSet set) { skinSet_ = set; }
   // Converts a 96 DPI size to physical pixels.
   int Scale(int pixels) const { return ScaleForDpi(pixels, dpi_); }
 
@@ -93,6 +101,10 @@ class Canvas {
   // A part of the start menu's background; rect is its whole area.
   void Panel(const Rect& rect, PanelVariant variant);
   void Button(const Rect& rect, ButtonVariant variant, bool hovered);
+  // A hovered program row with a jump list, split into the program and the
+  // arrow (arrowWidth wide, at the right) halves; the half under the mouse
+  // is lit the most.
+  void SplitMenuItem(const Rect& rect, int arrowWidth, bool arrowHot, bool fresh);
   // A taskbar button's progress, filling fraction of it from the left.
   void Progress(const Rect& rect, ProgressVariant variant, float fraction);
   // A separator line; callers pass a one-pixel-thin rect.
@@ -144,6 +156,9 @@ class Canvas {
   // Windows 11's bar along the bottom of the menu, with the account.
   void ModernBar(const Rect& rect, ModernLook look);
   void ModernHover(const Rect& rect, ModernLook look, bool hovered);
+  // The square behind a window's icon on an upright bar, the same in every
+  // style: a light veil on dark bars, a dark one with the light colors.
+  void TaskTile(const Rect& rect, bool light, TileState state);
   // A start screen tile in one of Windows 8's colors (by index), or in
   // Windows 10's accent color for a negative index.
   void ModernTile(const Rect& rect, int color, bool hovered);
@@ -189,6 +204,8 @@ class Canvas {
   void DrawTextRun(const Rect& rect, std::wstring_view text, IDWriteTextFormat* format,
                    const Color& color, float dx, float dy);
   void TaskButton(const Rect& rect, ButtonVariant variant, bool hovered);
+  // The glossy push button, or with arrow its menu half.
+  void CommandButton(const Rect& button, bool arrow, bool hovered);
   void TrayArrow(const Rect& rect, bool open, bool hovered);
   void DrawTriangle(const Rect& rect, bool up, const Color& color);
   void DrawChevron(const Rect& rect, bool right, const Color& color);
@@ -202,6 +219,9 @@ class Canvas {
   ID2D1Bitmap* SkinBitmap(int resource);
   bool HasSkin(SkinImage image);
   bool Skin(SkinImage image, int frame, const Rect& rect);
+  // A frame of an image drawn at its own size in the middle of area, as the
+  // theme draws its glyphs; false when the image isn't embedded.
+  bool SkinCentered(SkinImage image, int frame, const Rect& area);
 
   // Primitives behind the components.
   void Fill(const Rect& rect, const Color& color);
@@ -213,6 +233,7 @@ class Canvas {
 
   HWND hwnd_;
   unsigned dpi_ = 96;
+  SkinSet skinSet_ = SkinSet::Aero;
 
   Microsoft::WRL::ComPtr<ID2D1Factory> factory_;
   Microsoft::WRL::ComPtr<IDWriteFactory> dwrite_;

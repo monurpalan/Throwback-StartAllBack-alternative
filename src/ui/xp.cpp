@@ -87,7 +87,7 @@ void Canvas::XpText(const Rect& rect, std::wstring_view text, XpTextVariant vari
 void Canvas::XpSeparator(const Rect& rect, XpList list) {
   const SkinImage image =
       list == XpList::Programs ? SkinImage::XpProgramsSeparator : SkinImage::XpPlacesSeparator;
-  ID2D1Bitmap* bitmap = SkinBitmap(ResourceFor(PartOf(image), dpi_));
+  ID2D1Bitmap* bitmap = SkinBitmap(ResourceFor(PartOf(image, skinSet_), dpi_));
   if (!bitmap) return;
   const D2D1_SIZE_U size = bitmap->GetPixelSize();
   const int width = std::min(rect.Width(), Scale(static_cast<int>(size.width)));
@@ -123,7 +123,7 @@ void Canvas::XpLogOffButton(const Rect& rect, XpPowerButton button, std::wstring
                             bool hovered) {
   // The image holds three 24 px icons: undock, log off and turn off.
   const SkinImage image = hovered ? SkinImage::XpLogOffButtonsHot : SkinImage::XpLogOffButtons;
-  ID2D1Bitmap* bitmap = SkinBitmap(ResourceFor(PartOf(image), dpi_));
+  ID2D1Bitmap* bitmap = SkinBitmap(ResourceFor(PartOf(image, skinSet_), dpi_));
   const int icon = Scale(kLogOffIcon);
   const int top = rect.top + (rect.Height() - icon) / 2;
   if (bitmap) {
@@ -143,7 +143,9 @@ void Canvas::XpLogOffButton(const Rect& rect, XpPowerButton button, std::wstring
 void Canvas::XpStartButton(const Rect& rect, std::wstring_view label, OrbState state) {
   const int frame = state == OrbState::Pressed ? 2 : state == OrbState::Hot ? 1 : 0;
   if (!Skin(SkinImage::XpStartButton, frame, rect)) Fill(rect, xp::kProgramHot);
-  const int flagLeft = rect.left + Scale(kStartLabelLeft);
+  // Without a label (on an upright bar) the flag stands alone in the middle.
+  const int flagLeft = label.empty() ? rect.left + (rect.Width() - Scale(kFlagWidth)) / 2
+                                     : rect.left + Scale(kStartLabelLeft);
   const int flagTop = rect.top + (rect.Height() - Scale(kFlagHeight)) / 2;
   Skin(SkinImage::XpFlag, 0,
        {flagLeft, flagTop, flagLeft + Scale(kFlagWidth), flagTop + Scale(kFlagHeight)});

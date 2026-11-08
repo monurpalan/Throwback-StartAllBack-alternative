@@ -110,6 +110,28 @@ void Canvas::ModernHover(const Rect& rect, ModernLook look, bool hovered) {
   }
 }
 
+void Canvas::TaskTile(const Rect& rect, bool light, TileState state) {
+  // Like the Windows 7 task button StartAllBack draws: a glossy gradient,
+  // a dark outer edge and a thin light line inside it.
+  const float radius = static_cast<float>(Scale(3));
+  const int line = std::max(1, Scale(1));
+  const Rect inner{rect.left + line, rect.top + line, rect.right - line, rect.bottom - line};
+  float lift = 0.0f;
+  if (state == TileState::Hot) lift = 0.08f;
+  if (state == TileState::Active) lift = 0.16f;
+  if (state == TileState::Flashing) {
+    FillGradient(rect, radius, FromRgb(0xFFC060, 0.85f), FromRgb(0xE07010, 0.85f));
+  } else if (light) {
+    FillGradient(rect, radius, FromRgb(0x000000, 0.04f + lift),
+                 FromRgb(0x000000, 0.14f + lift));
+  } else {
+    FillGradient(rect, radius, FromRgb(0xFFFFFF, 0.30f + lift),
+                 FromRgb(0xFFFFFF, 0.08f + lift));
+  }
+  StrokeRound(rect, radius, FromRgb(0x000000, light ? 0.30f : 0.60f));
+  StrokeRound(inner, radius - 1.0f, FromRgb(0xFFFFFF, light ? 0.55f : 0.22f + lift));
+}
+
 void Canvas::ModernTile(const Rect& rect, int color, bool hovered) {
   Fill(rect, color < 0 ? modern::kWin10Accent : kTiles[static_cast<size_t>(color) % kTiles.size()]);
   if (hovered) Fill(rect, modern::kTileHover);

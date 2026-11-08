@@ -20,8 +20,11 @@ constexpr int kTaskHotFrame = 1;
 constexpr int kActiveTaskFrame = 3;
 constexpr int kActiveTaskHotFrame = 4;
 constexpr int kFlashingTaskFrame = 6;
-constexpr int kHotFrame = 1;  // push buttons and pane items
-constexpr int kGlassItemHotFrame = 0;
+constexpr int kHotFrame = 1;  // push buttons and program rows
+// Program rows: the arrow half of a split row under the mouse, and a newly
+// installed program.
+constexpr int kItemPressedFrame = 2;
+constexpr int kItemNewFrame = 3;
 constexpr int kShowDesktopHotFrame = 2;
 // The tray arrow at 96 DPI, drawn at its own size in the middle of its slot.
 constexpr int kTrayArrowWidth = 21;
@@ -130,17 +133,66 @@ void Canvas::TrayArrow(const Rect& rect, bool open, bool hovered) {
   DrawTriangle(button, !open, aero::kGlassText);
 }
 
+void Canvas::CommandButton(const Rect& button, bool arrow, bool hovered) {
+  const int frame = hovered ? kHotFrame : 0;
+  // The menu half shares its left border with the button it is joined to,
+  // the way Windows 7 draws the split shut down button.
+  const Rect rect = arrow ? Rect{button.left - std::max(1, Scale(1)), button.top, button.right,
+                                 button.bottom}
+                          : button;
+  if (arrow && Skin(SkinImage::PowerArrow, frame, rect)) return;
+  if (Skin(SkinImage::ShutDown, frame, rect)) return;
+  // Gloss on the upper half, a deeper body below that lights up blue on
+  // hover.
+  const int line = std::max(1, Scale(1));
+  const Rect inner = Inset(rect, line);
+  const int middle = (rect.top + rect.bottom) / 2;
+  FillGradient({inner.left, inner.top, inner.right, middle}, kCornerRadius - 1.0f,
+               aero::kCommandGlossTop, aero::kCommandGlossBottom);
+  FillGradient({inner.left, middle, inner.right, inner.bottom}, kCornerRadius - 1.0f,
+               hovered ? aero::kCommandHotTop : aero::kCommandBodyTop,
+               hovered ? aero::kCommandHotBottom : aero::kCommandBodyBottom);
+  StrokeRound(rect, kCornerRadius, aero::kCommandBorder);
+  StrokeRound(inner, kCornerRadius - 1.0f, aero::kItemInner);
+}
+
+void Canvas::SplitMenuItem(const Rect& rect, int arrowWidth, bool arrowHot, bool fresh) {
+  const Rect main{rect.left, rect.top, rect.right - arrowWidth, rect.bottom};
+  const Rect arrow{rect.right - arrowWidth, rect.top, rect.right, rect.bottom};
+  // The whole row is lit, the arrow half darker while the mouse is on it;
+  // a new program's half away from the mouse stays orange.
+  const int mainFrame = arrowHot && fresh ? kItemNewFrame : kHotFrame;
+  if (Skin(SkinImage::SplitMain, mainFrame, main) &&
+      Skin(SkinImage::SplitArrow, arrowHot ? kItemPressedFrame : kHotFrame, arrow)) {
+    return;
+  }
+  Button(rect, ButtonVariant::MenuItem, true);
+  const int line = std::max(1, Scale(1));
+  Fill({arrow.left, arrow.top + line * 2, arrow.left + line, arrow.bottom - line * 2},
+       aero::kItemBorder);
+}
+
 void Canvas::Button(const Rect& rect, ButtonVariant variant, bool hovered) {
   const int line = std::max(1, Scale(1));
   switch (variant) {
     case ButtonVariant::MenuItem:
-      if (!hovered || Skin(SkinImage::PaneItem, kHotFrame, rect)) return;
+      if (!hovered || Skin(SkinImage::ProgramItem, kHotFrame, rect)) return;
       FillGradient(rect, kCornerRadius, aero::kItemTop, aero::kItemBottom);
       StrokeRound(rect, kCornerRadius, aero::kItemBorder);
       StrokeRound(Inset(rect, line), kCornerRadius - 1.0f, aero::kItemInner);
       return;
+    case ButtonVariant::NewMenuItem:
+      if (Skin(SkinImage::ProgramItem, hovered ? kHotFrame : kItemNewFrame, rect)) return;
+      if (hovered) {
+        Button(rect, ButtonVariant::MenuItem, true);
+        return;
+      }
+      FillGradient(rect, kCornerRadius, aero::kNewItemTop, aero::kNewItemBottom);
+      StrokeRound(rect, kCornerRadius, aero::kNewItemBorder);
+      StrokeRound(Inset(rect, line), kCornerRadius - 1.0f, aero::kItemInner);
+      return;
     case ButtonVariant::GlassItem:
-      if (!hovered || Skin(SkinImage::GlassItem, kGlassItemHotFrame, rect)) return;
+      if (!hovered || Skin(SkinImage::PlaceItem, 0, rect)) return;
       FillGradient(rect, kCornerRadius, aero::kGlassItemTop, aero::kGlassItemBottom);
       StrokeRound(rect, kCornerRadius, aero::kGlassItemBorder);
       StrokeRound(Inset(rect, line), kCornerRadius - 1.0f, aero::kGlassItemInner);
@@ -150,21 +202,10 @@ void Canvas::Button(const Rect& rect, ButtonVariant variant, bool hovered) {
     case ButtonVariant::FlashingTask:
       TaskButton(rect, variant, hovered);
       return;
-    case ButtonVariant::Command: {
-      if (Skin(SkinImage::ShutDown, hovered ? kHotFrame : 0, rect)) return;
-      // Gloss on the upper half, a deeper body below that lights up blue on
-      // hover.
-      const Rect inner = Inset(rect, line);
-      const int middle = (rect.top + rect.bottom) / 2;
-      FillGradient({inner.left, inner.top, inner.right, middle}, kCornerRadius - 1.0f,
-                   aero::kCommandGlossTop, aero::kCommandGlossBottom);
-      FillGradient({inner.left, middle, inner.right, inner.bottom}, kCornerRadius - 1.0f,
-                   hovered ? aero::kCommandHotTop : aero::kCommandBodyTop,
-                   hovered ? aero::kCommandHotBottom : aero::kCommandBodyBottom);
-      StrokeRound(rect, kCornerRadius, aero::kCommandBorder);
-      StrokeRound(inner, kCornerRadius - 1.0f, aero::kItemInner);
+    case ButtonVariant::Command:
+    case ButtonVariant::CommandArrow:
+      CommandButton(rect, variant == ButtonVariant::CommandArrow, hovered);
       return;
-    }
     case ButtonVariant::TrayItem:
       if (!hovered || Skin(SkinImage::TrayItem, kHotFrame, rect)) return;
       Button(rect, ButtonVariant::GlassItem, hovered);
@@ -210,6 +251,18 @@ void Canvas::Progress(const Rect& rect, ProgressVariant variant, float fraction)
 }
 
 void Canvas::Separator(const Rect& rect, SeparatorVariant variant) {
+  // Windows 7's lines fade out at both ends; they keep their own size,
+  // centered on the line and never wider than it.
+  const SkinImage line =
+      variant == SeparatorVariant::Pane ? SkinImage::ProgramSeparator : SkinImage::PlaceSeparator;
+  if (ID2D1Bitmap* bitmap = SkinBitmap(ResourceFor(PartOf(line, skinSet_), dpi_))) {
+    const D2D1_SIZE_U size = bitmap->GetPixelSize();
+    const int width = std::min(rect.Width(), Scale(static_cast<int>(size.width)));
+    const int height = std::max(1, Scale(static_cast<int>(size.height)));
+    const int left = rect.left + (rect.Width() - width) / 2;
+    Skin(line, 0, {left, rect.top, left + width, rect.top + height});
+    return;
+  }
   if (variant == SeparatorVariant::Pane) {
     Fill(rect, aero::kPaneSeparator);
     return;
@@ -221,7 +274,7 @@ void Canvas::Separator(const Rect& rect, SeparatorVariant variant) {
 }
 
 void Canvas::ImageCell(SkinImage image, int index, int count, const Rect& rect) {
-  ID2D1Bitmap* bitmap = SkinBitmap(ResourceFor(PartOf(image), dpi_));
+  ID2D1Bitmap* bitmap = SkinBitmap(ResourceFor(PartOf(image, skinSet_), dpi_));
   if (!bitmap || count <= 0) return;
   const D2D1_SIZE_U size = bitmap->GetPixelSize();
   const float cell = static_cast<float>(size.width) / static_cast<float>(count);

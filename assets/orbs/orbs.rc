@@ -1,0 +1,6 @@
+// StartAllBack's start button orbs; see README.md.
+#include "ui/skin_ids.h"
+
+THROWBACK_ORB_CLOVER RCDATA "clover.svg"
+THROWBACK_ORB_WIN8 RCDATA "win8-logo.svg"
+THROWBACK_ORB_E1EVEN RCDATA "e1even.png"

@@ -20,3 +20,9 @@
 #ifdef THROWBACK_ASSETS_MODERN
 #include "modern.rc"
 #endif
+#ifdef THROWBACK_ASSETS_ORBS
+#include "orbs.rc"
+#endif
+#ifdef THROWBACK_ASSETS_PLAIN8
+#include "plain8.rc"
+#endif

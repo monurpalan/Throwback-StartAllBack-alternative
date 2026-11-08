@@ -108,7 +108,7 @@ void Canvas::ClassicArrow(const Rect& rect, bool selected) {
 }
 
 void Canvas::ClassicBanner(const Rect& rect, SkinImage banner) {
-  ID2D1Bitmap* bitmap = SkinBitmap(ResourceFor(PartOf(banner), dpi_));
+  ID2D1Bitmap* bitmap = SkinBitmap(ResourceFor(PartOf(banner, skinSet_), dpi_));
   if (!bitmap) {
     Fill(rect, classic::kSelection98);
     return;
@@ -126,7 +126,7 @@ void Canvas::ClassicStartButton(const Rect& rect, ClassicLook look, std::wstring
   ClassicFace(rect, look, pressed);
   const int shift = pressed ? std::max(1, Scale(1)) : 0;
   const int flag = Scale(kFlagSize);
-  const int gap = Scale(kFlagGap);
+  const int gap = label.empty() ? 0 : Scale(kFlagGap);
   const int textWidth = MeasureText(
       label, look == ClassicLook::Win2000 ? TextStyle::Classic2000Bold : TextStyle::Classic98Bold);
   const int left = rect.left + (rect.Width() - flag - gap - textWidth) / 2 + shift;

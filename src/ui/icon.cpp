@@ -17,10 +17,8 @@ D2D1_RECT_F ToRectF(const Rect& rect) {
                      static_cast<float>(rect.right), static_cast<float>(rect.bottom));
 }
 
-// The Windows 7 orb and arrow at 96 DPI; the orb's glow reaches past the bar.
+// The Windows 7 orb at 96 DPI; its glow reaches past the bar.
 constexpr int kOrbImageSize = 54;
-constexpr int kArrowWidth = 6;
-constexpr int kArrowHeight = 9;
 
 Rect Centered(const Rect& rect, int width, int height) {
   const int left = rect.left + (rect.Width() - width) / 2;
@@ -37,10 +35,16 @@ void Canvas::Icon(const Rect& rect, IconKind kind) {
       DrawChevron(rect, kind == IconKind::ChevronRight, aero::kText);
       break;
     case IconKind::MenuArrow:
-      if (!Skin(SkinImage::Arrow, 0, Centered(rect, Scale(kArrowWidth), Scale(kArrowHeight)))) {
-        DrawChevron(rect, true, aero::kGlassText);
+      if (!SkinCentered(SkinImage::Arrow, 0, rect)) DrawChevron(rect, true, aero::kGlassText);
+      break;
+    case IconKind::MoreArrow:
+    case IconKind::BackArrow: {
+      const bool more = kind == IconKind::MoreArrow;
+      if (!SkinCentered(more ? SkinImage::MoreArrow : SkinImage::BackArrow, 0, rect)) {
+        DrawChevron(rect, more, aero::kText);
       }
       break;
+    }
     case IconKind::Search:
       DrawSearchGlyph(rect);
       break;
@@ -87,6 +91,7 @@ void Canvas::DrawTriangle(const Rect& rect, bool up, const Color& color) {
 }
 
 void Canvas::DrawSearchGlyph(const Rect& rect) {
+  if (SkinCentered(SkinImage::SearchGlyph, 0, rect)) return;
   // A magnifying glass: a ring with a short handle toward the bottom right.
   const float size = static_cast<float>(std::min(rect.Width(), rect.Height())) * 0.55f;
   const float cx = static_cast<float>(rect.left + rect.right) / 2.0f;
