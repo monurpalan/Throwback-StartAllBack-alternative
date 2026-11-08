@@ -3,7 +3,8 @@ FetchContent_Declare(googletest
   URL https://github.com/google/googletest/archive/refs/tags/v1.15.2.zip
   DOWNLOAD_EXTRACT_TIMESTAMP ON)
 # Match the MSVC runtime of our own targets.
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+# The same static runtime as the app.
+set(gtest_force_shared_crt OFF CACHE BOOL "" FORCE)
 set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
@@ -31,4 +32,6 @@ add_executable(throwback_tests
 target_link_libraries(throwback_tests PRIVATE throwback_ui throwback_options GTest::gtest_main)
 
 include(GoogleTest)
-gtest_discover_tests(throwback_tests)
+# Listed when ctest runs, not at build time: an ARM64 build on an x64
+# machine cannot run the test binary to list its tests.
+gtest_discover_tests(throwback_tests DISCOVERY_MODE PRE_TEST)
