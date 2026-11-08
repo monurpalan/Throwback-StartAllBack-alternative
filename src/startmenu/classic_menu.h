@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "core/layout.h"
+#include "startmenu/start_menu_window.h"
 #include "ui/canvas.h"
 
 namespace throwback {
@@ -48,9 +49,8 @@ class ClassicMenu {
   ClassicMenu(const ClassicMenu&) = delete;
   ClassicMenu& operator=(const ClassicMenu&) = delete;
 
-  // Shows the root level with its bottom-left (or top-left, below) corner
-  // at the anchor's matching corner.
-  void ShowRoot(std::vector<ClassicEntry> entries, const RECT& anchor, bool below);
+  // Shows the root level where the anchor places the start menu.
+  void ShowRoot(std::vector<ClassicEntry> entries, const MenuAnchor& anchor);
   // Shows a level that isn't the start menu itself next to a row (screen
   // pixels): a submenu, or Windows XP's All Programs menu.
   void ShowBeside(std::vector<ClassicEntry> entries, const RECT& row);

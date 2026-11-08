@@ -30,7 +30,7 @@ class ClassicStartMenu : public StartMenuWindow {
   ClassicStartMenu(const ClassicStartMenu&) = delete;
   ClassicStartMenu& operator=(const ClassicStartMenu&) = delete;
 
-  void Open(const RECT& anchor, bool below, unsigned dpi) override;
+  void Open(const MenuAnchor& anchor) override;
   void Close() override;
   bool IsOpen() const override;
 

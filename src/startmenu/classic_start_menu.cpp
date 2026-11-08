@@ -105,15 +105,15 @@ ClassicStartMenu::~ClassicStartMenu() {
   for (const auto& [key, icon] : classicIcons_) DestroyIcon(icon);
 }
 
-void ClassicStartMenu::Open(const RECT& anchor, bool below, unsigned dpi) {
+void ClassicStartMenu::Open(const MenuAnchor& anchor) {
   const ULONGLONG now = GetTickCount64();
   if (!catalog_ || now - catalogLoadedAt_ > kCatalogMaxAgeMs) {
     catalog_ = LoadPrograms();
     catalogLoadedAt_ = now;
   }
   account_ = LoadAccount();
-  host_.dpi = dpi;
-  root_->ShowRoot(RootEntries(), anchor, below);
+  host_.dpi = anchor.dpi;
+  root_->ShowRoot(RootEntries(), anchor);
   if (onChanged_) onChanged_();
 }
 

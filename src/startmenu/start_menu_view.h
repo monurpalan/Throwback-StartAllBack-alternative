@@ -22,6 +22,8 @@ struct StartMenuModel {
     bool separatorBefore = false;
     bool hasJumpList = false;
     bool bold = false;  // Windows XP: a pinned program
+    bool arrowHot = false;  // the mouse is over the half that opens the jump list
+    bool fresh = false;     // newly installed and not started yet
   };
   struct JumpRow {
     std::wstring_view name;
@@ -43,6 +45,7 @@ struct StartMenuModel {
   int iconSize = 0;
   bool showBack = false;  // "Back" instead of "All Programs"
   bool allProgramsHovered = false;
+  bool allProgramsFresh = false;  // some program is newly installed
   std::wstring_view query;
   bool noResults = false;
   std::wstring_view accountName;
@@ -56,6 +59,9 @@ struct StartMenuModel {
   bool jumpListOpen = false;
   std::vector<JumpRow> jumpRows;
 };
+
+// The width of a program row's jump list half, at 96 DPI.
+constexpr int kJumpArrowWidth = 24;
 
 // The place row rects, with separators taken into account.
 std::vector<Rect> PlaceRects(const StartMenuLayout& layout, const std::vector<bool>& separators,

@@ -57,6 +57,12 @@ bool IsJunkProgram(std::wstring_view appId) {
   });
 }
 
+bool IsNewlyInstalled(std::uint64_t created, std::uint64_t now, std::uint64_t lastRun) {
+  // FILETIMEs count 100 ns steps.
+  constexpr std::uint64_t kWeek = 7ull * 24 * 60 * 60 * 10'000'000;
+  return created <= now && now - created <= kWeek && lastRun < created;
+}
+
 std::vector<UsageEntry> RankFrequent(std::vector<UsageEntry> entries, std::size_t limit) {
   std::erase_if(entries, [](const UsageEntry& entry) { return IsJunkProgram(entry.appId); });
   std::sort(entries.begin(), entries.end(), [](const UsageEntry& a, const UsageEntry& b) {

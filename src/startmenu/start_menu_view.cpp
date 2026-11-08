@@ -8,6 +8,7 @@ namespace throwback {
 namespace {
 
 constexpr int kChevronSize = 16;
+constexpr int kListGlyphSize = 28;
 
 Rect HorizontalRule(int left, int right, int y, ui::Canvas& canvas) {
   return {left, y, right, y + std::max(1, canvas.Scale(1))};
@@ -21,7 +22,12 @@ void DrawRows(ui::Canvas& canvas, const StartMenuModel& model) {
     const auto& row = model.rows[i];
     const int top = list.top + static_cast<int>(i) * model.rowHeight;
     const Rect rect{list.left + inset, top, list.right - inset, top + model.rowHeight};
-    canvas.Button(rect, ui::ButtonVariant::MenuItem, row.selected);
+    if (row.selected && row.hasJumpList) {
+      canvas.SplitMenuItem(rect, canvas.Scale(kJumpArrowWidth), row.arrowHot, row.fresh);
+    } else {
+      canvas.Button(rect, row.fresh ? ui::ButtonVariant::NewMenuItem : ui::ButtonVariant::MenuItem,
+                    row.selected);
+    }
     if (row.separatorBefore) {
       canvas.Separator(HorizontalRule(list.left + padding, list.right - padding, top - 1, canvas),
                        ui::SeparatorVariant::Pane);
@@ -58,11 +64,16 @@ void DrawLeftPane(ui::Canvas& canvas, const StartMenuModel& model) {
   const int inset = canvas.Scale(ui::kSpace2);
   const Rect allPrograms{layout.allPrograms.left + inset, layout.allPrograms.top,
                          layout.allPrograms.right - inset, layout.allPrograms.bottom - inset};
-  canvas.Button(allPrograms, ui::ButtonVariant::MenuItem, model.allProgramsHovered);
-  const int chevron = canvas.Scale(kChevronSize);
+  // Windows 7 lights "All Programs" while it holds a new program.
+  const bool fresh = model.allProgramsFresh && !model.showBack;
+  canvas.Button(allPrograms, fresh ? ui::ButtonVariant::NewMenuItem : ui::ButtonVariant::MenuItem,
+                model.allProgramsHovered);
+  // Plain8 puts a list glyph where Windows 7 has its arrow.
+  const int chevron =
+      canvas.Scale(model.style == StartStyle::Plain8 ? kListGlyphSize : kChevronSize);
   const Rect arrow{allPrograms.left + padding, allPrograms.top,
                    allPrograms.left + padding + chevron, allPrograms.bottom};
-  canvas.Icon(arrow, model.showBack ? ui::IconKind::ChevronLeft : ui::IconKind::ChevronRight);
+  canvas.Icon(arrow, model.showBack ? ui::IconKind::BackArrow : ui::IconKind::MoreArrow);
   canvas.Text({arrow.right, allPrograms.top, allPrograms.right - padding, allPrograms.bottom},
               ui::Tr(model.showBack ? ui::StringId::Back : ui::StringId::AllPrograms),
               ui::TextStyle::Body, ui::TextTone::Dark);
@@ -130,7 +141,7 @@ void DrawPower(ui::Canvas& canvas, const StartMenuModel& model) {
   canvas.Button(layout.power, ui::ButtonVariant::Command, model.powerHovered);
   canvas.Text(layout.power, ui::Tr(ui::StringId::ShutDown), ui::TextStyle::Body,
               ui::TextTone::Light, ui::TextAlign::Center);
-  canvas.Button(layout.powerArrow, ui::ButtonVariant::Command, model.powerArrowHovered);
+  canvas.Button(layout.powerArrow, ui::ButtonVariant::CommandArrow, model.powerArrowHovered);
   canvas.Icon(layout.powerArrow, ui::IconKind::MenuArrow);
 }
 

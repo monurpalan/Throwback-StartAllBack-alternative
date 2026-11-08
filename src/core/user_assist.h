@@ -31,6 +31,11 @@ std::optional<UsageEntry> ParseUsageValue(std::wstring_view encodedName,
 // menu never lists as frequent programs.
 bool IsJunkProgram(std::wstring_view appId);
 
+// Whether a Start Menu shortcut counts as newly installed, as Windows 7
+// highlights it: created in the last week and not started since. Times are
+// FILETIMEs; lastRun is 0 for a shortcut that was never started.
+bool IsNewlyInstalled(std::uint64_t created, std::uint64_t now, std::uint64_t lastRun);
+
 // Most used first, most recent breaking ties, junk removed.
 std::vector<UsageEntry> RankFrequent(std::vector<UsageEntry> entries, std::size_t limit);
 

@@ -6,6 +6,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "core/settings.h"
@@ -38,7 +39,7 @@ class StartMenu : public StartMenuWindow {
 
   // anchor is the start button in screen coordinates; the menu opens below
   // it for a bar at the top of the screen and above it otherwise.
-  void Open(const RECT& anchor, bool below, unsigned dpi) override;
+  void Open(const MenuAnchor& anchor) override;
   // Dismisses the menu and gives focus back to the window that had it.
   void Close() override { Hide(/*restoreFocus=*/true); }
   bool IsOpen() const override;
@@ -57,6 +58,7 @@ class StartMenu : public StartMenuWindow {
     bool separatorBefore = false;
     bool pinnable = false;  // a program, not a folder or a settings page
     std::wstring appId;     // set when the program has a jump list
+    bool fresh = false;     // newly installed and not started yet
   };
   // What the mouse is over.
   struct Hit {
@@ -96,6 +98,8 @@ class StartMenu : public StartMenuWindow {
   void OpenJumpList(int row);
   void ResetJumpList();
   bool OnJumpArrow(int row, int x) const;
+  // Whether the mouse is over the hovered row's jump list half.
+  bool jumpArrowHot_ = false;
   void AddSettingsResults();
   void SetMode(Mode mode);
   void RebuildRows();
@@ -129,6 +133,8 @@ class StartMenu : public StartMenuWindow {
   ULONGLONG catalogLoadedAt_ = 0;
   std::vector<FrequentProgram> frequent_;
   std::vector<Place> places_;
+  // The settings places_ were loaded for.
+  std::pair<std::vector<std::wstring>, std::vector<std::wstring>> placesKey_;
   Account account_;
   std::unique_ptr<shell::AsyncIconCache> icons_;
 

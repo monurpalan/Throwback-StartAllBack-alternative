@@ -11,6 +11,9 @@ namespace {
 
 // Windows XP's program group icon in its shell32.dll.
 constexpr int kXpFolderIcon = 20;
+// Plain8's pane widths at 96 DPI, from its theme.
+constexpr int kPlain8ProgramPane = 311;
+constexpr int kPlain8Places = 195;
 
 }  // namespace
 
@@ -18,15 +21,25 @@ void StartMenu::ComputeLayout() {
   if (IsXp()) {
     layout_ = ComputeXpStartMenuLayout(
         dpi_, canvas_->MeasureText(ui::Tr(ui::StringId::XpLogOff), ui::TextStyle::XpBody),
-        canvas_->MeasureText(ui::Tr(ui::StringId::XpTurnOff), ui::TextStyle::XpBody));
+        canvas_->MeasureText(ui::Tr(ui::StringId::XpTurnOff), ui::TextStyle::XpBody),
+        settings_.menuRows, settings_.largeIcons);
     return;
   }
+  StartMenuShape shape;
+  shape.rows = settings_.menuRows;
+  shape.largeIcons = settings_.largeIcons;
+  if (style_ == StartStyle::Plain8) {
+    shape.programPaneWidth = kPlain8ProgramPane;
+    shape.placesWidth = kPlain8Places;
+  }
+  shape.placeRows = static_cast<int>(places_.size());
+  for (const Place& place : places_) shape.placeSeparators += place.separatorBefore ? 1 : 0;
   if (style_ == StartStyle::Vista) {
-    layout_ = ComputeVistaStartMenuLayout(dpi_);
+    layout_ = ComputeVistaStartMenuLayout(dpi_, shape);
     return;
   }
   layout_ = ComputeStartMenuLayout(
-      dpi_, canvas_->MeasureText(ui::Tr(ui::StringId::ShutDown), ui::TextStyle::Body));
+      dpi_, canvas_->MeasureText(ui::Tr(ui::StringId::ShutDown), ui::TextStyle::Body), shape);
 }
 
 void StartMenu::CreateXpPrograms(HINSTANCE instance, HWND owner) {

@@ -87,18 +87,15 @@ ClassicMenu::~ClassicMenu() {
 
 bool ClassicMenu::IsOpen() const { return hwnd_ && IsWindowVisible(hwnd_); }
 
-void ClassicMenu::ShowRoot(std::vector<ClassicEntry> entries, const RECT& anchor, bool below) {
+void ClassicMenu::ShowRoot(std::vector<ClassicEntry> entries, const MenuAnchor& anchor) {
   child_.reset();
   submenuOf_ = -1;
   selected_ = -1;
   entries_ = std::move(entries);
   canvas_->SetDpi(host_.dpi);
   Measure();
-  const RECT work = WorkAreaAt({anchor.left, anchor.top});
-  const int x = std::clamp(static_cast<int>(anchor.left), static_cast<int>(work.left),
-                           static_cast<int>(work.right) - width_);
-  const int y = below ? anchor.bottom : anchor.top - height_;
-  SetWindowPos(hwnd_, HWND_TOPMOST, x, y, width_, height_, SWP_NOACTIVATE);
+  const POINT corner = PlaceMenuWindow(anchor, width_, height_);
+  SetWindowPos(hwnd_, HWND_TOPMOST, corner.x, corner.y, width_, height_, SWP_NOACTIVATE);
   canvas_->Resize(static_cast<UINT>(width_), static_cast<UINT>(height_));
   ShowWindow(hwnd_, SW_SHOW);
   shell::BringToFront(hwnd_);

@@ -35,6 +35,19 @@ TEST(UserAssistTest, SkipsBookkeepingShortAndUnusedValues) {
   EXPECT_FALSE(ParseUsageValue(Rot13(L"app.exe"), MakeValue(0, 1)).has_value());
 }
 
+TEST(UserAssistTest, NewProgramsStayNewForAWeekUntilStarted) {
+  constexpr std::uint64_t kDay = 24ull * 60 * 60 * 10'000'000;
+  constexpr std::uint64_t kNow = 133000000000000000ull;
+  EXPECT_TRUE(IsNewlyInstalled(kNow - kDay, kNow, 0));
+  EXPECT_TRUE(IsNewlyInstalled(kNow - 7 * kDay, kNow, 0));
+  EXPECT_FALSE(IsNewlyInstalled(kNow - 8 * kDay, kNow, 0));
+  // Started after it was installed: no longer new. An older start (a
+  // reinstall) doesn't count.
+  EXPECT_FALSE(IsNewlyInstalled(kNow - kDay, kNow, kNow - kDay / 2));
+  EXPECT_TRUE(IsNewlyInstalled(kNow - kDay, kNow, kNow - 30 * kDay));
+  EXPECT_FALSE(IsNewlyInstalled(kNow + kDay, kNow, 0));
+}
+
 TEST(UserAssistTest, RecognizesJunkPrograms) {
   EXPECT_TRUE(IsJunkProgram(L"{7C5A40EF}\\Foo\\Setup.exe"));
   EXPECT_TRUE(IsJunkProgram(L"{7C5A40EF}\\Foo\\Uninstall Foo.lnk"));

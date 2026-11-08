@@ -122,7 +122,8 @@ ui::ModernLook ModernStartMenu::Look() const {
   return light ? ui::ModernLook::Win11Light : ui::ModernLook::Win11Dark;
 }
 
-void ModernStartMenu::Open(const RECT& anchor, bool below, unsigned dpi) {
+void ModernStartMenu::Open(const MenuAnchor& anchor) {
+  const unsigned dpi = anchor.dpi;
   dpi_ = dpi;
   canvas_->SetDpi(dpi);
   LoadData();
@@ -132,17 +133,16 @@ void ModernStartMenu::Open(const RECT& anchor, bool below, unsigned dpi) {
 
   MONITORINFO monitor{};
   monitor.cbSize = sizeof(monitor);
-  GetMonitorInfoW(MonitorFromRect(&anchor, MONITOR_DEFAULTTONEAREST), &monitor);
+  GetMonitorInfoW(MonitorFromRect(&anchor.button, MONITOR_DEFAULTTONEAREST), &monitor);
   const RECT& screen = monitor.rcMonitor;
   frame_ = ModernFrame(style_, dpi, screen);
   int x = static_cast<int>(screen.left);
   int y = static_cast<int>(screen.top);
   if (style_ != StartStyle::Win8 && style_ != StartStyle::Win81) {
     const int lift = style_ == StartStyle::Win11 ? ScaleForDpi(kWin11Lift, dpi) : 0;
-    x = std::clamp(static_cast<int>(anchor.left), static_cast<int>(screen.left),
-                   static_cast<int>(screen.right) - frame_.Width());
-    y = below ? static_cast<int>(anchor.bottom) + lift
-              : static_cast<int>(anchor.top) - frame_.Height() - lift;
+    const POINT corner = PlaceMenuWindow(anchor, frame_.Width(), frame_.Height(), lift);
+    x = corner.x;
+    y = corner.y;
   }
   SetWindowPos(hwnd_, HWND_TOPMOST, x, y, frame_.Width(), frame_.Height(), SWP_SHOWWINDOW);
   canvas_->Resize(static_cast<UINT>(frame_.Width()), static_cast<UINT>(frame_.Height()));

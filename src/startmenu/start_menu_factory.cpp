@@ -1,11 +1,27 @@
 #include <utility>
 
+#include "core/start_menu_layout.h"
+
 #include "startmenu/classic_start_menu.h"
 #include "startmenu/modern_start_menu.h"
 #include "startmenu/start_menu.h"
 #include "startmenu/start_menu_window.h"
 
 namespace throwback {
+
+POINT PlaceMenuWindow(const MenuAnchor& anchor, int width, int height, int gap) {
+  MONITORINFO monitor{};
+  monitor.cbSize = sizeof(monitor);
+  GetMonitorInfoW(MonitorFromRect(&anchor.button, MONITOR_DEFAULTTONEAREST), &monitor);
+  const auto rect = [](const RECT& r) {
+    return Rect{static_cast<int>(r.left), static_cast<int>(r.top), static_cast<int>(r.right),
+                static_cast<int>(r.bottom)};
+  };
+  const MenuPosition position =
+      PlaceStartMenu(rect(anchor.button), anchor.below, width, height, rect(monitor.rcMonitor),
+                     rect(monitor.rcWork), anchor.horizontal, anchor.vertical, gap);
+  return {position.x, position.y};
+}
 
 std::unique_ptr<StartMenuWindow> CreateStartMenu(HINSTANCE instance, HWND owner, Settings& settings,
                                                  std::function<void()> onClosed,

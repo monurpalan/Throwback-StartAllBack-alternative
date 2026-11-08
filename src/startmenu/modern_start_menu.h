@@ -28,7 +28,7 @@ class ModernStartMenu : public StartMenuWindow {
   ModernStartMenu(const ModernStartMenu&) = delete;
   ModernStartMenu& operator=(const ModernStartMenu&) = delete;
 
-  void Open(const RECT& anchor, bool below, unsigned dpi) override;
+  void Open(const MenuAnchor& anchor) override;
   void Close() override { Hide(/*restoreFocus=*/true); }
   bool IsOpen() const override;
 

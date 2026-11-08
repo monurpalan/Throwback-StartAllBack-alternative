@@ -8,10 +8,15 @@
 #include <wrl/client.h>
 
 #include <algorithm>
+#include <cstdint>
 #include <filesystem>
+#include <string>
+#include <unordered_map>
 #include <unordered_set>
 
 #include "core/search.h"
+#include "core/user_assist.h"
+#include "startmenu/frequent.h"
 
 using Microsoft::WRL::ComPtr;
 namespace fs = std::filesystem;
@@ -42,6 +47,47 @@ bool IsHidden(const fs::path& path) {
          (attributes & (FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM)) != 0;
 }
 
+// What marks newly installed shortcuts: when each Start Menu shortcut was
+// last started, keyed like UserAssist names them ("{folder GUID}\\path" in
+// lower case), and the time now.
+struct FreshCheck {
+  std::unordered_map<std::wstring, std::uint64_t> lastRun;
+  std::uint64_t now = 0;
+};
+
+// The UserAssist key that records started shortcuts, and the known folder
+// GUIDs it names the two Start Menu program folders by.
+constexpr wchar_t kShortcutUsage[] = L"{F4E57C4B-2036-45F0-A9AB-443BCFE33D9F}";
+constexpr wchar_t kUserPrograms[] = L"{A77F5D77-2E2B-44C3-A6A2-ABA601054A51}";
+constexpr wchar_t kCommonPrograms[] = L"{0139D44E-6AFE-49F2-8690-3DAFCAE6FFB8}";
+
+std::wstring Lower(std::wstring text) {
+  CharLowerBuffW(text.data(), static_cast<DWORD>(text.size()));
+  return text;
+}
+
+FreshCheck LoadFreshCheck() {
+  FreshCheck check;
+  for (const UsageEntry& entry : ReadUserAssist(kShortcutUsage)) {
+    check.lastRun[Lower(entry.appId)] = entry.lastRun;
+  }
+  FILETIME now{};
+  GetSystemTimeAsFileTime(&now);
+  check.now = (static_cast<std::uint64_t>(now.dwHighDateTime) << 32) | now.dwLowDateTime;
+  return check;
+}
+
+// Whether the shortcut at path (key as UserAssist would name it) is new.
+bool IsFresh(const fs::path& path, const std::wstring& key, const FreshCheck& check) {
+  WIN32_FILE_ATTRIBUTE_DATA data{};
+  if (!GetFileAttributesExW(path.c_str(), GetFileExInfoStandard, &data)) return false;
+  const std::uint64_t created =
+      (static_cast<std::uint64_t>(data.ftCreationTime.dwHighDateTime) << 32) |
+      data.ftCreationTime.dwLowDateTime;
+  const auto run = check.lastRun.find(Lower(key));
+  return IsNewlyInstalled(created, check.now, run == check.lastRun.end() ? 0 : run->second);
+}
+
 Program* FindChild(Program& parent, const std::wstring& name, bool folder) {
   const std::wstring key = FoldForSearch(name);
   for (auto& child : parent.children) {
@@ -52,7 +98,9 @@ Program* FindChild(Program& parent, const std::wstring& name, bool folder) {
 
 // Adds a Start Menu folder's contents under parent. Called for the user's and
 // the shared folder in turn, so folders with the same name merge into one.
-void AddFolder(Program& parent, const fs::path& directory) {
+// key is the folder as UserAssist names it.
+void AddFolder(Program& parent, const fs::path& directory, const std::wstring& key,
+               const FreshCheck& check) {
   std::error_code error;
   for (const auto& entry : fs::directory_iterator(directory, error)) {
     const fs::path& path = entry.path();
@@ -67,11 +115,12 @@ void AddFolder(Program& parent, const fs::path& directory) {
         created->folder = true;
         folder = parent.children.emplace_back(std::move(created)).get();
       }
-      AddFolder(*folder, path);
+      AddFolder(*folder, path, key + L"\\" + path.filename().wstring(), check);
     } else if (!FindChild(parent, name, false)) {
       auto program = std::make_unique<Program>();
       program->name = name;
       program->target = path.wstring();
+      program->fresh = IsFresh(path, key + L"\\" + path.filename().wstring(), check);
       parent.children.push_back(std::move(program));
     }
   }
@@ -82,6 +131,8 @@ void AddFolder(Program& parent, const fs::path& directory) {
 void Tidy(Program& folder) {
   for (auto& child : folder.children) {
     if (child->folder) Tidy(*child);
+    // A folder holding a new program is highlighted too.
+    if (child->fresh) folder.fresh = true;
   }
   std::erase_if(folder.children,
                 [](const auto& child) { return child->folder && child->children.empty(); });
@@ -140,10 +191,12 @@ void CollectPrograms(const Program& folder, ProgramCatalog& catalog,
 std::unique_ptr<ProgramCatalog> LoadPrograms() {
   auto catalog = std::make_unique<ProgramCatalog>();
   catalog->root.folder = true;
-  AddFolder(catalog->root, KnownFolderPath(FOLDERID_Programs));
-  AddFolder(catalog->root, KnownFolderPath(FOLDERID_CommonPrograms));
+  const FreshCheck check = LoadFreshCheck();
+  AddFolder(catalog->root, KnownFolderPath(FOLDERID_Programs), kUserPrograms, check);
+  AddFolder(catalog->root, KnownFolderPath(FOLDERID_CommonPrograms), kCommonPrograms, check);
   AddApps(*catalog);
   Tidy(catalog->root);
+  catalog->hasFresh = catalog->root.fresh;
   std::unordered_set<std::wstring> seen;
   CollectPrograms(catalog->root, *catalog, seen);
   return catalog;

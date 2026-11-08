@@ -51,6 +51,7 @@ StartMenu::StartMenu(HINSTANCE instance, HWND owner, Settings& settings, StartSt
                           owner, nullptr, instance, this);
   if (!hwnd_) throw std::runtime_error("CreateWindowEx failed for the start menu");
   canvas_ = std::make_unique<ui::Canvas>(hwnd_);
+  canvas_->SetSkinSet(style_ == StartStyle::Plain8 ? ui::SkinSet::Plain8 : ui::SkinSet::Aero);
   icons_ = std::make_unique<shell::AsyncIconCache>(hwnd_, kIconsReady);
   if (IsXp()) {
     // Luna is opaque; only the banner's rounded corners show the desktop.
@@ -130,27 +131,19 @@ LRESULT StartMenu::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam) {
   return DefWindowProcW(hwnd_, message, wParam, lParam);
 }
 
-void StartMenu::Open(const RECT& anchor, bool below, unsigned dpi) {
+void StartMenu::Open(const MenuAnchor& anchor) {
   folders_.clear();  // may point into the catalog that LoadData replaces
-  dpi_ = dpi;
-  canvas_->SetDpi(dpi);
-  ComputeLayout();
+  dpi_ = anchor.dpi;
+  canvas_->SetDpi(dpi_);
   LoadData();
+  ComputeLayout();
   query_.clear();
   hover_ = {};
   SetMode(Mode::Home);
   const int width = layout_.frame.Width();
   const int height = layout_.frame.Height();
-  MONITORINFO monitor{};
-  monitor.cbSize = sizeof(monitor);
-  GetMonitorInfoW(MonitorFromRect(&anchor, MONITOR_DEFAULTTONEAREST), &monitor);
-  const RECT& screen = monitor.rcMonitor;
-  const int x = std::clamp(static_cast<int>(anchor.left), static_cast<int>(screen.left),
-                           static_cast<int>(screen.right) - width);
-  const int y =
-      std::clamp(below ? static_cast<int>(anchor.bottom) : static_cast<int>(anchor.top) - height,
-                 static_cast<int>(screen.top), static_cast<int>(screen.bottom) - height);
-  SetWindowPos(hwnd_, HWND_TOPMOST, x, y, width, height, SWP_SHOWWINDOW);
+  const POINT corner = PlaceMenuWindow(anchor, width, height);
+  SetWindowPos(hwnd_, HWND_TOPMOST, corner.x, corner.y, width, height, SWP_SHOWWINDOW);
   canvas_->Resize(static_cast<UINT>(width), static_cast<UINT>(height));
   previousForeground_ = GetForegroundWindow();
   shell::BringToFront(hwnd_);
@@ -177,11 +170,14 @@ void StartMenu::LoadData() {
     catalog_ = LoadPrograms();
     catalogLoadedAt_ = now;
   }
-  frequent_ = LoadFrequentPrograms(*catalog_, static_cast<size_t>(layout_.listRows));
-  if (places_.empty()) {
-    places_ = IsXp()                        ? LoadXpPlaces()
-              : style_ == StartStyle::Vista ? LoadVistaPlaces()
-                                            : LoadPlaces();
+  frequent_ = LoadFrequentPrograms(*catalog_, static_cast<size_t>(settings_.menuRows));
+  // The places follow the settings, which the user may have changed since.
+  const auto placesKey = std::make_pair(settings_.placesShown, settings_.placesHidden);
+  if (places_.empty() || placesKey != placesKey_) {
+    places_ = IsXp()                        ? LoadXpPlaces(settings_)
+              : style_ == StartStyle::Vista ? LoadVistaPlaces(settings_)
+                                            : LoadPlaces(settings_);
+    placesKey_ = placesKey;
     account_ = LoadAccount();
   }
 }
@@ -211,7 +207,9 @@ void StartMenu::RebuildRows() {
                          child->folder ? child.get() : nullptr,
                          {},
                          false,
-                         !child->folder});
+                         !child->folder,
+                         {},
+                         child->fresh});
       }
       break;
     }
@@ -259,7 +257,8 @@ int StartMenu::RowHeight() const {
 }
 
 int StartMenu::IconSize() const {
-  return ScaleForDpi(mode_ == Mode::Home ? kLargeIcon : kSmallIcon, dpi_);
+  const bool large = mode_ == Mode::Home && settings_.largeIcons;
+  return ScaleForDpi(large ? kLargeIcon : kSmallIcon, dpi_);
 }
 
 int StartMenu::VisibleRows() const { return layout_.list.Height() / RowHeight(); }
@@ -319,10 +318,12 @@ void StartMenu::Paint() {
         {row.name,
          icons_->Get(row.iconTarget.empty() ? row.target : row.iconTarget, model.iconSize),
          row.folder != nullptr, i == selected_ || i == jumpRow_, row.separatorBefore,
-         !row.appId.empty(), mode_ == Mode::Home && IsPinned(settings_, row.target)});
+         !row.appId.empty(), mode_ == Mode::Home && IsPinned(settings_, row.target),
+         jumpArrowHot_ && hover_.kind == Hit::Kind::Row && hover_.index == i, row.fresh});
   }
   model.showBack = mode_ != Mode::Home;
   model.allProgramsHovered = hover_.kind == Hit::Kind::AllPrograms;
+  model.allProgramsFresh = catalog_ && catalog_->hasFresh;
   model.query = query_;
   model.noResults = mode_ == Mode::Search && rows_.empty();
   model.accountName = account_.name;
@@ -364,7 +365,10 @@ void StartMenu::OnMouseMove(int x, int y) {
     selected_ = jumpRow_;
   }
   const Hit hit = HitTest(x, y);
-  if (hit.kind == hover_.kind && hit.index == hover_.index) return;
+  const bool arrowHot = hit.kind == Hit::Kind::Row && mode_ == Mode::Home &&
+                        OnJumpArrow(hit.index, x);
+  if (hit.kind == hover_.kind && hit.index == hover_.index && arrowHot == jumpArrowHot_) return;
+  jumpArrowHot_ = arrowHot;
   hover_ = hit;
   // Like the classic menu, pointing at a program selects it.
   if (hit.kind == Hit::Kind::Row) selected_ = hit.index;
@@ -378,6 +382,13 @@ void StartMenu::OnMouseMove(int x, int y) {
 }
 
 void StartMenu::OnClick(int x, int y) {
+  // While there is a query, the end of the search box empties it.
+  const Rect& search = layout_.search;
+  if (mode_ == Mode::Search &&
+      Rect{search.right - search.Height(), search.top, search.right, search.bottom}.Contains(x, y)) {
+    SetMode(Mode::Home);
+    return;
+  }
   const Hit hit = HitTest(x, y);
   switch (hit.kind) {
     case Hit::Kind::Row:

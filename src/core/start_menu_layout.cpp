@@ -5,21 +5,18 @@
 namespace throwback {
 namespace {
 
-// Windows 7 proportions at 96 DPI, rounded to the 4 px grid where Windows 7
-// itself doesn't use exact sizes.
-constexpr int kWidth = 400;
+// Windows 7 proportions at 96 DPI (the pane widths are in StartMenuShape);
+// rows are rounded to the 4 px grid where Windows 7 itself doesn't use exact
+// sizes.
 constexpr int kPadding = 8;
-constexpr int kLeftWidth = 248;
-constexpr int kListRows = 10;
 constexpr int kRowHeight = 40;
+constexpr int kSmallRowHeight = 24;
 constexpr int kAllProgramsHeight = 40;
-// The row under the panes. The search box and the shut down button sit where
-// the Windows 7 images put them.
+// The row under the panes. The search box and the shut down button share
+// one 24 px row where the Windows 7 images put them.
 constexpr int kBottomHeight = 54;
 constexpr int kSearchLeft = 21;
-constexpr int kSearchTop = 12;
 constexpr int kSearchRight = 18;  // from the program pane's right edge
-constexpr int kSearchHeight = 22;
 constexpr int kControlTop = 11;
 constexpr int kControlHeight = 24;
 constexpr int kPowerWidth = 76;  // the narrowest it gets
@@ -31,24 +28,30 @@ constexpr int kJumpRowHeight = 24;
 
 }  // namespace
 
-StartMenuLayout ComputeStartMenuLayout(unsigned dpi, int powerLabelWidth) {
+StartMenuLayout ComputeStartMenuLayout(unsigned dpi, int powerLabelWidth,
+                                       const StartMenuShape& shape) {
   const auto s = [dpi](int value) { return ScaleForDpi(value, dpi); };
   const int padding = s(kPadding);
-  const int width = s(kWidth);
-  const int listHeight = kListRows * s(kRowHeight);
-  const int height =
-      padding + listHeight + padding + s(kAllProgramsHeight) + padding + s(kBottomHeight);
+  const int width = s(shape.programPaneWidth + shape.placesWidth);
+  const int rowHeight = s(shape.largeIcons ? kRowHeight : kSmallRowHeight);
+  // The panes are as tall as the taller of the program list and the right
+  // column (the picture, then the places and their separators).
+  const int programs = shape.rows * rowHeight + 2 * padding + s(kAllProgramsHeight);
+  const int places = s(kPictureSize) + padding * 2 + shape.placeRows * s(kPlaceHeight) +
+                     shape.placeSeparators * padding;
+  const int paneHeight = std::max(programs, places);
+  const int height = padding + paneHeight + s(kBottomHeight);
 
   StartMenuLayout layout;
-  layout.rowHeight = s(kRowHeight);
+  layout.rowHeight = rowHeight;
   layout.placeHeight = s(kPlaceHeight);
-  layout.listRows = kListRows;
+  layout.listRows = shape.rows;
   layout.frame = {0, 0, width, height};
 
   const int bottomTop = height - s(kBottomHeight);
-  layout.leftPane = {padding, padding, padding + s(kLeftWidth), bottomTop};
+  layout.leftPane = {padding, padding, s(shape.programPaneWidth), bottomTop};
   layout.list = {layout.leftPane.left, layout.leftPane.top, layout.leftPane.right,
-                 layout.leftPane.top + listHeight};
+                 layout.leftPane.bottom - s(kAllProgramsHeight) - 2 * padding};
   layout.allPrograms = {layout.leftPane.left, layout.leftPane.bottom - s(kAllProgramsHeight),
                         layout.leftPane.right, layout.leftPane.bottom};
 
@@ -57,11 +60,10 @@ StartMenuLayout ComputeStartMenuLayout(unsigned dpi, int powerLabelWidth) {
   layout.placesArea = {layout.leftPane.right, 0, width, bottomTop};
   layout.powerArea = {layout.leftPane.right, bottomTop, width, height};
 
-  const int searchTop = bottomTop + s(kSearchTop);
-  layout.search = {s(kSearchLeft), searchTop, layout.leftPane.right - s(kSearchRight),
-                   searchTop + s(kSearchHeight)};
   const int controlTop = bottomTop + s(kControlTop);
   const int controlBottom = controlTop + s(kControlHeight);
+  layout.search = {s(kSearchLeft), controlTop, layout.leftPane.right - s(kSearchRight),
+                   controlBottom};
 
   const int rightLeft = layout.leftPane.right + padding;
   const int rightRight = width - padding;
@@ -79,7 +81,7 @@ StartMenuLayout ComputeStartMenuLayout(unsigned dpi, int powerLabelWidth) {
 }
 
 StartMenuLayout ComputeXpStartMenuLayout(unsigned dpi, int logOffLabelWidth,
-                                         int turnOffLabelWidth) {
+                                         int turnOffLabelWidth, int rows, bool largeIcons) {
   // Luna's NormalBlue.ini at 96 DPI: a 380 x 440 panel of a 64 px banner,
   // two 190 px wide columns and a 40 px log off bar.
   constexpr int kXpWidth = 380;
@@ -88,8 +90,10 @@ StartMenuLayout ComputeXpStartMenuLayout(unsigned dpi, int logOffLabelWidth,
   constexpr int kXpColumns = 336;
   constexpr int kXpMorePrograms = 30;
   constexpr int kXpBar = 40;
-  constexpr int kXpRow = 36;
-  constexpr int kXpRows = 8;
+  constexpr int kXpLargeRow = 36;
+  constexpr int kXpSmallRow = 24;
+  constexpr int kXpListTop = 9;
+  constexpr int kXpListBottom = 5;
   constexpr int kXpPlace = 26;
   constexpr int kXpPicture = 48;
   constexpr int kXpPictureLeft = 8;
@@ -100,8 +104,13 @@ StartMenuLayout ComputeXpStartMenuLayout(unsigned dpi, int logOffLabelWidth,
 
   StartMenuLayout layout;
   const int width = s(kXpWidth);
+  const int kXpRow = largeIcons ? kXpLargeRow : kXpSmallRow;
+  const int kXpRows = rows;
+  // Luna's columns, taller when the list needs more room.
+  const int columns =
+      std::max(kXpColumns, kXpListTop + rows * kXpRow + kXpListBottom + kXpMorePrograms);
   const int columnsTop = s(kXpBanner);
-  const int barTop = columnsTop + s(kXpColumns);
+  const int barTop = columnsTop + s(columns);
   const int middle = s(kXpColumn);
   layout.frame = {0, 0, width, barTop + s(kXpBar)};
   layout.userPane = {0, 0, width, columnsTop};
@@ -118,7 +127,7 @@ StartMenuLayout ComputeXpStartMenuLayout(unsigned dpi, int logOffLabelWidth,
 
   layout.rowHeight = s(kXpRow);
   layout.listRows = kXpRows;
-  const int listTop = columnsTop + s(9);
+  const int listTop = columnsTop + s(kXpListTop);
   layout.list = {s(6), listTop, middle - s(4), listTop + kXpRows * layout.rowHeight};
   layout.allPrograms = layout.searchArea;
   layout.placeHeight = s(kXpPlace);
@@ -136,7 +145,7 @@ StartMenuLayout ComputeXpStartMenuLayout(unsigned dpi, int logOffLabelWidth,
   return layout;
 }
 
-StartMenuLayout ComputeVistaStartMenuLayout(unsigned dpi) {
+StartMenuLayout ComputeVistaStartMenuLayout(unsigned dpi, const StartMenuShape& shape) {
   // At 96 DPI: Windows 7's columns, a 30 px All Programs piece closing the
   // pane, a 40 px search row on the glass, and the theme's 24 px power and
   // lock buttons beside a 23 x 30 arrow button.
@@ -149,7 +158,7 @@ StartMenuLayout ComputeVistaStartMenuLayout(unsigned dpi) {
   constexpr int kVistaArrowHeight = 30;
   constexpr int kVistaPlace = 30;
   const auto s = [dpi](int value) { return ScaleForDpi(value, dpi); };
-  StartMenuLayout layout = ComputeStartMenuLayout(dpi);
+  StartMenuLayout layout = ComputeStartMenuLayout(dpi, 0, shape);
   const int padding = s(kPadding);
   const int paneRight = layout.leftPane.right;
   const int moreTop = layout.list.bottom + padding;
@@ -179,6 +188,29 @@ StartMenuLayout ComputeVistaStartMenuLayout(unsigned dpi) {
   layout.places.bottom = arrowTop - padding;
   layout.jumpList = {};
   return layout;
+}
+
+MenuPosition PlaceStartMenu(const Rect& anchor, bool below, int width, int height,
+                            const Rect& screen, const Rect& work, MenuHorizontal horizontal,
+                            MenuVertical vertical, int gap) {
+  MenuPosition position;
+  // Left: from the start button, kept inside the work area so it never
+  // covers a bar on the left or right edge; right: against the work area.
+  position.x = horizontal == MenuHorizontal::Right
+                   ? work.right - width
+                   : std::clamp(anchor.left, work.left, std::max(work.left, work.right - width));
+  position.x = std::clamp(position.x, screen.left, std::max(screen.left, screen.right - width));
+
+  // Against the bar when the menu opens on the bar's side, else against the
+  // work area's edge.
+  const bool top = vertical == MenuVertical::Bar ? below : vertical == MenuVertical::Top;
+  if (top) {
+    position.y = (below ? anchor.bottom : work.top) + gap;
+  } else {
+    position.y = (below ? work.bottom : anchor.top) - height - gap;
+  }
+  position.y = std::clamp(position.y, screen.top, std::max(screen.top, screen.bottom - height));
+  return position;
 }
 
 }  // namespace throwback

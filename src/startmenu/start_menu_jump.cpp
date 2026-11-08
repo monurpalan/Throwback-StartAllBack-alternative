@@ -1,5 +1,6 @@
 // The start menu's jump lists: a program's recent documents beside it.
 #include "startmenu/start_menu.h"
+#include "startmenu/start_menu_view.h"
 
 namespace throwback {
 namespace {
@@ -7,14 +8,13 @@ namespace {
 constexpr UINT_PTR kJumpTimer = 1;
 constexpr UINT kJumpDelayMs = 400;
 constexpr size_t kMaxJumpItems = 16;
-constexpr int kArrowWidth = 24;
 
 }  // namespace
 
 bool StartMenu::OnJumpArrow(int row, int x) const {
   if (row < 0 || row >= static_cast<int>(rows_.size())) return false;
   if (rows_[static_cast<size_t>(row)].appId.empty()) return false;
-  return x >= layout_.list.right - ScaleForDpi(kArrowWidth, dpi_);
+  return x >= layout_.list.right - ScaleForDpi(kJumpArrowWidth, dpi_);
 }
 
 void StartMenu::HoverJumpList(int row) {
