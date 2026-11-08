@@ -9,11 +9,11 @@ constexpr std::array<Translation, kStringCount> kTable = {{
     {StringId::ExitThrowback, L"Exit Throwback", L"Throwback'ten çık"},
     {StringId::UnknownArgument, L"Unknown argument: ", L"Bilinmeyen argüman: "},
     {StringId::Usage,
-     L"Usage: throwback.exe [--edge=top|bottom] [--theme=system|light|dark] "
-     L"[--lang=system|en|tr] [--start-style=98|me|2000|xp|vista|7|8|8.1|10|11] "
+     L"Usage: throwback.exe [--edge=top|bottom|left|right] [--theme=system|light|dark] "
+     L"[--lang=system|en|tr] [--start-style=98|me|2000|xp|vista|7|plain8|8|8.1|10|11] "
      L"[--profile=<name>]",
-     L"Kullanım: throwback.exe [--edge=top|bottom] [--theme=system|light|dark] "
-     L"[--lang=system|en|tr] [--start-style=98|me|2000|xp|vista|7|8|8.1|10|11] "
+     L"Kullanım: throwback.exe [--edge=top|bottom|left|right] [--theme=system|light|dark] "
+     L"[--lang=system|en|tr] [--start-style=98|me|2000|xp|vista|7|plain8|8|8.1|10|11] "
      L"[--profile=<ad>]"},
     {StringId::AllPrograms, L"All Programs", L"Tüm Programlar"},
     {StringId::Back, L"Back", L"Geri"},
@@ -99,6 +99,22 @@ constexpr std::array<Translation, kStringCount> kTable = {{
     {StringId::Ok, L"OK", L"Tamam"},
     {StringId::Cancel, L"Cancel", L"İptal"},
     {StringId::Apply, L"Apply", L"Uygula"},
+    {StringId::MenuPositionLabel, L"Menu side:", L"Menü tarafı:"},
+    {StringId::MenuLeft, L"Left", L"Sol"},
+    {StringId::MenuRight, L"Right", L"Sağ"},
+    {StringId::MenuEdgeLabel, L"Menu edge:", L"Menü kenarı:"},
+    {StringId::MenuNextToBar, L"Taskbar side", L"Görev çubuğu tarafı"},
+    {StringId::MenuScreenTop, L"Top of the screen", L"Ekranın üstü"},
+    {StringId::MenuScreenBottom, L"Bottom of the screen", L"Ekranın altı"},
+    {StringId::OrbLabel, L"Start button:", L"Başlat düğmesi:"},
+    {StringId::OrbStyle, L"Match the style", L"Görünüme göre"},
+    {StringId::OrbClover, L"Clover", L"Yonca"},
+    {StringId::OrbWin8, L"Windows 8 logo", L"Windows 8 logosu"},
+    {StringId::CustomizeTitle, L"Customize Start Menu", L"Başlat Menüsünü Özelleştir"},
+    {StringId::MenuRowsLabel, L"Number of recent programs to display:",
+     L"Gösterilecek son program sayısı:"},
+    {StringId::LargeIcons, L"Use large icons", L"Büyük simgeler kullan"},
+    {StringId::PlacesLabel, L"Show in the right column:", L"Sağ sütunda göster:"},
     {StringId::SettingsDisplay, L"Display", L"Ekran"},
     {StringId::SettingsNightLight, L"Night light", L"Gece ışığı"},
     {StringId::SettingsSound, L"Sound", L"Ses"},
@@ -134,6 +150,11 @@ constexpr std::array<Translation, kStringCount> kTable = {{
     {StringId::SettingsPrivacy, L"Privacy & security", L"Gizlilik ve güvenlik"},
     {StringId::SettingsWindowsUpdate, L"Windows Update", L"Windows Güncelleştirme"},
     {StringId::SettingsRecovery, L"Recovery", L"Kurtarma"},
+    {StringId::StartWithWindows, L"Start Throwback with Windows", L"Windows açılınca başlat"},
+    {StringId::MenuStartStyle, L"Start menu style", L"Başlat menüsü görünümü"},
+    {StringId::MenuStartButton, L"Start button", L"Başlat düğmesi"},
+    {StringId::MenuSide, L"Start menu side", L"Başlat menüsü tarafı"},
+    {StringId::MenuCustomizeStart, L"Customize Start menu...", L"Başlat menüsünü özelleştir..."},
 }};
 
 // A missing or misplaced translation fails the build, not the user.

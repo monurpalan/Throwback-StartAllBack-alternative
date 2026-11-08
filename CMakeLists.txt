@@ -59,11 +59,12 @@ add_library(throwback_ui STATIC
   src/ui/theme.cpp
   src/ui/xp.cpp)
 target_link_libraries(throwback_ui
-  PUBLIC throwback_core d2d1 dwrite windowscodecs dwmapi
+  PUBLIC throwback_core d2d1 dwrite windowscodecs dwmapi shlwapi
   PRIVATE throwback_options)
 
 add_executable(throwback WIN32
   src/shell/async_icons.cpp
+  src/shell/autostart.cpp
   src/shell/launch.cpp
   src/shell/recent_items.cpp
   src/shell/settings_store.cpp
@@ -98,6 +99,9 @@ add_executable(throwback WIN32
   src/taskbar/notify_icon_settings.cpp
   src/taskbar/system_taskbar.cpp
   src/taskbar/settings_dialog.cpp
+  src/taskbar/dialog_controls.cpp
+  src/taskbar/start_menu_customize.cpp
+  src/taskbar/taskbar_menu.cpp
   src/taskbar/task_status.cpp
   src/taskbar/taskband_hook.cpp
   src/taskbar/taskbar_settings.cpp
@@ -115,7 +119,7 @@ target_link_libraries(throwback PRIVATE
 # that is there; without one, the UI kit draws its own version of its parts.
 set(THROWBACK_ASSET_DIRS "${CMAKE_SOURCE_DIR}/src")
 set(THROWBACK_ASSET_DEFINES "")
-foreach(folder win7 classic xp vista win8 modern)
+foreach(folder win7 classic xp vista win8 modern orbs plain8)
   if(EXISTS ${CMAKE_SOURCE_DIR}/assets/${folder})
     list(APPEND THROWBACK_ASSET_DIRS "${CMAKE_SOURCE_DIR}/assets/${folder}")
     string(TOUPPER ${folder} upper)

@@ -12,11 +12,38 @@ TEST(SettingsTest, RoundTripsThroughValues) {
   settings.language = LanguageMode::Turkish;
   settings.hideSystemTaskbar = true;
   settings.windowsKeyOpensMenu = false;
+  settings.startWithWindows = false;
+  settings.welcomeShown = true;
   settings.startStyle = StartStyle::WinXp;
   settings.pinned = {L"C:\\a.lnk", L"shell:AppsFolder\\App!Id"};
   settings.trayShown = {L"c:\\apps\\a.exe|1"};
   settings.trayHidden = {L"g1.2.3.", L"c:\\apps\\b.exe|0"};
+  settings.menuHorizontal = MenuHorizontal::Right;
+  settings.menuVertical = MenuVertical::Top;
+  settings.orb = OrbChoice::Clover;
+  settings.menuRows = 14;
+  settings.largeIcons = false;
+  settings.placesShown = {L"videos"};
+  settings.placesHidden = {L"music", L"run"};
   EXPECT_EQ(FromValues(ToValues(settings)), settings);
+}
+
+TEST(SettingsTest, MenuRowsStayInRange) {
+  EXPECT_EQ(FromValues({{L"MenuRows", L"3"}}).menuRows, kDefaultMenuRows);
+  EXPECT_EQ(FromValues({{L"MenuRows", L"21"}}).menuRows, kDefaultMenuRows);
+  EXPECT_EQ(FromValues({{L"MenuRows", L"x"}}).menuRows, kDefaultMenuRows);
+  EXPECT_EQ(FromValues({{L"MenuRows", L"4"}}).menuRows, 4);
+  EXPECT_EQ(FromValues({{L"MenuRows", L"20"}}).menuRows, 20);
+}
+
+TEST(SettingsTest, PlacesKeepDefaultsUntilChanged) {
+  Settings settings;
+  EXPECT_TRUE(IsPlaceShown(settings, L"music", true));
+  EXPECT_FALSE(IsPlaceShown(settings, L"videos", false));
+  SetPlaceShown(settings, L"music", false);
+  SetPlaceShown(settings, L"videos", true);
+  EXPECT_FALSE(IsPlaceShown(settings, L"music", true));
+  EXPECT_TRUE(IsPlaceShown(settings, L"videos", false));
 }
 
 TEST(SettingsTest, TrayIconsFollowWindowsUntilMoved) {
@@ -35,7 +62,7 @@ TEST(SettingsTest, TrayIconsFollowWindowsUntilMoved) {
 TEST(SettingsTest, MissingOrBadValuesKeepDefaults) {
   EXPECT_EQ(FromValues({}), Settings{});
   const Settings settings =
-      FromValues({{L"Edge", L"left"}, {L"HideSystemTaskbar", L"yes"}, {L"Theme", L"dark"}});
+      FromValues({{L"Edge", L"middle"}, {L"HideSystemTaskbar", L"yes"}, {L"Theme", L"dark"}});
   EXPECT_EQ(settings.edge, Edge::Top);
   EXPECT_FALSE(settings.hideSystemTaskbar);
   EXPECT_EQ(settings.theme, ThemeMode::Dark);

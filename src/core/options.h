@@ -7,14 +7,29 @@
 
 namespace throwback {
 
-enum class Edge { Top, Bottom };
+enum class Edge { Top, Bottom, Left, Right };
+// A bar on the left or right edge stands upright.
+inline bool IsVertical(Edge edge) { return edge == Edge::Left || edge == Edge::Right; }
 enum class ThemeMode { System, Light, Dark };
 enum class LanguageMode { System, English, Turkish };
 // Which Windows version's start menu (and start button) to show.
-enum class StartStyle { Win98, WinMe, Win2000, WinXp, Vista, Win7, Win8, Win81, Win10, Win11 };
+// Plain8 is StartAllBack's flat theme for Windows 7's start menu.
+enum class StartStyle {
+  Win98,
+  WinMe,
+  Win2000,
+  WinXp,
+  Vista,
+  Win7,
+  Win8,
+  Win81,
+  Win10,
+  Win11,
+  Plain8
+};
 
 // The short names used on the command line and in saved settings: "98",
-// "me", "2000", "xp", "vista", "7", "8", "8.1", "10", "11".
+// "me", "2000", "xp", "vista", "7", "8", "8.1", "10", "11", "plain8".
 std::wstring_view StartStyleName(StartStyle style);
 std::optional<StartStyle> ParseStartStyle(std::wstring_view name);
 

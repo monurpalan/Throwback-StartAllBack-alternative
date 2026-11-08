@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "core/monitor_diff.h"
+#include "shell/autostart.h"
 #include "taskbar/taskbar_window.h"
 #include "ui/strings.h"
 
@@ -70,6 +71,7 @@ void BarManager::ApplySettings(const Settings& edited) {
   Settings next = edited;
   next.pinned = settings_.pinned;
   store_.Save(next);
+  shell::SetStartWithWindows(store_.Profile(), next.startWithWindows);
   const bool moved = next.edge != settings_.edge;
   settings_ = next;
 

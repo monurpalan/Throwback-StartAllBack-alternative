@@ -14,8 +14,10 @@ class SettingsStore {
 
   Settings Load() const;
   void Save(const Settings& settings) const;
+  const std::wstring& Profile() const { return profile_; }
 
  private:
+  std::wstring profile_;
   std::wstring keyPath_;
 };
 

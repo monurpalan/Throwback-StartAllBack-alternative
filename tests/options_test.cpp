@@ -58,9 +58,9 @@ TEST(OptionsTest, ParsesStartStyles) {
 }
 
 TEST(OptionsTest, ReportsUnknownArguments) {
-  const ParseResult result = ParseOptions({L"--edge=left", L"--verbose", L"--lang=de"});
+  const ParseResult result = ParseOptions({L"--edge=middle", L"--verbose", L"--lang=de"});
   ASSERT_EQ(result.unknownArguments.size(), 3u);
-  EXPECT_EQ(result.unknownArguments[0], L"--edge=left");
+  EXPECT_EQ(result.unknownArguments[0], L"--edge=middle");
   EXPECT_EQ(result.unknownArguments[2], L"--lang=de");
 }
 

@@ -14,6 +14,7 @@ BarFamily BarFamilyOf(StartStyle style) {
     case StartStyle::Vista:
       return BarFamily::Vista;
     case StartStyle::Win7:
+    case StartStyle::Plain8:
       return BarFamily::Win7;
     case StartStyle::Win8:
     case StartStyle::Win81:

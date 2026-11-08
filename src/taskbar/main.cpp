@@ -8,7 +8,9 @@
 
 #include "core/options.h"
 #include "core/settings.h"
+#include "shell/autostart.h"
 #include "shell/settings_store.h"
+#include "startmenu/start_menu_window.h"
 #include "taskbar/bar_manager.h"
 #include "ui/strings.h"
 
@@ -50,7 +52,17 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int) {
   using throwback::ui::Tr;
   const throwback::ParseResult parsed = throwback::ParseOptions(CommandLineArgs());
   const throwback::shell::SettingsStore store(parsed.options.profile);
-  const throwback::Settings settings = throwback::WithOverrides(store.Load(), parsed.options);
+  // The first run takes the Windows taskbar's place and opens the properties,
+  // as StartAllBack opens its welcome page. Test profiles skip it.
+  throwback::Settings saved = store.Load();
+  const bool firstRun = !saved.welcomeShown && parsed.options.profile == L"default";
+  if (firstRun) {
+    saved.welcomeShown = true;
+    saved.hideSystemTaskbar = true;
+    saved.edge = throwback::shell::SystemTaskbarEdge();
+    store.Save(saved);
+  }
+  const throwback::Settings settings = throwback::WithOverrides(saved, parsed.options);
   throwback::ui::SetLanguage(throwback::ui::LanguageFor(settings.language));
   if (!parsed.unknownArguments.empty()) {
     std::wstring text;
@@ -68,6 +80,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int) {
   int exitCode = 0;
   try {
     throwback::BarManager bars(instance, settings, store);
+    if (firstRun) PostMessageW(bars.MainWindow(), throwback::kOpenSettingsMessage, 0, 0);
     exitCode = RunMessageLoop();
   } catch (const std::exception& error) {
     MessageBoxA(nullptr, error.what(), "Throwback", MB_ICONERROR);

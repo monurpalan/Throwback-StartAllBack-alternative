@@ -2,8 +2,12 @@
 
 #include <array>
 #include <string>
+#include <string_view>
+#include <vector>
 
 #include "core/layout.h"
+#include "taskbar/dialog_controls.h"
+#include "taskbar/start_menu_customize.h"
 #include "ui/strings.h"
 
 namespace throwback {
@@ -13,7 +17,7 @@ using ui::StringId;
 
 constexpr wchar_t kClassName[] = L"ThrowbackSettings";
 constexpr int kWidth = 420;
-constexpr int kHeight = 344;
+constexpr int kHeight = 442;
 constexpr int kApply = 100;
 constexpr int kEdge = 101;
 constexpr int kHideTaskbar = 102;
@@ -21,16 +25,18 @@ constexpr int kWindowsKey = 103;
 constexpr int kLanguage = 104;
 constexpr int kTheme = 105;
 constexpr int kStartStyle = 106;
-// Product names, the same in every language.
-constexpr std::array<const wchar_t*, 10> kStyleNames{
-    L"Windows 98", L"Windows Me", L"Windows 2000", L"Windows XP", L"Windows Vista",
-    L"Windows 7",  L"Windows 8",  L"Windows 8.1",  L"Windows 10", L"Windows 11"};
+constexpr int kMenuSide = 107;
+constexpr int kMenuEdge = 108;
+constexpr int kOrb = 109;
+constexpr int kCustomize = 110;
+constexpr int kStartWithWindows = 111;
+constexpr const auto& kStyles = kStartStyles;
 
 struct Dialog {
+  HINSTANCE instance = nullptr;
   Settings settings;
   const std::function<void(const Settings&)>* apply = nullptr;
-  HFONT font = nullptr;
-  unsigned dpi = 96;
+  DialogLook look;
   bool done = false;
 };
 
@@ -38,83 +44,116 @@ HWND g_open = nullptr;  // one dialog at a time
 
 HWND Control(HWND parent, const Dialog& dialog, const wchar_t* type, StringId text, DWORD style,
              int id, Rect rect) {
-  const auto s = [&](int value) { return ScaleForDpi(value, dialog.dpi); };
-  HWND control = CreateWindowExW(
-      0, type, text == StringId::kCount ? L"" : std::wstring(ui::Tr(text)).c_str(),
-      WS_CHILD | WS_VISIBLE | style, s(rect.left), s(rect.top), s(rect.Width()), s(rect.Height()),
-      parent, reinterpret_cast<HMENU>(static_cast<INT_PTR>(id)), nullptr, nullptr);
-  SendMessageW(control, WM_SETFONT, reinterpret_cast<WPARAM>(dialog.font), TRUE);
-  return control;
+  return CreateDialogControl(parent, dialog.look, type,
+                             text == StringId::kCount ? std::wstring_view() : ui::Tr(text), style,
+                             id, rect);
 }
 
-template <size_t N>
-void FillCombo(HWND combo, const std::array<StringId, N>& items, int selected) {
-  for (StringId item : items) {
-    SendMessageW(combo, CB_ADDSTRING, 0,
-                 reinterpret_cast<LPARAM>(std::wstring(ui::Tr(item)).c_str()));
+void FillCombo(HWND combo, const std::vector<std::wstring_view>& items, int selected) {
+  for (std::wstring_view item : items) {
+    SendMessageW(combo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(std::wstring(item).c_str()));
   }
   SendMessageW(combo, CB_SETCURSEL, static_cast<WPARAM>(selected), 0);
 }
 
+// A label with a drop-down list beside it.
+void LabeledCombo(HWND hwnd, const Dialog& dialog, StringId label, int id, int top,
+                  const std::vector<std::wstring_view>& items, int selected) {
+  constexpr DWORD kCombo = CBS_DROPDOWNLIST | WS_TABSTOP | WS_VSCROLL;
+  Control(hwnd, dialog, L"STATIC", label, SS_LEFT, 0, {20, top + 4, 236, top + 24});
+  FillCombo(Control(hwnd, dialog, L"COMBOBOX", StringId::kCount, kCombo, id,
+                    {244, top, 400, top + 200}),
+            items, selected);
+}
+
+int StyleIndex(StartStyle style) {
+  for (size_t i = 0; i < kStyles.size(); ++i) {
+    if (kStyles[i].style == style) return static_cast<int>(i);
+  }
+  return 0;
+}
+
+void CreateStartMenuControls(HWND hwnd, const Dialog& dialog) {
+  const Settings& s = dialog.settings;
+  Control(hwnd, dialog, L"BUTTON", StringId::StartMenuGroup, BS_GROUPBOX, 0, {8, 112, 412, 296});
+  std::vector<std::wstring_view> styles;
+  for (const StyleName& style : kStyles) styles.emplace_back(style.name);
+  LabeledCombo(hwnd, dialog, StringId::StartStyleLabel, kStartStyle, 134, styles,
+               StyleIndex(s.startStyle));
+  LabeledCombo(hwnd, dialog, StringId::MenuPositionLabel, kMenuSide, 166,
+               {ui::Tr(StringId::MenuLeft), ui::Tr(StringId::MenuRight)},
+               static_cast<int>(s.menuHorizontal));
+  LabeledCombo(hwnd, dialog, StringId::MenuEdgeLabel, kMenuEdge, 198,
+               {ui::Tr(StringId::MenuNextToBar), ui::Tr(StringId::MenuScreenTop),
+                ui::Tr(StringId::MenuScreenBottom)},
+               static_cast<int>(s.menuVertical));
+  LabeledCombo(hwnd, dialog, StringId::OrbLabel, kOrb, 230,
+               {ui::Tr(StringId::OrbStyle), L"Windows 7", L"Windows Vista",
+                ui::Tr(StringId::OrbClover), ui::Tr(StringId::OrbWin8), L"E1even"},
+               static_cast<int>(s.orb));
+  Control(hwnd, dialog, L"BUTTON", StringId::WindowsKeyOpensMenu, BS_AUTOCHECKBOX | WS_TABSTOP,
+          kWindowsKey, {20, 266, 296, 286});
+  Control(hwnd, dialog, L"BUTTON", StringId::CustomizeIcons, BS_PUSHBUTTON | WS_TABSTOP,
+          kCustomize, {304, 262, 400, 286});
+  CheckDlgButton(hwnd, kWindowsKey, s.windowsKeyOpensMenu ? BST_CHECKED : BST_UNCHECKED);
+  EnableWindow(GetDlgItem(hwnd, kCustomize), HasCustomizableMenu(s.startStyle));
+}
+
 void CreateControls(HWND hwnd, const Dialog& dialog) {
   constexpr DWORD kGroup = BS_GROUPBOX;
-  constexpr DWORD kCheck = BS_AUTOCHECKBOX | WS_TABSTOP;
-  constexpr DWORD kCombo = CBS_DROPDOWNLIST | WS_TABSTOP | WS_VSCROLL;
   const Settings& s = dialog.settings;
 
   Control(hwnd, dialog, L"BUTTON", StringId::TaskbarAppearance, kGroup, 0, {8, 8, 412, 104});
-  Control(hwnd, dialog, L"STATIC", StringId::TaskbarLocation, SS_LEFT, 0, {20, 34, 236, 54});
-  FillCombo(
-      Control(hwnd, dialog, L"COMBOBOX", StringId::kCount, kCombo, kEdge, {244, 30, 400, 130}),
-      std::array{StringId::LocationTop, StringId::LocationBottom}, s.edge == Edge::Top ? 0 : 1);
-  Control(hwnd, dialog, L"BUTTON", StringId::HideWindowsTaskbar, kCheck, kHideTaskbar,
-          {20, 66, 400, 86});
+  LabeledCombo(hwnd, dialog, StringId::TaskbarLocation, kEdge, 30,
+               {ui::Tr(StringId::LocationTop), ui::Tr(StringId::LocationBottom),
+                ui::Tr(StringId::MenuLeft), ui::Tr(StringId::MenuRight)},
+               static_cast<int>(s.edge));
+  Control(hwnd, dialog, L"BUTTON", StringId::HideWindowsTaskbar, BS_AUTOCHECKBOX | WS_TABSTOP,
+          kHideTaskbar, {20, 62, 400, 80});
+  CheckDlgButton(hwnd, kHideTaskbar, s.hideSystemTaskbar ? BST_CHECKED : BST_UNCHECKED);
+  Control(hwnd, dialog, L"BUTTON", StringId::StartWithWindows, BS_AUTOCHECKBOX | WS_TABSTOP,
+          kStartWithWindows, {20, 82, 400, 100});
+  CheckDlgButton(hwnd, kStartWithWindows, s.startWithWindows ? BST_CHECKED : BST_UNCHECKED);
 
-  Control(hwnd, dialog, L"BUTTON", StringId::StartMenuGroup, kGroup, 0, {8, 112, 412, 198});
-  Control(hwnd, dialog, L"STATIC", StringId::StartStyleLabel, SS_LEFT, 0, {20, 138, 236, 158});
-  HWND style = Control(hwnd, dialog, L"COMBOBOX", StringId::kCount, kCombo, kStartStyle,
-                       {244, 134, 400, 334});
-  for (const wchar_t* name : kStyleNames) {
-    SendMessageW(style, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(name));
-  }
-  SendMessageW(style, CB_SETCURSEL, static_cast<WPARAM>(s.startStyle), 0);
-  Control(hwnd, dialog, L"BUTTON", StringId::WindowsKeyOpensMenu, kCheck, kWindowsKey,
-          {20, 166, 400, 186});
+  CreateStartMenuControls(hwnd, dialog);
 
-  Control(hwnd, dialog, L"BUTTON", StringId::LanguageAndTheme, kGroup, 0, {8, 206, 412, 296});
-  Control(hwnd, dialog, L"STATIC", StringId::LanguageLabel, SS_LEFT, 0, {20, 232, 236, 252});
-  FillCombo(
-      Control(hwnd, dialog, L"COMBOBOX", StringId::kCount, kCombo, kLanguage, {244, 228, 400, 328}),
-      std::array{StringId::LanguageSystem, StringId::LanguageEnglish, StringId::LanguageTurkish},
-      static_cast<int>(s.language));
-  Control(hwnd, dialog, L"STATIC", StringId::MenuTheme, SS_LEFT, 0, {20, 264, 236, 284});
-  FillCombo(
-      Control(hwnd, dialog, L"COMBOBOX", StringId::kCount, kCombo, kTheme, {244, 260, 400, 360}),
-      std::array{StringId::ThemeSystem, StringId::ThemeLight, StringId::ThemeDark},
-      static_cast<int>(s.theme));
+  Control(hwnd, dialog, L"BUTTON", StringId::LanguageAndTheme, kGroup, 0, {8, 304, 412, 394});
+  LabeledCombo(hwnd, dialog, StringId::LanguageLabel, kLanguage, 326,
+               {ui::Tr(StringId::LanguageSystem), ui::Tr(StringId::LanguageEnglish),
+                ui::Tr(StringId::LanguageTurkish)},
+               static_cast<int>(s.language));
+  LabeledCombo(hwnd, dialog, StringId::MenuTheme, kTheme, 358,
+               {ui::Tr(StringId::ThemeSystem), ui::Tr(StringId::ThemeLight),
+                ui::Tr(StringId::ThemeDark)},
+               static_cast<int>(s.theme));
 
   Control(hwnd, dialog, L"BUTTON", StringId::Ok, BS_DEFPUSHBUTTON | WS_TABSTOP, IDOK,
-          {156, 308, 236, 332});
+          {156, 406, 236, 430});
   Control(hwnd, dialog, L"BUTTON", StringId::Cancel, BS_PUSHBUTTON | WS_TABSTOP, IDCANCEL,
-          {244, 308, 324, 332});
+          {244, 406, 324, 430});
   Control(hwnd, dialog, L"BUTTON", StringId::Apply, BS_PUSHBUTTON | WS_TABSTOP, kApply,
-          {332, 308, 412, 332});
-
-  CheckDlgButton(hwnd, kHideTaskbar, s.hideSystemTaskbar ? BST_CHECKED : BST_UNCHECKED);
-  CheckDlgButton(hwnd, kWindowsKey, s.windowsKeyOpensMenu ? BST_CHECKED : BST_UNCHECKED);
+          {332, 406, 412, 430});
 }
 
 int Selection(HWND hwnd, int id) {
   return static_cast<int>(SendDlgItemMessageW(hwnd, id, CB_GETCURSEL, 0, 0));
 }
 
+StartStyle SelectedStyle(HWND hwnd) {
+  return kStyles.at(static_cast<size_t>(Selection(hwnd, kStartStyle))).style;
+}
+
 void ReadControls(HWND hwnd, Settings& settings) {
-  settings.edge = Selection(hwnd, kEdge) == 0 ? Edge::Top : Edge::Bottom;
+  settings.edge = static_cast<Edge>(Selection(hwnd, kEdge));
   settings.hideSystemTaskbar = IsDlgButtonChecked(hwnd, kHideTaskbar) == BST_CHECKED;
   settings.windowsKeyOpensMenu = IsDlgButtonChecked(hwnd, kWindowsKey) == BST_CHECKED;
+  settings.startWithWindows = IsDlgButtonChecked(hwnd, kStartWithWindows) == BST_CHECKED;
   settings.language = static_cast<LanguageMode>(Selection(hwnd, kLanguage));
   settings.theme = static_cast<ThemeMode>(Selection(hwnd, kTheme));
-  settings.startStyle = static_cast<StartStyle>(Selection(hwnd, kStartStyle));
+  settings.startStyle = SelectedStyle(hwnd);
+  settings.menuHorizontal = static_cast<MenuHorizontal>(Selection(hwnd, kMenuSide));
+  settings.menuVertical = static_cast<MenuVertical>(Selection(hwnd, kMenuEdge));
+  settings.orb = static_cast<OrbChoice>(Selection(hwnd, kOrb));
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
@@ -132,6 +171,17 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
       return reinterpret_cast<LRESULT>(GetSysColorBrush(COLOR_BTNFACE));
     case WM_COMMAND: {
       const int id = LOWORD(wParam);
+      if (dialog && id == kStartStyle && HIWORD(wParam) == CBN_SELCHANGE) {
+        // Customize shapes the chosen style's menu, so it follows the list.
+        dialog->settings.startStyle = SelectedStyle(hwnd);
+        EnableWindow(GetDlgItem(hwnd, kCustomize),
+                     HasCustomizableMenu(dialog->settings.startStyle));
+        return 0;
+      }
+      if (dialog && id == kCustomize) {
+        ShowCustomizeStartMenu(dialog->instance, hwnd, dialog->settings);
+        return 0;
+      }
       if (!dialog || (id != IDOK && id != IDCANCEL && id != kApply)) break;
       if (id != IDCANCEL) {
         ReadControls(hwnd, dialog->settings);
@@ -148,12 +198,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
       return 0;
   }
   return DefWindowProcW(hwnd, message, wParam, lParam);
-}
-
-HFONT CreateDialogFont(unsigned dpi) {
-  NONCLIENTMETRICSW metrics{sizeof(metrics)};
-  SystemParametersInfoForDpi(SPI_GETNONCLIENTMETRICS, sizeof(metrics), &metrics, 0, dpi);
-  return CreateFontIndirectW(&metrics.lfMessageFont);
 }
 
 }  // namespace
@@ -173,54 +217,23 @@ void ShowSettingsDialog(HINSTANCE instance, HWND owner, const Settings& current,
   windowClass.lpszClassName = kClassName;
   RegisterClassExW(&windowClass);
 
-  Dialog dialog{current, &apply};
-  dialog.dpi = GetDpiForWindow(owner);
-  dialog.font = CreateDialogFont(dialog.dpi);
-
-  // Size the frame around a client area of the dialog's size, centered on
-  // the owner's monitor.
-  constexpr DWORD kStyle = WS_POPUP | WS_CAPTION | WS_SYSMENU;
-  RECT frame{0, 0, ScaleForDpi(kWidth, dialog.dpi), ScaleForDpi(kHeight, dialog.dpi)};
-  AdjustWindowRectExForDpi(&frame, kStyle, FALSE, WS_EX_DLGMODALFRAME, dialog.dpi);
-  MONITORINFO monitor{sizeof(monitor)};
-  GetMonitorInfoW(MonitorFromWindow(owner, MONITOR_DEFAULTTONEAREST), &monitor);
-  const RECT& work = monitor.rcWork;
-  const int width = frame.right - frame.left;
-  const int height = frame.bottom - frame.top;
-  HWND hwnd =
-      CreateWindowExW(WS_EX_DLGMODALFRAME | WS_EX_CONTROLPARENT, kClassName,
-                      std::wstring(ui::Tr(StringId::SettingsTitle)).c_str(), kStyle,
-                      (work.left + work.right - width) / 2, (work.top + work.bottom - height) / 2,
-                      width, height, owner, nullptr, instance, &dialog);
+  Dialog dialog{instance, current, &apply};
+  dialog.look.dpi = GetDpiForWindow(owner);
+  dialog.look.font = CreateDialogFont(dialog.look.dpi);
+  HWND hwnd = CreateDialogFrame(instance, owner, kClassName, ui::Tr(StringId::SettingsTitle),
+                                kWidth, kHeight, dialog.look.dpi, &dialog);
   if (!hwnd) {
-    DeleteObject(dialog.font);
+    DeleteObject(dialog.look.font);
     return;
   }
   g_open = hwnd;
   CreateControls(hwnd, dialog);
   ShowWindow(hwnd, SW_SHOW);
   SetForegroundWindow(hwnd);
-
   // Modal: the bar ignores input until the dialog closes.
-  EnableWindow(owner, FALSE);
-  MSG message{};
-  bool quit = false;
-  while (!dialog.done) {
-    if (GetMessageW(&message, nullptr, 0, 0) <= 0) {
-      quit = true;
-      break;
-    }
-    if (!IsDialogMessageW(hwnd, &message)) {
-      TranslateMessage(&message);
-      DispatchMessageW(&message);
-    }
-  }
-  if (IsWindow(owner)) EnableWindow(owner, TRUE);
-  if (IsWindow(hwnd)) DestroyWindow(hwnd);
+  RunModalLoop(hwnd, owner, dialog.done);
   g_open = nullptr;
-  DeleteObject(dialog.font);
-  // A WM_QUIT taken by this loop belongs to the application's main loop.
-  if (quit) PostQuitMessage(static_cast<int>(message.wParam));
+  DeleteObject(dialog.look.font);
 }
 
 }  // namespace throwback

@@ -10,7 +10,7 @@ namespace {
 
 constexpr std::wstring_view kProfilePrefix = L"--profile=";
 constexpr std::wstring_view kStylePrefix = L"--start-style=";
-constexpr std::array<std::pair<StartStyle, std::wstring_view>, 10> kStyles{{
+constexpr std::array<std::pair<StartStyle, std::wstring_view>, 11> kStyles{{
     {StartStyle::Win98, L"98"},
     {StartStyle::WinMe, L"me"},
     {StartStyle::Win2000, L"2000"},
@@ -21,6 +21,7 @@ constexpr std::array<std::pair<StartStyle, std::wstring_view>, 10> kStyles{{
     {StartStyle::Win81, L"8.1"},
     {StartStyle::Win10, L"10"},
     {StartStyle::Win11, L"11"},
+    {StartStyle::Plain8, L"plain8"},
 }};
 constexpr size_t kMaxProfileLength = 32;
 
@@ -37,6 +38,10 @@ bool Apply(std::wstring_view arg, Options& options) {
     options.edge = Edge::Top;
   } else if (arg == L"--edge=bottom") {
     options.edge = Edge::Bottom;
+  } else if (arg == L"--edge=left") {
+    options.edge = Edge::Left;
+  } else if (arg == L"--edge=right") {
+    options.edge = Edge::Right;
   } else if (arg == L"--theme=system") {
     options.theme = ThemeMode::System;
   } else if (arg == L"--theme=light") {

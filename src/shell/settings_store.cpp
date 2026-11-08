@@ -8,7 +8,7 @@
 namespace throwback::shell {
 
 SettingsStore::SettingsStore(std::wstring profile)
-    : keyPath_(L"Software\\Throwback\\Profiles\\" + std::move(profile)) {}
+    : profile_(std::move(profile)), keyPath_(L"Software\\Throwback\\Profiles\\" + profile_) {}
 
 Settings SettingsStore::Load() const {
   SettingValues values;
