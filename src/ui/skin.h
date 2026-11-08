@@ -22,9 +22,9 @@ enum class SkinImage {
   MenuJumpList,
   MenuPower,
   ShutDown,
-  Arrow,        // the white arrow of the shut down button's menu half
-  PlaceItem,    // a hovered row of the right column
-  ProgramItem,  // a program row: normal, hot, selected, newly installed
+  Arrow,          // the white arrow of the shut down button's menu half
+  PlaceItem,      // a hovered row of the right column
+  ProgramItem,    // a program row: normal, hot, selected, newly installed
   TrayArrow,      // shows the hidden notification icons
   TrayArrowOpen,  // the same while they are shown
   TrayItem,       // a notification icon under the mouse

@@ -122,11 +122,9 @@ void Canvas::TaskTile(const Rect& rect, bool light, TileState state) {
   if (state == TileState::Flashing) {
     FillGradient(rect, radius, FromRgb(0xFFC060, 0.85f), FromRgb(0xE07010, 0.85f));
   } else if (light) {
-    FillGradient(rect, radius, FromRgb(0x000000, 0.04f + lift),
-                 FromRgb(0x000000, 0.14f + lift));
+    FillGradient(rect, radius, FromRgb(0x000000, 0.04f + lift), FromRgb(0x000000, 0.14f + lift));
   } else {
-    FillGradient(rect, radius, FromRgb(0xFFFFFF, 0.30f + lift),
-                 FromRgb(0xFFFFFF, 0.08f + lift));
+    FillGradient(rect, radius, FromRgb(0xFFFFFF, 0.30f + lift), FromRgb(0xFFFFFF, 0.08f + lift));
   }
   StrokeRound(rect, radius, FromRgb(0x000000, light ? 0.30f : 0.60f));
   StrokeRound(inner, radius - 1.0f, FromRgb(0xFFFFFF, light ? 0.55f : 0.22f + lift));

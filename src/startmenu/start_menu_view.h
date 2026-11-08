@@ -21,7 +21,7 @@ struct StartMenuModel {
     bool selected = false;
     bool separatorBefore = false;
     bool hasJumpList = false;
-    bool bold = false;  // Windows XP: a pinned program
+    bool bold = false;      // Windows XP: a pinned program
     bool arrowHot = false;  // the mouse is over the half that opens the jump list
     bool fresh = false;     // newly installed and not started yet
   };

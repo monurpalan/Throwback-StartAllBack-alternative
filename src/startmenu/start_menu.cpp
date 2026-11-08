@@ -365,8 +365,8 @@ void StartMenu::OnMouseMove(int x, int y) {
     selected_ = jumpRow_;
   }
   const Hit hit = HitTest(x, y);
-  const bool arrowHot = hit.kind == Hit::Kind::Row && mode_ == Mode::Home &&
-                        OnJumpArrow(hit.index, x);
+  const bool arrowHot =
+      hit.kind == Hit::Kind::Row && mode_ == Mode::Home && OnJumpArrow(hit.index, x);
   if (hit.kind == hover_.kind && hit.index == hover_.index && arrowHot == jumpArrowHot_) return;
   jumpArrowHot_ = arrowHot;
   hover_ = hit;
@@ -385,7 +385,8 @@ void StartMenu::OnClick(int x, int y) {
   // While there is a query, the end of the search box empties it.
   const Rect& search = layout_.search;
   if (mode_ == Mode::Search &&
-      Rect{search.right - search.Height(), search.top, search.right, search.bottom}.Contains(x, y)) {
+      Rect{search.right - search.Height(), search.top, search.right, search.bottom}.Contains(x,
+                                                                                             y)) {
     SetMode(Mode::Home);
     return;
   }

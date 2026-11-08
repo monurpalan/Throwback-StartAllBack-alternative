@@ -22,7 +22,7 @@ constexpr float kLogoCorner = 3.0f;
 // One frame of each orb at 96 DPI; pictures take the Windows 7 orb's size.
 SIZE FrameSizeOf(const OrbArt& art) {
   return art.kind == OrbArt::Kind::Skin && art.skin == SkinImage::VistaOrb ? SIZE{60, 46}
-                                                                            : SIZE{54, 54};
+                                                                           : SIZE{54, 54};
 }
 
 ComPtr<IStream> ResourceStream(int resource) {
@@ -87,8 +87,7 @@ ComPtr<IWICBitmapSource> OrbWindow::ScaledStrip(int resource, int width, int hei
   return scaler;
 }
 
-ComPtr<IWICBitmapSource> OrbWindow::LogoStrip(int resource, int width, int height,
-                                              unsigned dpi) {
+ComPtr<IWICBitmapSource> OrbWindow::LogoStrip(int resource, int width, int height, unsigned dpi) {
   ComPtr<ID2D1Factory> factory;
   ComPtr<IWICBitmap> bitmap;
   ComPtr<ID2D1RenderTarget> target;
@@ -113,10 +112,9 @@ ComPtr<IWICBitmapSource> OrbWindow::LogoStrip(int resource, int width, int heigh
   int logo = ScaleForDpi(kLogoSize, dpi);
   if (dpi < 192 && logo % 2 == 0) --logo;
   ComPtr<ID2D1SvgDocument> document;
-  if (FAILED(context->CreateSvgDocument(stream.Get(),
-                                        D2D1::SizeF(static_cast<float>(logo),
-                                                    static_cast<float>(logo)),
-                                        document.GetAddressOf()))) {
+  if (FAILED(context->CreateSvgDocument(
+          stream.Get(), D2D1::SizeF(static_cast<float>(logo), static_cast<float>(logo)),
+          document.GetAddressOf()))) {
     return nullptr;
   }
   ComPtr<ID2D1SolidColorBrush> hot;

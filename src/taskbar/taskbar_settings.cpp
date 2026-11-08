@@ -21,8 +21,8 @@ constexpr int kOrbButtonWidth = 54;
 std::optional<ui::OrbArt> OrbArtFor(const Settings& settings) {
   using Kind = ui::OrbArt::Kind;
   const StartStyle style = settings.startStyle;
-  if (settings.orb == OrbChoice::Style && style != StartStyle::Win7 &&
-      style != StartStyle::Vista && style != StartStyle::Plain8) {
+  if (settings.orb == OrbChoice::Style && style != StartStyle::Win7 && style != StartStyle::Vista &&
+      style != StartStyle::Plain8) {
     return std::nullopt;
   }
   OrbChoice choice = settings.orb;

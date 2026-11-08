@@ -137,9 +137,9 @@ void Canvas::CommandButton(const Rect& button, bool arrow, bool hovered) {
   const int frame = hovered ? kHotFrame : 0;
   // The menu half shares its left border with the button it is joined to,
   // the way Windows 7 draws the split shut down button.
-  const Rect rect = arrow ? Rect{button.left - std::max(1, Scale(1)), button.top, button.right,
-                                 button.bottom}
-                          : button;
+  const Rect rect =
+      arrow ? Rect{button.left - std::max(1, Scale(1)), button.top, button.right, button.bottom}
+            : button;
   if (arrow && Skin(SkinImage::PowerArrow, frame, rect)) return;
   if (Skin(SkinImage::ShutDown, frame, rect)) return;
   // Gloss on the upper half, a deeper body below that lights up blue on

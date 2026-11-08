@@ -72,8 +72,7 @@ LRESULT CALLBACK ThumbnailPopup::WindowProc(HWND hwnd, UINT message, WPARAM wPar
   return DefWindowProcW(hwnd, message, wParam, lParam);
 }
 
-void ThumbnailPopup::Show(const Content& content, const RECT& anchor, Edge barEdge,
-                          unsigned dpi) {
+void ThumbnailPopup::Show(const Content& content, const RECT& anchor, Edge barEdge, unsigned dpi) {
   Hide();
   content_ = content;
   canvas_->SetDpi(dpi);

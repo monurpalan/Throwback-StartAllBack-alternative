@@ -34,7 +34,6 @@ constexpr WPARAM kShellWindowReplacing = 14;
 constexpr WPARAM kShellFullscreenEnter = 53;
 constexpr WPARAM kShellFullscreenExit = 54;
 
-
 std::wstring FormatTime() {
   wchar_t buffer[64] = {};
   GetTimeFormatEx(LOCALE_NAME_USER_DEFAULT, TIME_NOSECONDS, nullptr, nullptr, buffer, 64);

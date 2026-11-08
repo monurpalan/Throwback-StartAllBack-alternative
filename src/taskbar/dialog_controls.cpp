@@ -22,8 +22,7 @@ HWND CreateDialogControl(HWND parent, const DialogLook& look, const wchar_t* typ
 }
 
 HWND CreateDialogFrame(HINSTANCE instance, HWND owner, const wchar_t* className,
-                       std::wstring_view title, int width, int height, unsigned dpi,
-                       void* params) {
+                       std::wstring_view title, int width, int height, unsigned dpi, void* params) {
   constexpr DWORD kStyle = WS_POPUP | WS_CAPTION | WS_SYSMENU;
   RECT frame{0, 0, ScaleForDpi(width, dpi), ScaleForDpi(height, dpi)};
   AdjustWindowRectExForDpi(&frame, kStyle, FALSE, WS_EX_DLGMODALFRAME, dpi);
@@ -32,11 +31,10 @@ HWND CreateDialogFrame(HINSTANCE instance, HWND owner, const wchar_t* className,
   const RECT& work = monitor.rcWork;
   const int frameWidth = frame.right - frame.left;
   const int frameHeight = frame.bottom - frame.top;
-  return CreateWindowExW(WS_EX_DLGMODALFRAME | WS_EX_CONTROLPARENT, className,
-                         std::wstring(title).c_str(), kStyle,
-                         (work.left + work.right - frameWidth) / 2,
-                         (work.top + work.bottom - frameHeight) / 2, frameWidth, frameHeight,
-                         owner, nullptr, instance, params);
+  return CreateWindowExW(
+      WS_EX_DLGMODALFRAME | WS_EX_CONTROLPARENT, className, std::wstring(title).c_str(), kStyle,
+      (work.left + work.right - frameWidth) / 2, (work.top + work.bottom - frameHeight) / 2,
+      frameWidth, frameHeight, owner, nullptr, instance, params);
 }
 
 void RunModalLoop(HWND hwnd, HWND owner, const bool& done) {

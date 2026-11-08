@@ -87,8 +87,9 @@ void TrayOverflow::Place() {
   monitor.cbSize = sizeof(monitor);
   GetMonitorInfoW(MonitorFromRect(&arrow_, MONITOR_DEFAULTTONEAREST), &monitor);
   const RECT& screen = monitor.rcMonitor;
-  const Point at = PlacePopup({arrow_.left, arrow_.top, arrow_.right, arrow_.bottom}, width, height,
-                              barEdge_, gap, {screen.left, screen.top, screen.right, screen.bottom});
+  const Point at =
+      PlacePopup({arrow_.left, arrow_.top, arrow_.right, arrow_.bottom}, width, height, barEdge_,
+                 gap, {screen.left, screen.top, screen.right, screen.bottom});
   SetWindowPos(hwnd_, HWND_TOPMOST, at.x, at.y, width, height, SWP_NOACTIVATE);
   canvas_->Resize(static_cast<UINT>(width), static_cast<UINT>(height));
   InvalidateRect(hwnd_, nullptr, FALSE);

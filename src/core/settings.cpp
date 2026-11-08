@@ -12,8 +12,10 @@ namespace {
 template <typename Enum, size_t N>
 using Names = std::array<std::pair<Enum, std::wstring_view>, N>;
 
-constexpr Names<Edge, 4> kEdges{
-    {{Edge::Top, L"top"}, {Edge::Bottom, L"bottom"}, {Edge::Left, L"left"}, {Edge::Right, L"right"}}};
+constexpr Names<Edge, 4> kEdges{{{Edge::Top, L"top"},
+                                 {Edge::Bottom, L"bottom"},
+                                 {Edge::Left, L"left"},
+                                 {Edge::Right, L"right"}}};
 constexpr Names<ThemeMode, 3> kThemes{
     {{ThemeMode::System, L"system"}, {ThemeMode::Light, L"light"}, {ThemeMode::Dark, L"dark"}}};
 constexpr Names<MenuHorizontal, 2> kHorizontals{

@@ -32,7 +32,7 @@ std::wstring StartMenu::ProgramName(const std::wstring& target) const {
 std::wstring StartMenu::JumpIdFor(const std::wstring& target) const {
   // Jump lists came with Windows 7.
   return style_ == StartStyle::Win7 || style_ == StartStyle::Plain8 ? JumpListId(target)
-                                                                      : std::wstring();
+                                                                    : std::wstring();
 }
 
 void StartMenu::AddHomeRows() {

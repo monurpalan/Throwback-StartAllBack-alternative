@@ -140,8 +140,7 @@ void TaskbarWindow::ToggleTrayOverflow() {
   POINT bottomRight{arrow.right, arrow.bottom};
   ClientToScreen(hwnd_, &topLeft);
   ClientToScreen(hwnd_, &bottomRight);
-  trayOverflow_->Show({topLeft.x, topLeft.y, bottomRight.x, bottomRight.y}, settings_.edge,
-                      dpi_);
+  trayOverflow_->Show({topLeft.x, topLeft.y, bottomRight.x, bottomRight.y}, settings_.edge, dpi_);
   InvalidateRect(hwnd_, nullptr, FALSE);
 }
 

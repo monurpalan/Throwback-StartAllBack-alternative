@@ -34,9 +34,7 @@ int PlaceRows(const Customize& customize) {
   return static_cast<int>((customize.places.size() + 1) / 2);
 }
 
-int Height(const Customize& customize) {
-  return kPlaceTop + PlaceRows(customize) * kPlaceRow + 48;
-}
+int Height(const Customize& customize) { return kPlaceTop + PlaceRows(customize) * kPlaceRow + 48; }
 
 void CreateControls(HWND hwnd, const Customize& customize) {
   constexpr DWORD kCheck = BS_AUTOCHECKBOX | WS_TABSTOP;
@@ -72,8 +70,8 @@ void CreateControls(HWND hwnd, const Customize& customize) {
   const int buttonTop = Height(customize) - 36;
   CreateDialogControl(hwnd, look, L"BUTTON", ui::Tr(StringId::Ok), BS_DEFPUSHBUTTON | WS_TABSTOP,
                       IDOK, {200, buttonTop, 280, buttonTop + 24});
-  CreateDialogControl(hwnd, look, L"BUTTON", ui::Tr(StringId::Cancel),
-                      BS_PUSHBUTTON | WS_TABSTOP, IDCANCEL, {288, buttonTop, 368, buttonTop + 24});
+  CreateDialogControl(hwnd, look, L"BUTTON", ui::Tr(StringId::Cancel), BS_PUSHBUTTON | WS_TABSTOP,
+                      IDCANCEL, {288, buttonTop, 368, buttonTop + 24});
 }
 
 void ReadControls(HWND hwnd, const Customize& customize) {
@@ -82,8 +80,7 @@ void ReadControls(HWND hwnd, const Customize& customize) {
   if (rows >= 0) settings.menuRows = kMinMenuRows + rows;
   settings.largeIcons = IsDlgButtonChecked(hwnd, kLargeIcons) == BST_CHECKED;
   for (size_t i = 0; i < customize.places.size(); ++i) {
-    const bool shown =
-        IsDlgButtonChecked(hwnd, kFirstPlace + static_cast<int>(i)) == BST_CHECKED;
+    const bool shown = IsDlgButtonChecked(hwnd, kFirstPlace + static_cast<int>(i)) == BST_CHECKED;
     // Only changes are saved, so untouched places keep following the
     // defaults.
     if (shown != customize.places[i].shown) {

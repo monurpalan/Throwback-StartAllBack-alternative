@@ -118,11 +118,9 @@ void TaskbarWindow::ShowBarMenu(POINT screenPoint) {
   HMENU menu = BuildMenu(settings_);
   // Required for the menu to close when the user clicks elsewhere.
   SetForegroundWindow(hwnd_);
-  const auto command = static_cast<UINT>(TrackPopupMenu(menu,
-                                                        TPM_RETURNCMD | TPM_RIGHTBUTTON |
-                                                            TPM_NONOTIFY,
-                                                        screenPoint.x, screenPoint.y, 0, hwnd_,
-                                                        nullptr));
+  const auto command =
+      static_cast<UINT>(TrackPopupMenu(menu, TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_NONOTIFY,
+                                       screenPoint.x, screenPoint.y, 0, hwnd_, nullptr));
   PostMessageW(hwnd_, WM_NULL, 0, 0);
   DestroyMenu(menu);
 

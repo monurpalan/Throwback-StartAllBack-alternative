@@ -185,9 +185,9 @@ void DrawTaskButton(ui::Canvas& canvas, const BarModel& model, const TaskButtonM
   DrawTaskBackground(canvas, model, button);
   DrawProgress(canvas, button);
   // Upright bars show icons only, so every style gets the large ones there.
-  const bool smallIcons = !model.vertical && (IsClassic(model.family) ||
-                                              model.family == BarFamily::Xp ||
-                                              model.family == BarFamily::Vista);
+  const bool smallIcons =
+      !model.vertical && (IsClassic(model.family) || model.family == BarFamily::Xp ||
+                          model.family == BarFamily::Vista);
   const int iconSize = canvas.Scale(smallIcons ? kSmallIcon : kLargeIcon);
   const int padding = canvas.Scale(smallIcons ? ui::kSpace4 + ui::kSpace2 : ui::kSpace8);
   const int iconTop = button.rect.top + (button.rect.Height() - iconSize) / 2;
@@ -435,15 +435,13 @@ void DrawStartButton(ui::Canvas& canvas, const BarModel& model) {
       const int dx = canvas.Scale(kClassicButtonInsetX);
       const int dy = canvas.Scale(kClassicButtonInsetY);
       // Upright bars have room for the flag only.
-      canvas.ClassicStartButton({area.left + dx, area.top + dy, area.right - dx, area.bottom - dy},
-                                ClassicLookOf(model),
-                                model.vertical ? L"" : ui::Tr(ui::StringId::ClassicStart),
-                                model.startOpen);
+      canvas.ClassicStartButton(
+          {area.left + dx, area.top + dy, area.right - dx, area.bottom - dy}, ClassicLookOf(model),
+          model.vertical ? L"" : ui::Tr(ui::StringId::ClassicStart), model.startOpen);
       return;
     }
     case StartStyle::WinXp:
-      canvas.XpStartButton(model.startButton,
-                           model.vertical ? L"" : ui::Tr(ui::StringId::XpStart),
+      canvas.XpStartButton(model.startButton, model.vertical ? L"" : ui::Tr(ui::StringId::XpStart),
                            OrbStateFor(model));
       return;
     case StartStyle::Win8:

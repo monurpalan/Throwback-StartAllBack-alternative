@@ -164,7 +164,8 @@ std::vector<PlaceChoice> ChoicesFrom(const PlaceSpec (&table)[N], const Settings
   for (const PlaceSpec& spec : table) {
     Place place;
     if (!ResolvePlace(spec, place)) continue;
-    choices.push_back({spec.key, place.name, IsPlaceShown(settings, spec.key, spec.shownByDefault)});
+    choices.push_back(
+        {spec.key, place.name, IsPlaceShown(settings, spec.key, spec.shownByDefault)});
   }
   return choices;
 }
@@ -208,7 +209,8 @@ constexpr PlaceSpec kVistaPlaces[] = {
     {L"pictures", &FOLDERID_Pictures, nullptr, kShellName, 0, true},
     {L"music", &FOLDERID_Music, nullptr, kShellName, 0, true},
     {L"search", nullptr, L"search-ms:", static_cast<int>(ui::StringId::ClassicSearch), 1, true},
-    {L"recent", nullptr, L"shell:Recent", static_cast<int>(ui::StringId::VistaRecentItems), 1, true},
+    {L"recent", nullptr, L"shell:Recent", static_cast<int>(ui::StringId::VistaRecentItems), 1,
+     true},
     {L"computer", nullptr, L"shell:::{20D04FE0-3AEA-1069-A2D8-08002B30309D}", kShellName, 1, true},
     {L"network", nullptr, L"shell:::{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}",
      static_cast<int>(ui::StringId::VistaNetwork), 1, true},
@@ -225,8 +227,8 @@ std::vector<PlaceChoice> LoadPlaceChoices(const Settings& settings) {
   if (settings.startStyle == StartStyle::WinXp) {
     std::vector<PlaceChoice> choices;
     for (const XpItem& item : kXpItems) {
-      choices.push_back({item.key, std::wstring(ui::Tr(item.name)),
-                         IsPlaceShown(settings, item.key, true)});
+      choices.push_back(
+          {item.key, std::wstring(ui::Tr(item.name)), IsPlaceShown(settings, item.key, true)});
     }
     return choices;
   }

@@ -61,9 +61,9 @@ void LabeledCombo(HWND hwnd, const Dialog& dialog, StringId label, int id, int t
                   const std::vector<std::wstring_view>& items, int selected) {
   constexpr DWORD kCombo = CBS_DROPDOWNLIST | WS_TABSTOP | WS_VSCROLL;
   Control(hwnd, dialog, L"STATIC", label, SS_LEFT, 0, {20, top + 4, 236, top + 24});
-  FillCombo(Control(hwnd, dialog, L"COMBOBOX", StringId::kCount, kCombo, id,
-                    {244, top, 400, top + 200}),
-            items, selected);
+  FillCombo(
+      Control(hwnd, dialog, L"COMBOBOX", StringId::kCount, kCombo, id, {244, top, 400, top + 200}),
+      items, selected);
 }
 
 int StyleIndex(StartStyle style) {
@@ -93,8 +93,8 @@ void CreateStartMenuControls(HWND hwnd, const Dialog& dialog) {
                static_cast<int>(s.orb));
   Control(hwnd, dialog, L"BUTTON", StringId::WindowsKeyOpensMenu, BS_AUTOCHECKBOX | WS_TABSTOP,
           kWindowsKey, {20, 266, 296, 286});
-  Control(hwnd, dialog, L"BUTTON", StringId::CustomizeIcons, BS_PUSHBUTTON | WS_TABSTOP,
-          kCustomize, {304, 262, 400, 286});
+  Control(hwnd, dialog, L"BUTTON", StringId::CustomizeIcons, BS_PUSHBUTTON | WS_TABSTOP, kCustomize,
+          {304, 262, 400, 286});
   CheckDlgButton(hwnd, kWindowsKey, s.windowsKeyOpensMenu ? BST_CHECKED : BST_UNCHECKED);
   EnableWindow(GetDlgItem(hwnd, kCustomize), HasCustomizableMenu(s.startStyle));
 }
@@ -122,10 +122,10 @@ void CreateControls(HWND hwnd, const Dialog& dialog) {
                {ui::Tr(StringId::LanguageSystem), ui::Tr(StringId::LanguageEnglish),
                 ui::Tr(StringId::LanguageTurkish)},
                static_cast<int>(s.language));
-  LabeledCombo(hwnd, dialog, StringId::MenuTheme, kTheme, 358,
-               {ui::Tr(StringId::ThemeSystem), ui::Tr(StringId::ThemeLight),
-                ui::Tr(StringId::ThemeDark)},
-               static_cast<int>(s.theme));
+  LabeledCombo(
+      hwnd, dialog, StringId::MenuTheme, kTheme, 358,
+      {ui::Tr(StringId::ThemeSystem), ui::Tr(StringId::ThemeLight), ui::Tr(StringId::ThemeDark)},
+      static_cast<int>(s.theme));
 
   Control(hwnd, dialog, L"BUTTON", StringId::Ok, BS_DEFPUSHBUTTON | WS_TABSTOP, IDOK,
           {156, 406, 236, 430});

@@ -118,8 +118,7 @@ TEST(PlacePopupTest, OpensAwayFromTheBar) {
   EXPECT_EQ(PlacePopup(button, 200, 100, Edge::Bottom, 4, screen), (Point{30, 656}));
   EXPECT_EQ(PlacePopup({100, 0, 160, 40}, 200, 100, Edge::Top, 4, screen), (Point{30, 44}));
   EXPECT_EQ(PlacePopup({0, 300, 62, 340}, 200, 100, Edge::Left, 4, screen), (Point{66, 270}));
-  EXPECT_EQ(PlacePopup({938, 300, 1000, 340}, 200, 100, Edge::Right, 4, screen),
-            (Point{734, 270}));
+  EXPECT_EQ(PlacePopup({938, 300, 1000, 340}, 200, 100, Edge::Right, 4, screen), (Point{734, 270}));
 }
 
 TEST(PlacePopupTest, StaysOnScreen) {

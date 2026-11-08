@@ -80,8 +80,8 @@ StartMenuLayout ComputeStartMenuLayout(unsigned dpi, int powerLabelWidth,
   return layout;
 }
 
-StartMenuLayout ComputeXpStartMenuLayout(unsigned dpi, int logOffLabelWidth,
-                                         int turnOffLabelWidth, int rows, bool largeIcons) {
+StartMenuLayout ComputeXpStartMenuLayout(unsigned dpi, int logOffLabelWidth, int turnOffLabelWidth,
+                                         int rows, bool largeIcons) {
   // Luna's NormalBlue.ini at 96 DPI: a 380 x 440 panel of a 64 px banner,
   // two 190 px wide columns and a 40 px log off bar.
   constexpr int kXpWidth = 380;
