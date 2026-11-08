@@ -41,6 +41,7 @@ class TaskbarWindow {
   void RequestRefresh();
 
  private:
+  static constexpr int kHitQuickFirst = -50;  // - index of the quick button
   static constexpr int kHitNotifications = -6;
   static constexpr int kHitClock = -5;
   static constexpr int kHitTrayArrow = -4;
@@ -50,6 +51,7 @@ class TaskbarWindow {
   // Notification icons on the bar hit as kHitTrayFirst - their place there.
   static constexpr int kHitTrayFirst = -100;
   static bool IsTrayHit(int hit) { return hit <= kHitTrayFirst; }
+  static bool IsQuickHit(int hit) { return hit <= kHitQuickFirst && hit > kHitQuickFirst - 2; }
   // Posted by the Windows key hook.
   static constexpr UINT kStartMenuRequest = WM_APP + 3;
 
@@ -71,6 +73,16 @@ class TaskbarWindow {
   void OpenSettings();
   // The bar's own right-click menu: start menu choices, properties, exit.
   void ShowBarMenu(POINT screenPoint);
+  // The Search and Task View buttons (taskbar_menu.cpp).
+  enum class QuickButton { Search, TaskView };
+  std::vector<QuickButton> QuickButtons() const;
+  void SetQuickMetrics(BarMetrics& metrics) const;
+  int QuickHit(int x, int y) const;
+  void PressQuickButton(int hit);
+  void AddQuickButtons(BarModel& model) const;
+  // Dragging an unlocked bar to another edge.
+  void BeginBarDrag(int hit);
+  bool EndBarDrag(int x, int y);
   bool IsMain() const { return monitor_ == nullptr; }
   void ApplyTheme();
   void RefreshTasks();
@@ -134,6 +146,7 @@ class TaskbarWindow {
   int hovered_ = kHitNone;
   bool trackingMouse_ = false;
   int pressedHit_ = kHitNone;
+  bool draggingBar_ = false;
   HWND pressedTask_ = nullptr;
   TaskClickState pressedState_;
   // Set while Windows swaps a window: HSHELL_WINDOWREPLACING names the new

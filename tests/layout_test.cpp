@@ -127,5 +127,35 @@ TEST(PlacePopupTest, StaysOnScreen) {
   EXPECT_EQ(PlacePopup({0, 0, 62, 40}, 200, 100, Edge::Left, 0, screen).y, 0);
 }
 
+TEST(QuickButtonsTest, FollowTheStartButton) {
+  BarMetrics m;
+  m.barWidth = 1000;
+  m.barHeight = 40;
+  m.startButtonWidth = 54;
+  m.quickButtons = 2;
+  m.quickButtonSize = 40;
+  m.minButtonWidth = m.maxButtonWidth = 100;
+  const BarLayout layout = ComputeLayout(m, 1);
+  ASSERT_EQ(layout.quickButtons.size(), 2u);
+  EXPECT_EQ(layout.quickButtons[0], (Rect{54, 0, 94, 40}));
+  EXPECT_EQ(layout.quickButtons[1], (Rect{94, 0, 134, 40}));
+  ASSERT_EQ(layout.taskButtons.size(), 1u);
+  EXPECT_EQ(layout.taskButtons[0].left, 134);
+
+  m.barWidth = 48;
+  m.barHeight = 400;
+  const BarLayout upright = ComputeVerticalLayout(m, 40, 0, 0, 1);
+  EXPECT_EQ(upright.quickButtons[1], (Rect{0, 88, 48, 128}));
+  EXPECT_EQ(upright.taskButtons[0].top, 128);
+}
+
+TEST(NearestEdgeTest, PicksTheClosestEdge) {
+  const Rect screen{0, 0, 1000, 800};
+  EXPECT_EQ(NearestEdge({500, 790}, screen), Edge::Bottom);
+  EXPECT_EQ(NearestEdge({500, 5}, screen), Edge::Top);
+  EXPECT_EQ(NearestEdge({3, 400}, screen), Edge::Left);
+  EXPECT_EQ(NearestEdge({990, 400}, screen), Edge::Right);
+}
+
 }  // namespace
 }  // namespace throwback

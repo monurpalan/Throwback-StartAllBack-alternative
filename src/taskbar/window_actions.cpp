@@ -194,6 +194,10 @@ void OpenClockFlyout() { PressHotkey({VK_LWIN, VK_MENU, 'D'}); }
 
 void OpenNotifications() { PressHotkey({VK_LWIN, 'N'}); }
 
+void OpenSearch() { PressHotkey({VK_LWIN, 'S'}); }
+
+void OpenTaskView() { PressHotkey({VK_LWIN, VK_TAB}); }
+
 void ApplyMenuTheme(bool dark) {
   // Undocumented uxtheme exports (ordinals 135 and 136) that every dark-mode
   // Win32 app relies on; missing on old builds, in which case menus stay light.

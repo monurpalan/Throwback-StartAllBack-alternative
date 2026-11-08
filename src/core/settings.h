@@ -44,6 +44,11 @@ struct Settings {
   // Set once the first-run setup ran: Throwback took the Windows taskbar's
   // place and showed its properties (StartAllBack's WelcomeShown).
   bool welcomeShown = false;
+  // The Search and Task View buttons beside the Start button, and whether
+  // the bar is locked (unlocked, it can be dragged to another edge).
+  bool showSearchButton = true;
+  bool showTaskViewButton = true;
+  bool taskbarLocked = true;
   StartStyle startStyle = StartStyle::Win7;
   MenuHorizontal menuHorizontal = MenuHorizontal::Left;
   MenuVertical menuVertical = MenuVertical::Bar;

@@ -116,6 +116,9 @@ SettingValues ToValues(const Settings& settings) {
       {L"WindowsKeyOpensMenu", settings.windowsKeyOpensMenu ? L"1" : L"0"},
       {L"StartWithWindows", settings.startWithWindows ? L"1" : L"0"},
       {L"WelcomeShown", settings.welcomeShown ? L"1" : L"0"},
+      {L"ShowSearchButton", settings.showSearchButton ? L"1" : L"0"},
+      {L"ShowTaskViewButton", settings.showTaskViewButton ? L"1" : L"0"},
+      {L"TaskbarLocked", settings.taskbarLocked ? L"1" : L"0"},
       {L"StartStyle", std::wstring(StartStyleName(settings.startStyle))},
       {L"MenuHorizontal", NameOf(kHorizontals, settings.menuHorizontal)},
       {L"MenuVertical", NameOf(kVerticals, settings.menuVertical)},
@@ -139,6 +142,9 @@ Settings FromValues(const SettingValues& values) {
   ReadBool(values, L"WindowsKeyOpensMenu", settings.windowsKeyOpensMenu);
   ReadBool(values, L"StartWithWindows", settings.startWithWindows);
   ReadBool(values, L"WelcomeShown", settings.welcomeShown);
+  ReadBool(values, L"ShowSearchButton", settings.showSearchButton);
+  ReadBool(values, L"ShowTaskViewButton", settings.showTaskViewButton);
+  ReadBool(values, L"TaskbarLocked", settings.taskbarLocked);
   if (const auto it = values.find(L"StartStyle"); it != values.end()) {
     if (const auto style = ParseStartStyle(it->second)) settings.startStyle = *style;
   }

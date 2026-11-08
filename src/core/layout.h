@@ -31,6 +31,10 @@ struct BarMetrics {
   int maxButtonWidth = 0;
   int spacing = 0;
   int padding = 0;  // vertical inset of task buttons
+  // Buttons right after the start button (Search, Task View): how many, and
+  // their length along the bar.
+  int quickButtons = 0;
+  int quickButtonSize = 0;
 };
 
 struct BarLayout {
@@ -39,6 +43,7 @@ struct BarLayout {
   Rect tray;
   Rect showDesktop;
   Rect notifications;  // an upright bar's bell, under its clock
+  std::vector<Rect> quickButtons;
   // May hold fewer rects than requested when the buttons don't fit.
   std::vector<Rect> taskButtons;
 };
@@ -75,6 +80,9 @@ struct Point {
   int y = 0;
   bool operator==(const Point&) const = default;
 };
+
+// The screen edge nearest a point: where a bar dragged there docks.
+Edge NearestEdge(const Point& point, const Rect& screen);
 
 // Where a popup of width x height opens for anchor (a button on a bar at
 // barEdge): beside the bar, away from its edge, centered on the anchor

@@ -466,9 +466,27 @@ void DrawStartButton(ui::Canvas& canvas, const BarModel& model) {
   }
 }
 
+void DrawQuickButtons(ui::Canvas& canvas, const BarModel& model) {
+  // Light glyphs on dark bars, dark ones on the classic grey and light bars.
+  const ui::ModernLook look = IsClassic(model.family)  ? ui::ModernLook::Win11Light
+                              : IsModern(model.family) ? ModernLookOf(model)
+                                                       : ui::ModernLook::Win11Dark;
+  for (const auto& button : model.quickButtons) {
+    if (button.hovered) {
+      if (IsModern(model.family)) {
+        canvas.ModernHover(button.rect, look, true);
+      } else {
+        canvas.TaskTile(button.rect, IsClassic(model.family) || model.light, ui::TileState::Hot);
+      }
+    }
+    canvas.ModernGlyph(button.rect, button.glyph, look, ui::ModernTone::Primary);
+  }
+}
+
 void DrawBar(ui::Canvas& canvas, const BarModel& model) {
   DrawBackground(canvas, model);
   DrawStartButton(canvas, model);
+  DrawQuickButtons(canvas, model);
   for (const auto& button : model.buttons) DrawTaskButton(canvas, model, button);
   DrawTrayArea(canvas, model);
   DrawTrayArrow(canvas, model);

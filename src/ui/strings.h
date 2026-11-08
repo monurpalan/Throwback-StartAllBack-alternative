@@ -150,6 +150,11 @@ enum class StringId {
   MenuStartButton,
   MenuSide,
   MenuCustomizeStart,
+  ShowSearchButton,
+  ShowTaskViewButton,
+  ShowTheDesktop,
+  TaskManager,
+  LockTaskbar,
   kCount,
 };
 

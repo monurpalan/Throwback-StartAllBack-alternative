@@ -14,6 +14,9 @@ TEST(SettingsTest, RoundTripsThroughValues) {
   settings.windowsKeyOpensMenu = false;
   settings.startWithWindows = false;
   settings.welcomeShown = true;
+  settings.showSearchButton = false;
+  settings.showTaskViewButton = false;
+  settings.taskbarLocked = false;
   settings.startStyle = StartStyle::WinXp;
   settings.pinned = {L"C:\\a.lnk", L"shell:AppsFolder\\App!Id"};
   settings.trayShown = {L"c:\\apps\\a.exe|1"};

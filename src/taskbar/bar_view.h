@@ -25,6 +25,13 @@ struct TaskButtonModel {
   HICON overlay = nullptr;  // a small status icon over the button's icon
 };
 
+// The Search and Task View buttons beside the start button.
+struct QuickButtonModel {
+  Rect rect;
+  wchar_t glyph = 0;  // Segoe MDL2 Assets
+  bool hovered = false;
+};
+
 struct TrayIconModel {
   Rect slot;  // the hover highlight
   Rect icon;
@@ -48,6 +55,7 @@ struct BarModel {
   bool dateLine = true;  // the clock shows the date too
   bool light = false;    // Windows 11 in light mode
   std::vector<TaskButtonModel> buttons;
+  std::vector<QuickButtonModel> quickButtons;
   std::vector<TrayIconModel> trayIcons;
   Rect trayArrow;  // empty when no icon is hidden
   bool trayArrowHovered = false;

@@ -384,6 +384,7 @@ void TaskbarWindow::UpdateLayout() {
   metrics.barWidth = client.right - client.left;
   metrics.barHeight = client.bottom - client.top;
   metrics.trayWidth = TrayWidth();
+  SetQuickMetrics(metrics);
   metrics.startButtonWidth = settings_.orb != OrbChoice::Style
                                  ? StartButtonWidth()
                                  : std::max(metrics.startButtonWidth, StartButtonWidth());
@@ -452,6 +453,7 @@ void TaskbarWindow::Paint() {
     }
   }
   AddTrayIcons(model);
+  AddQuickButtons(model);
   canvas_->SetSkinSet(settings_.startStyle == StartStyle::Plain8 ? ui::SkinSet::Plain8
                                                                  : ui::SkinSet::Aero);
   canvas_->BeginFrame();
@@ -464,6 +466,7 @@ void TaskbarWindow::Paint() {
 
 int TaskbarWindow::HitTest(int x, int y) const {
   if (layout_.startButton.Contains(x, y)) return kHitStart;
+  if (const int quick = QuickHit(x, y); quick != kHitNone) return quick;
   if (const int tray = TrayHit(x, y); tray != kHitNone) return tray;
   if (layout_.showDesktop.Contains(x, y)) return kHitShowDesktop;
   if (layout_.clock.Contains(x, y)) return kHitClock;
@@ -523,6 +526,7 @@ void TaskbarWindow::OnButtonDown(int x, int y) {
   pressedHit_ = HitTest(x, y);
   pressedTask_ = nullptr;
   OnTrayPressed(x, y);
+  BeginBarDrag(pressedHit_);
   if (pressedHit_ >= 0) {
     pressedTask_ = tracker_->Items()[static_cast<size_t>(pressedHit_)].hwnd;
     pressedState_ = ReadClickState(pressedTask_);
@@ -532,13 +536,15 @@ void TaskbarWindow::OnButtonDown(int x, int y) {
 void TaskbarWindow::OnButtonUp(int x, int y) {
   const int hit = HitTest(x, y);
   const int pressed = std::exchange(pressedHit_, kHitNone);
-  if (OnTrayReleased(pressed, x, y)) return;
+  if (EndBarDrag(x, y) || OnTrayReleased(pressed, x, y)) return;
   if (hit != pressed) return;  // released somewhere else: cancel
 
   if (IsTrayHit(hit)) {
     SendTrayMouse(hit, TrayHost::Mouse::LeftClick);
   } else if (hit == kHitStart) {
     ToggleStartMenu();
+  } else if (IsQuickHit(hit)) {
+    PressQuickButton(hit);
   } else if (hit == kHitShowDesktop) {
     ToggleDesktop();
   } else if (hit == kHitClock || hit == kHitNotifications) {

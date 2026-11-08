@@ -155,6 +155,11 @@ constexpr std::array<Translation, kStringCount> kTable = {{
     {StringId::MenuStartButton, L"Start button", L"Başlat düğmesi"},
     {StringId::MenuSide, L"Start menu side", L"Başlat menüsü tarafı"},
     {StringId::MenuCustomizeStart, L"Customize Start menu...", L"Başlat menüsünü özelleştir..."},
+    {StringId::ShowSearchButton, L"Show Search button", L"Arama düğmesini göster"},
+    {StringId::ShowTaskViewButton, L"Show Task View button", L"Görev Görünümü düğmesini göster"},
+    {StringId::ShowTheDesktop, L"Show the desktop", L"Masaüstünü göster"},
+    {StringId::TaskManager, L"Task Manager", L"Görev Yöneticisi"},
+    {StringId::LockTaskbar, L"Lock the taskbar", L"Görev çubuğunu kilitle"},
 }};
 
 // A missing or misplaced translation fails the build, not the user.

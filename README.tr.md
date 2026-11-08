@@ -57,6 +57,8 @@ edilmez.</p>
   gizle ya da geri getir.
 - **Saat ve takvim:** takvim için saate tıkla.
 - **Her monitörde bir çubuk**, her biri o monitördeki pencerelerle.
+- **Arama ve Görev Görünümü düğmeleri** Başlat'ın yanında ve Explorer'ın kendi sağ tık menüsü:
+  Masaüstünü göster, Görev Yöneticisi, görev çubuğunu kilitle (kilit açıkken başka kenara sürükle).
 - **Hızlı değişiklik:** Özellikler'i açmadan, sağ tıkla Başlat menüsünü, Başlat düğmesini ya da
   menünün tarafını değiştir.
 

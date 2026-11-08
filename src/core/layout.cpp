@@ -36,7 +36,13 @@ BarLayout ComputeLayout(const BarMetrics& metrics, std::size_t taskCount) {
                   metrics.barHeight};
   layout.tray = {layout.clock.left - metrics.trayWidth, 0, layout.clock.left, metrics.barHeight};
 
-  const int areaLeft = layout.startButton.right + metrics.spacing;
+  int quickLeft = layout.startButton.right;
+  for (int i = 0; i < metrics.quickButtons; ++i) {
+    layout.quickButtons.push_back(
+        {quickLeft, 0, quickLeft + metrics.quickButtonSize, metrics.barHeight});
+    quickLeft += metrics.quickButtonSize;
+  }
+  const int areaLeft = quickLeft + metrics.spacing;
   const int areaRight = layout.tray.left - metrics.spacing;
   const int area = areaRight - areaLeft;
   if (taskCount == 0 || area <= 0 || metrics.minButtonWidth <= 0) return layout;
@@ -68,7 +74,12 @@ BarLayout ComputeVerticalLayout(const BarMetrics& metrics, int clockHeight, int 
   layout.clock = {0, layout.notifications.top - clockHeight, width, layout.notifications.top};
   layout.tray = {0, layout.clock.top - trayHeight, width, layout.clock.top};
 
-  const int areaTop = layout.startButton.bottom + metrics.spacing;
+  int quickTop = layout.startButton.bottom;
+  for (int i = 0; i < metrics.quickButtons; ++i) {
+    layout.quickButtons.push_back({0, quickTop, width, quickTop + metrics.quickButtonSize});
+    quickTop += metrics.quickButtonSize;
+  }
+  const int areaTop = quickTop + metrics.spacing;
   const int areaBottom = layout.tray.top - metrics.spacing;
   // Square buttons, as wide as the bar less its inset.
   const int buttonHeight = width - 2 * metrics.padding;
@@ -83,6 +94,17 @@ BarLayout ComputeVerticalLayout(const BarMetrics& metrics, int clockHeight, int 
         {metrics.padding, top, width - metrics.padding, top + buttonHeight});
   }
   return layout;
+}
+
+Edge NearestEdge(const Point& point, const Rect& screen) {
+  const int toTop = point.y - screen.top;
+  const int toBottom = screen.bottom - point.y;
+  const int toLeft = point.x - screen.left;
+  const int toRight = screen.right - point.x;
+  const int nearest = std::min({toTop, toBottom, toLeft, toRight});
+  if (nearest == toBottom) return Edge::Bottom;
+  if (nearest == toTop) return Edge::Top;
+  return nearest == toLeft ? Edge::Left : Edge::Right;
 }
 
 Point PlacePopup(const Rect& anchor, int width, int height, Edge barEdge, int gap,

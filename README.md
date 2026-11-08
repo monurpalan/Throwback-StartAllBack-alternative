@@ -57,6 +57,8 @@ screen. No ads, no trial, no account, and nothing injected into Explorer.</p>
   behind the arrow, or back onto it.
 - **Clock and calendar:** click the clock for the calendar.
 - **A bar on every monitor**, each with the windows on that monitor.
+- **Search and Task View buttons** beside the Start button, and Explorer's own taskbar menu:
+  show the desktop, Task Manager, lock the taskbar (unlocked, drag it to another edge).
 - **Quick changes:** right-click the taskbar to switch the start menu, the Start button or the
   menu's side without opening Properties.
 
