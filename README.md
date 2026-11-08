@@ -14,7 +14,8 @@ patching or injecting into Explorer.
 **Taskbar**
 
 - One button per window with icon and title, never combined
-- Dock to the top or bottom edge (`--edge=top` / `--edge=bottom`)
+- Dock to any edge (`--edge=top|bottom|left|right`); on the left or right the
+  bar stands upright and shows icons only, as StartAllBack's does
 - Click to activate, click the active button to minimize
 - Live window previews on hover, the classic window menu on right-click
 - Flashing buttons for windows that need attention
@@ -32,6 +33,20 @@ patching or injecting into Explorer.
   2000, XP's Luna menu, Vista's and 7's Aero menus, the start screens of 8
   and 8.1, and the menus of 10 and 11 (`--start-style=` or Properties); the
   taskbar changes with it: its height, buttons, notification area and clock
+- Plain8, StartAllBack's flat Windows 8 look for the Windows 7 menu and taskbar
+  (`--start-style=plain8`)
+- The menu opens on the left or the right, next to the taskbar or at the top or
+  bottom of the screen
+- Customize Start Menu (XP, Vista, 7 and Plain8): how many programs it lists,
+  large or small icons, and which places the right column shows
+- A choice of Start buttons for every style: the Windows 7 or Vista orb, or
+  StartAllBack's clover, Windows 8 logo and E1even orbs
+- Newly installed programs are highlighted until you start them, as on
+  Windows 7, and rows with a jump list split into the program and its arrow
+- The first run takes the Windows taskbar's place (it hides it while
+  Throwback runs) and opens Properties; Throwback then starts with Windows
+- The bar's right-click menu switches the start menu style, the Start button
+  and the menu's side without opening Properties
 - The Windows 7 layout: frequent programs, All Programs, search, places and power
 - Pinned programs, a right-click menu (run as administrator, open file location, ...)
   and jump lists with each program's recent documents

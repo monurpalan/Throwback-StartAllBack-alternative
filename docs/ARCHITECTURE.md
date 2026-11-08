@@ -106,13 +106,13 @@ embedded as resources); everything else is drawn in code:
 
 `Settings::startStyle` picks a Windows version; `CreateStartMenu` builds
 the matching `StartMenuWindow`, and the bar draws that version's Start
-button. Three engines cover the ten styles:
+button. Three engines cover the eleven styles:
 
 - `ClassicStartMenu` (98, Me, 2000): levels of `ClassicMenu`, cascading
   popups with the banner, large icons on the first level, columns for long
   menus and the system's submenu delay. XP's All Programs reuses it in Luna
   colors (`ClassicLook::WinXp`).
-- `StartMenu` (XP, Vista, 7): one controller with each version's layout
+- `StartMenu` (XP, Vista, 7, Plain8): one controller with each version's layout
   (`core/start_menu_layout`) and view (`start_menu*_view.cpp`).
 - `ModernStartMenu` (8, 8.1, 10, 11): each view draws its arrangement and
   returns the regions the mouse can hit, so layout lives in one place.
@@ -150,7 +150,44 @@ A Windows 7 style menu (`src/startmenu`), drawn with the same UI kit:
 
 - **Pinned programs and jump lists:** pins sit above the frequent list; a
   program with recent documents (IApplicationDocumentLists, by app ID) shows
-  them in place of the right column while it is pointed at.
+  them in place of the right column while it is pointed at. Its row splits
+  into the program and an arrow half (theme parts 28 and 30), the half under
+  the mouse lit darker.
+- **Newly installed programs:** a Start Menu shortcut created in the last
+  week and not started since (the shortcut UserAssist key) is drawn with the
+  row image's orange state, as are its folders and "All Programs"
+  (`IsNewlyInstalled`).
+- **Position and shape:** every style opens through `PlaceMenuWindow`
+  (`core/start_menu_layout`'s `PlaceStartMenu`): the left or right edge, and
+  the bar's side or the top or bottom of the screen. The Windows 7 layout
+  takes its rows, icon size, pane widths and the right column's places from
+  `StartMenuShape`, so a long right column makes the menu taller. Places
+  are a table in `startmenu/places.cpp` that the Customize Start Menu
+  dialog lists; settings keep only the user's changes from the defaults.
+- **Upright bars:** on the left or right edge `ComputeVerticalLayout`
+  stacks a square start button, square task tiles (`Canvas::TaskTile`, the
+  same in every style, dark on light colors), the notification area
+  (`ComputeVerticalTrayArea`), the clock with the date, a bell for the
+  notification center (Win+N) and a show desktop strip. The clock opens the
+  calendar (Win+Alt+D). Popups
+  (thumbnails, hidden icons) open beside the bar through `PlacePopup`, and
+  the start menu opens from the button's top edge, kept inside the work
+  area so it never covers the bar.
+- **Settings across styles:** a chosen orb stands in for any style's start
+  button. The Customize dialog shapes the menus with a program list and a
+  right column (`HasCustomizableMenu`: XP, Vista, 7, Plain8); XP and Vista
+  keep their own place lists, filtered by the same keys as Windows 7's.
+- **First run and starting with Windows:** StartAllBack loads inside
+  Explorer, so it starts with the session and opens its welcome page once
+  (`WelcomeShown`). Throwback does the same from outside: the first run of
+  the default profile hides Explorer's taskbar, docks where it was
+  (`shell::SystemTaskbarEdge`) and opens Properties; saving settings writes
+  or removes the per-user Run value (`shell::SetStartWithWindows`).
+- **Plain8 and orbs:** Plain8 is the Windows 7 menu with another image set
+  (`SkinSet::Plain8`, which falls back to Windows 7's for parts it lacks) and
+  StartAllBack's wider panes. The orb window draws the Windows orbs, a
+  three-frame picture, or an SVG logo through Direct2D's SVG renderer, like
+  StartAllBack's `LoadSVGOrb`.
 - **Settings pages:** search also lists common pages of the Settings app.
 
 ## Notification area
