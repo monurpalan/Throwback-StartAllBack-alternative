@@ -34,8 +34,6 @@ constexpr WPARAM kShellWindowReplacing = 14;
 constexpr WPARAM kShellFullscreenEnter = 53;
 constexpr WPARAM kShellFullscreenExit = 54;
 
-constexpr UINT kMenuExit = 1;
-constexpr UINT kMenuProperties = 2;
 
 std::wstring FormatTime() {
   wchar_t buffer[64] = {};
@@ -369,9 +367,7 @@ void TaskbarWindow::RegisterAppBar() {
 }
 
 void TaskbarWindow::Dock() {
-  if (appBar_)
-    appBar_->Dock(settings_.edge, ScaleForDpi(BarStyleOf(settings_.startStyle).height, dpi_),
-                  monitor_);
+  if (appBar_) appBar_->Dock(settings_.edge, Thickness(), monitor_);
 }
 
 void TaskbarWindow::RefreshTasks() {
@@ -389,8 +385,20 @@ void TaskbarWindow::UpdateLayout() {
   metrics.barWidth = client.right - client.left;
   metrics.barHeight = client.bottom - client.top;
   metrics.trayWidth = TrayWidth();
-  metrics.startButtonWidth = std::max(metrics.startButtonWidth, StartButtonWidth());
-  layout_ = ComputeLayout(metrics, tracker_->Items().size());
+  metrics.startButtonWidth = settings_.orb != OrbChoice::Style
+                                 ? StartButtonWidth()
+                                 : std::max(metrics.startButtonWidth, StartButtonWidth());
+  if (IsVertical(settings_.edge)) {
+    // Every style's upright bar has StartAllBack's tiles and bottom rows.
+    metrics.padding = ScaleForDpi(kVerticalInset, dpi_);
+    metrics.spacing = ScaleForDpi(kVerticalSpacing, dpi_);
+    metrics.showDesktopWidth = ScaleForDpi(kVerticalShowDesktop, dpi_);
+    const int clockHeight = ScaleForDpi(BarStyleOf(settings_.startStyle).height, dpi_);
+    layout_ = ComputeVerticalLayout(metrics, clockHeight, TrayHeight(metrics.barWidth),
+                                    ScaleForDpi(kVerticalBell, dpi_), tracker_->Items().size());
+  } else {
+    layout_ = ComputeLayout(metrics, tracker_->Items().size());
+  }
   PlaceTray();
   InvalidateRect(hwnd_, nullptr, FALSE);
 }
@@ -409,13 +417,15 @@ void TaskbarWindow::Paint() {
   BarModel model{
       .bounds = {0, 0, client.right, client.bottom},
       .top = settings_.edge == Edge::Top,
+      .vertical = IsVertical(settings_.edge),
       .startButton = layout_.startButton,
       .startHovered = hovered_ == kHitStart,
       .startOpen = startMenu_ && startMenu_->IsOpen(),
       .drawOrb = !orb_,
+      .chosenOrb = settings_.orb != OrbChoice::Style,
       .startStyle = settings_.startStyle,
       .family = BarFamilyOf(settings_.startStyle),
-      .labels = BarStyleOf(settings_.startStyle).labels,
+      .labels = BarStyleOf(settings_.startStyle).labels && !IsVertical(settings_.edge),
       .dateLine = BarStyleOf(settings_.startStyle).dateLine,
       .light = settings_.theme == ThemeMode::Light ||
                (settings_.theme == ThemeMode::System && ui::SystemUsesLightTheme()),
@@ -424,6 +434,8 @@ void TaskbarWindow::Paint() {
       .date = date,
       .showDesktop = layout_.showDesktop,
       .showDesktopHovered = hovered_ == kHitShowDesktop,
+      .notifications = layout_.notifications,
+      .notificationsHovered = hovered_ == kHitNotifications,
   };
   for (size_t i = 0; i < layout_.taskButtons.size() && i < items.size(); ++i) {
     model.buttons.push_back({
@@ -441,20 +453,12 @@ void TaskbarWindow::Paint() {
     }
   }
   AddTrayIcons(model);
+  canvas_->SetSkinSet(settings_.startStyle == StartStyle::Plain8 ? ui::SkinSet::Plain8
+                                                                 : ui::SkinSet::Aero);
   canvas_->BeginFrame();
   DrawBar(*canvas_, model);
   canvas_->EndFrame();
-  const bool orbStyle =
-      settings_.startStyle == StartStyle::Win7 || settings_.startStyle == StartStyle::Vista;
-  if (orb_ && !orbStyle) orb_->Hide();
-  if (orb_ && orbStyle) {
-    POINT center{(layout_.startButton.left + layout_.startButton.right) / 2,
-                 (layout_.startButton.top + layout_.startButton.bottom) / 2};
-    ClientToScreen(hwnd_, &center);
-    orb_->Show(
-        center, dpi_, OrbStateFor(model),
-        settings_.startStyle == StartStyle::Vista ? ui::SkinImage::VistaOrb : ui::SkinImage::Orb);
-  }
+  ShowOrb(OrbStateFor(model));
 
   EndPaint(hwnd_, &paint);
 }
@@ -463,6 +467,8 @@ int TaskbarWindow::HitTest(int x, int y) const {
   if (layout_.startButton.Contains(x, y)) return kHitStart;
   if (const int tray = TrayHit(x, y); tray != kHitNone) return tray;
   if (layout_.showDesktop.Contains(x, y)) return kHitShowDesktop;
+  if (layout_.clock.Contains(x, y)) return kHitClock;
+  if (layout_.notifications.Contains(x, y)) return kHitNotifications;
   const size_t count = std::min(layout_.taskButtons.size(), tracker_->Items().size());
   for (size_t i = 0; i < count; ++i) {
     if (layout_.taskButtons[i].Contains(x, y)) return static_cast<int>(i);
@@ -536,6 +542,8 @@ void TaskbarWindow::OnButtonUp(int x, int y) {
     ToggleStartMenu();
   } else if (hit == kHitShowDesktop) {
     ToggleDesktop();
+  } else if (hit == kHitClock || hit == kHitNotifications) {
+    hit == kHitClock ? OpenClockFlyout() : OpenNotifications();
   } else if (hit >= 0 && tracker_->Items()[static_cast<size_t>(hit)].hwnd == pressedTask_) {
     ActivateTask(pressedTask_, pressedState_);
   }
@@ -556,20 +564,7 @@ void TaskbarWindow::OnContextMenu(int x, int y) {
     return;
   }
 
-  HMENU menu = CreatePopupMenu();
-  AppendMenuW(menu, MF_STRING, kMenuProperties,
-              std::wstring(ui::Tr(ui::StringId::Properties)).c_str());
-  AppendMenuW(menu, MF_SEPARATOR, 0, nullptr);
-  AppendMenuW(menu, MF_STRING, kMenuExit,
-              std::wstring(ui::Tr(ui::StringId::ExitThrowback)).c_str());
-  // Required for the menu to close when the user clicks elsewhere.
-  SetForegroundWindow(hwnd_);
-  const auto command = static_cast<UINT>(TrackPopupMenu(
-      menu, TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_NONOTIFY, point.x, point.y, 0, hwnd_, nullptr));
-  PostMessageW(hwnd_, WM_NULL, 0, 0);
-  DestroyMenu(menu);
-  if (command == kMenuExit) PostMessageW(hwnd_, WM_CLOSE, 0, 0);
-  if (command == kMenuProperties) OpenSettings();
+  ShowBarMenu(point);
 }
 
 void TaskbarWindow::ShowThumbnail(int index) {
@@ -578,22 +573,7 @@ void TaskbarWindow::ShowThumbnail(int index) {
   const TaskItem& item = items[static_cast<size_t>(index)];
   RECT anchor{};
   if (!ButtonScreenRect(item.hwnd, &anchor)) return;
-  thumbnail_->Show({item.hwnd, item.title, item.icon}, anchor, settings_.edge == Edge::Top, dpi_);
-}
-
-void TaskbarWindow::ToggleStartMenu() {
-  HideThumbnail();
-  if (startMenu_->IsOpen()) {
-    startMenu_->Close();
-    return;
-  }
-  POINT topLeft{layout_.startButton.left, layout_.startButton.top};
-  POINT bottomRight{layout_.startButton.right, layout_.startButton.bottom};
-  ClientToScreen(hwnd_, &topLeft);
-  ClientToScreen(hwnd_, &bottomRight);
-  startMenu_->Open({topLeft.x, topLeft.y, bottomRight.x, bottomRight.y},
-                   settings_.edge == Edge::Top, dpi_);
-  InvalidateRect(hwnd_, nullptr, FALSE);
+  thumbnail_->Show({item.hwnd, item.title, item.icon}, anchor, settings_.edge, dpi_);
 }
 
 void TaskbarWindow::HideThumbnail() {

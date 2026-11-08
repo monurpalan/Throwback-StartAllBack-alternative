@@ -27,6 +27,9 @@ TaskbarWindow::TrayIcons TaskbarWindow::SplitTrayIcons() const {
 
 TrayAreaLayout TaskbarWindow::TrayArea() const {
   const TrayIcons split = SplitTrayIcons();
+  if (IsVertical(settings_.edge)) {
+    return ComputeVerticalTrayArea(layout_.tray, split.shown.size(), !split.hidden.empty(), dpi_);
+  }
   return ComputeTrayArea(layout_.tray, split.shown.size(), !split.hidden.empty(), dpi_);
 }
 
@@ -34,6 +37,12 @@ int TaskbarWindow::TrayWidth() const {
   if (!tray_) return 0;
   const TrayIcons split = SplitTrayIcons();
   return TrayAreaWidth(split.shown.size(), !split.hidden.empty(), dpi_);
+}
+
+int TaskbarWindow::TrayHeight(int barWidth) const {
+  if (!tray_) return 0;
+  const TrayIcons split = SplitTrayIcons();
+  return VerticalTrayAreaHeight(split.shown.size(), !split.hidden.empty(), barWidth, dpi_);
 }
 
 int TaskbarWindow::TrayHit(int x, int y) const {
@@ -131,8 +140,8 @@ void TaskbarWindow::ToggleTrayOverflow() {
   POINT bottomRight{arrow.right, arrow.bottom};
   ClientToScreen(hwnd_, &topLeft);
   ClientToScreen(hwnd_, &bottomRight);
-  trayOverflow_->Show({topLeft.x, topLeft.y, bottomRight.x, bottomRight.y},
-                      settings_.edge == Edge::Top, dpi_);
+  trayOverflow_->Show({topLeft.x, topLeft.y, bottomRight.x, bottomRight.y}, settings_.edge,
+                      dpi_);
   InvalidateRect(hwnd_, nullptr, FALSE);
 }
 

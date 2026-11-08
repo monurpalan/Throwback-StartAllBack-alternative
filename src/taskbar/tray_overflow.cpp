@@ -43,9 +43,9 @@ TrayOverflow::~TrayOverflow() {
 
 bool TrayOverflow::IsOpen() const { return hwnd_ && IsWindowVisible(hwnd_); }
 
-void TrayOverflow::Show(const RECT& arrow, bool barAtTop, unsigned dpi) {
+void TrayOverflow::Show(const RECT& arrow, Edge barEdge, unsigned dpi) {
   arrow_ = arrow;
-  barAtTop_ = barAtTop;
+  barEdge_ = barEdge;
   dpi_ = dpi;
   items_ = callbacks_.items();
   if (items_.empty()) return;
@@ -87,10 +87,9 @@ void TrayOverflow::Place() {
   monitor.cbSize = sizeof(monitor);
   GetMonitorInfoW(MonitorFromRect(&arrow_, MONITOR_DEFAULTTONEAREST), &monitor);
   const RECT& screen = monitor.rcMonitor;
-  const int x = std::clamp(static_cast<int>(arrow_.left + arrow_.right) / 2 - width / 2,
-                           static_cast<int>(screen.left), static_cast<int>(screen.right) - width);
-  const int y = barAtTop_ ? arrow_.bottom + gap : arrow_.top - height - gap;
-  SetWindowPos(hwnd_, HWND_TOPMOST, x, y, width, height, SWP_NOACTIVATE);
+  const Point at = PlacePopup({arrow_.left, arrow_.top, arrow_.right, arrow_.bottom}, width, height,
+                              barEdge_, gap, {screen.left, screen.top, screen.right, screen.bottom});
+  SetWindowPos(hwnd_, HWND_TOPMOST, at.x, at.y, width, height, SWP_NOACTIVATE);
   canvas_->Resize(static_cast<UINT>(width), static_cast<UINT>(height));
   InvalidateRect(hwnd_, nullptr, FALSE);
 }

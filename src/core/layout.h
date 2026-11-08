@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <vector>
 
+#include "core/options.h"
+
 namespace throwback {
 
 struct Rect {
@@ -36,6 +38,7 @@ struct BarLayout {
   Rect clock;
   Rect tray;
   Rect showDesktop;
+  Rect notifications;  // an upright bar's bell, under its clock
   // May hold fewer rects than requested when the buttons don't fit.
   std::vector<Rect> taskButtons;
 };
@@ -49,5 +52,34 @@ BarMetrics ScaleMetrics(const BarMetrics& metrics, unsigned dpi);
 // Places the start button on the left, the clock on the right and splits the
 // space between them evenly across task buttons.
 BarLayout ComputeLayout(const BarMetrics& metrics, std::size_t taskCount);
+
+// An upright bar on the left or right edge, icons only, as StartAllBack
+// draws one: a square start button on top, square task buttons stacked
+// under it, and at the bottom the notification area, the clock (time over
+// date), the notifications bell and the show desktop strip. clockHeight,
+// trayHeight and bellHeight size those rows; showDesktopWidth is the strip's
+// height.
+BarLayout ComputeVerticalLayout(const BarMetrics& metrics, int clockHeight, int trayHeight,
+                                int bellHeight, std::size_t taskCount);
+
+// An upright bar at 96 DPI: wide enough for the date, as StartAllBack's;
+// task buttons are inset and spaced like its tiles.
+constexpr int kVerticalBarWidth = 56;
+constexpr int kVerticalInset = 6;
+constexpr int kVerticalSpacing = 4;
+constexpr int kVerticalBell = 28;
+constexpr int kVerticalShowDesktop = 12;
+
+struct Point {
+  int x = 0;
+  int y = 0;
+  bool operator==(const Point&) const = default;
+};
+
+// Where a popup of width x height opens for anchor (a button on a bar at
+// barEdge): beside the bar, away from its edge, centered on the anchor
+// along the bar and kept on screen.
+Point PlacePopup(const Rect& anchor, int width, int height, Edge barEdge, int gap,
+                 const Rect& screen);
 
 }  // namespace throwback

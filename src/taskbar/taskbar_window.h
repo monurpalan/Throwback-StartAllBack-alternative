@@ -41,6 +41,8 @@ class TaskbarWindow {
   void RequestRefresh();
 
  private:
+  static constexpr int kHitNotifications = -6;
+  static constexpr int kHitClock = -5;
   static constexpr int kHitTrayArrow = -4;
   static constexpr int kHitNone = -3;
   static constexpr int kHitShowDesktop = -2;
@@ -67,6 +69,8 @@ class TaskbarWindow {
   void ApplySystemTaskbar();
   void ApplyWindowsKey();
   void OpenSettings();
+  // The bar's own right-click menu: start menu choices, properties, exit.
+  void ShowBarMenu(POINT screenPoint);
   bool IsMain() const { return monitor_ == nullptr; }
   void ApplyTheme();
   void RefreshTasks();
@@ -85,6 +89,9 @@ class TaskbarWindow {
   void CreateStartMenuForStyle();
   // The start button grows with its label in styles that have one.
   int StartButtonWidth() const;
+  // Shows the orb of the Windows 7 style menus over the start button, or
+  // hides it for the other styles.
+  void ShowOrb(ui::OrbState state);
   // Notification area (main bar only), in taskbar_tray.cpp.
   // Indices into TrayHost::VisibleIcons of the icons on the bar and of
   // those behind the arrow.
@@ -95,6 +102,9 @@ class TaskbarWindow {
   TrayIcons SplitTrayIcons() const;
   TrayAreaLayout TrayArea() const;
   int TrayWidth() const;
+  int TrayHeight(int barWidth) const;  // on an upright bar
+  // The bar's thickness: its style's height, or its width when upright.
+  int Thickness() const;
   int TrayHit(int x, int y) const;
   void SendTrayMouse(int hit, TrayHost::Mouse mouse);
   void PlaceTray();

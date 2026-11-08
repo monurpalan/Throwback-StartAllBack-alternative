@@ -24,6 +24,7 @@ constexpr int kW8TrayArrowWidth = 21;
 constexpr int kXpTrayLead = 14;  // XP's tray image reaches left of the icons
 constexpr wchar_t kChevronUp = 0xE70E;
 constexpr wchar_t kChevronDown = 0xE70D;
+constexpr wchar_t kBell = 0xEA8F;  // Segoe MDL2 Assets "Ringer"
 
 Rect Centered(const Rect& rect, int width, int height) {
   const int left = rect.left + (rect.Width() - width) / 2;
@@ -113,7 +114,26 @@ void DrawProgress(ui::Canvas& canvas, const TaskButtonModel& button) {
   }
 }
 
+// On an upright bar every window gets the same square tile in every style,
+// as StartAllBack draws them: a light veil on dark bars, a dark one when the
+// light colors are chosen, brighter while hovered or active.
+void DrawTaskTile(ui::Canvas& canvas, const BarModel& model, const TaskButtonModel& button) {
+  ui::TileState state = ui::TileState::Normal;
+  if (button.active) {
+    state = ui::TileState::Active;
+  } else if (button.flashing) {
+    state = ui::TileState::Flashing;
+  } else if (button.hovered) {
+    state = ui::TileState::Hot;
+  }
+  canvas.TaskTile(button.rect, model.light, state);
+}
+
 void DrawTaskBackground(ui::Canvas& canvas, const BarModel& model, const TaskButtonModel& button) {
+  if (model.vertical) {
+    DrawTaskTile(canvas, model, button);
+    return;
+  }
   const bool flashing = button.flashing && !button.active;
   switch (model.family) {
     case BarFamily::Classic98:
@@ -164,8 +184,10 @@ void DrawTaskLabel(ui::Canvas& canvas, const BarModel& model, const TaskButtonMo
 void DrawTaskButton(ui::Canvas& canvas, const BarModel& model, const TaskButtonModel& button) {
   DrawTaskBackground(canvas, model, button);
   DrawProgress(canvas, button);
-  const bool smallIcons =
-      IsClassic(model.family) || model.family == BarFamily::Xp || model.family == BarFamily::Vista;
+  // Upright bars show icons only, so every style gets the large ones there.
+  const bool smallIcons = !model.vertical && (IsClassic(model.family) ||
+                                              model.family == BarFamily::Xp ||
+                                              model.family == BarFamily::Vista);
   const int iconSize = canvas.Scale(smallIcons ? kSmallIcon : kLargeIcon);
   const int padding = canvas.Scale(smallIcons ? ui::kSpace4 + ui::kSpace2 : ui::kSpace8);
   const int iconTop = button.rect.top + (button.rect.Height() - iconSize) / 2;
@@ -186,7 +208,32 @@ void DrawTaskButton(ui::Canvas& canvas, const BarModel& model, const TaskButtonM
       {icon.right + padding, button.rect.top, button.rect.right - padding, button.rect.bottom});
 }
 
+// The notification area's background on an upright bar: from the first icon
+// (or the arrow) down to the clock.
+void DrawVerticalTrayArea(ui::Canvas& canvas, const BarModel& model) {
+  const int top = model.trayArrow.Height() > 0 ? model.trayArrow.top
+                  : model.trayIcons.empty()    ? model.clock.top
+                                               : model.trayIcons.front().slot.top;
+  if (IsClassic(model.family)) {
+    const int inset = canvas.Scale(kClassicWellInset);
+    canvas.ClassicWell({model.bounds.left + inset, top - inset, model.bounds.right - inset,
+                        model.clock.bottom - inset},
+                       ClassicLookOf(model));
+  } else if (model.family == BarFamily::Xp) {
+    // The image's left edge is the divider it draws against the task band
+    // on a lying bar; upright, it is pushed off the bar so the tray's blue
+    // fills the bar's width.
+    canvas.Image(SkinImage::XpTray, 0,
+                 {model.bounds.left - canvas.Scale(kXpTrayLead), top - canvas.Scale(kXpTrayLead),
+                  model.bounds.right, model.bounds.bottom});
+  }
+}
+
 void DrawTrayArea(ui::Canvas& canvas, const BarModel& model) {
+  if (model.vertical) {
+    DrawVerticalTrayArea(canvas, model);
+    return;
+  }
   const int left = model.trayArrow.Width() > 0 ? model.trayArrow.left
                    : model.trayIcons.empty()   ? model.clock.left
                                                : model.trayIcons.front().slot.left;
@@ -279,7 +326,47 @@ void DrawTimeOnly(ui::Canvas& canvas, const BarModel& model) {
   }
 }
 
+// Upright bars' text and glyphs: dark only on a light Windows 10/11 bar.
+ui::ModernLook VerticalLook(const BarModel& model) {
+  return IsModern(model.family) ? ModernLookOf(model) : ui::ModernLook::Win11Dark;
+}
+
+// Time over date in every style, small enough to fit across the bar.
+void DrawVerticalClock(ui::Canvas& canvas, const BarModel& model) {
+  const Rect& clock = model.clock;
+  const int middle = (clock.top + clock.bottom) / 2;
+  const Rect upper{clock.left, clock.top, clock.right, middle + canvas.Scale(ui::kSpace2)};
+  const Rect lower{clock.left, middle - canvas.Scale(ui::kSpace2), clock.right, clock.bottom};
+  if (IsClassic(model.family)) {
+    const ui::TextStyle style = model.family == BarFamily::Classic2000 ? ui::TextStyle::Classic2000
+                                                                       : ui::TextStyle::Classic98;
+    for (const auto& [rect, text] : {std::pair{upper, model.time}, std::pair{lower, model.date}}) {
+      const int left = rect.left + (rect.Width() - canvas.MeasureText(text, style)) / 2;
+      canvas.ClassicText({left, rect.top, rect.right, rect.bottom}, text, ClassicLookOf(model),
+                         false);
+    }
+    return;
+  }
+  const ui::ModernLook look = VerticalLook(model);
+  canvas.ModernText(upper, model.time, ui::TextStyle::Win11Small, look, ui::ModernTone::Primary,
+                    ui::TextAlign::Center);
+  canvas.ModernText(lower, model.date, ui::TextStyle::Win11Small, look, ui::ModernTone::Primary,
+                    ui::TextAlign::Center);
+}
+
+void DrawNotificationsButton(ui::Canvas& canvas, const BarModel& model) {
+  if (model.notifications.Height() <= 0) return;
+  if (model.notificationsHovered) {
+    canvas.TaskTile(model.notifications, model.light, ui::TileState::Hot);
+  }
+  canvas.ModernGlyph(model.notifications, kBell, VerticalLook(model), ui::ModernTone::Primary);
+}
+
 void DrawClock(ui::Canvas& canvas, const BarModel& model) {
+  if (model.vertical) {
+    DrawVerticalClock(canvas, model);
+    return;
+  }
   if (!model.dateLine) {
     DrawTimeOnly(canvas, model);
     return;
@@ -304,6 +391,12 @@ void DrawClock(ui::Canvas& canvas, const BarModel& model) {
 
 void DrawShowDesktop(ui::Canvas& canvas, const BarModel& model) {
   if (model.showDesktop.Width() <= 0) return;
+  if (model.vertical) {
+    // A strip across the bottom in every style, as on StartAllBack's.
+    canvas.TaskTile(model.showDesktop, model.light,
+                    model.showDesktopHovered ? ui::TileState::Hot : ui::TileState::Normal);
+    return;
+  }
   switch (model.family) {
     case BarFamily::Win7:
       canvas.Button(model.showDesktop, ui::ButtonVariant::ShowDesktop, model.showDesktopHovered);
@@ -328,6 +421,12 @@ ui::OrbState OrbStateFor(const BarModel& model) {
 }
 
 void DrawStartButton(ui::Canvas& canvas, const BarModel& model) {
+  if (model.chosenOrb) {
+    if (model.drawOrb) {
+      canvas.Orb(CenteredSquare(model.startButton, canvas.Scale(kOrbSize)), OrbStateFor(model));
+    }
+    return;
+  }
   switch (model.startStyle) {
     case StartStyle::Win98:
     case StartStyle::WinMe:
@@ -335,13 +434,17 @@ void DrawStartButton(ui::Canvas& canvas, const BarModel& model) {
       const Rect& area = model.startButton;
       const int dx = canvas.Scale(kClassicButtonInsetX);
       const int dy = canvas.Scale(kClassicButtonInsetY);
+      // Upright bars have room for the flag only.
       canvas.ClassicStartButton({area.left + dx, area.top + dy, area.right - dx, area.bottom - dy},
-                                ClassicLookOf(model), ui::Tr(ui::StringId::ClassicStart),
+                                ClassicLookOf(model),
+                                model.vertical ? L"" : ui::Tr(ui::StringId::ClassicStart),
                                 model.startOpen);
       return;
     }
     case StartStyle::WinXp:
-      canvas.XpStartButton(model.startButton, ui::Tr(ui::StringId::XpStart), OrbStateFor(model));
+      canvas.XpStartButton(model.startButton,
+                           model.vertical ? L"" : ui::Tr(ui::StringId::XpStart),
+                           OrbStateFor(model));
       return;
     case StartStyle::Win8:
       return;  // Windows 8 had no Start button, only the corner
@@ -373,6 +476,7 @@ void DrawBar(ui::Canvas& canvas, const BarModel& model) {
   DrawTrayArrow(canvas, model);
   DrawTrayIcons(canvas, model);
   DrawClock(canvas, model);
+  DrawNotificationsButton(canvas, model);
   DrawShowDesktop(canvas, model);
 }
 

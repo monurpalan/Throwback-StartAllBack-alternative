@@ -40,6 +40,44 @@ TrayAreaLayout ComputeTrayArea(const Rect& area, std::size_t shownCount, bool ha
   return layout;
 }
 
+namespace {
+
+int TrayColumns(int width, unsigned dpi) {
+  return std::max(1, (width - 2 * ScaleForDpi(kInset, dpi)) / ScaleForDpi(kSlot, dpi));
+}
+
+}  // namespace
+
+int VerticalTrayAreaHeight(std::size_t shownCount, bool hasHidden, int width, unsigned dpi) {
+  if (shownCount == 0 && !hasHidden) return 0;
+  const int columns = TrayColumns(width, dpi);
+  const int rows = (static_cast<int>(shownCount) + columns - 1) / columns;
+  return rows * ScaleForDpi(kSlot, dpi) + (hasHidden ? ScaleForDpi(kArrowWidth, dpi) : 0) +
+         2 * ScaleForDpi(kInset, dpi);
+}
+
+TrayAreaLayout ComputeVerticalTrayArea(const Rect& area, std::size_t shownCount, bool hasHidden,
+                                       unsigned dpi) {
+  TrayAreaLayout layout;
+  const int slot = ScaleForDpi(kSlot, dpi);
+  int top = area.top + ScaleForDpi(kInset, dpi);
+  if (hasHidden) {
+    const int height = ScaleForDpi(kArrowWidth, dpi);
+    layout.arrow = {area.left, top, area.right, top + height};
+    top += height;
+  }
+  const int columns = TrayColumns(area.Width(), dpi);
+  const int used = std::min<int>(columns, static_cast<int>(shownCount)) * slot;
+  const int left = area.left + (area.Width() - used) / 2;
+  for (std::size_t i = 0; i < shownCount; ++i) {
+    const int column = static_cast<int>(i) % columns;
+    const int row = static_cast<int>(i) / columns;
+    layout.icons.push_back({left + column * slot, top + row * slot, left + (column + 1) * slot,
+                            top + (row + 1) * slot});
+  }
+  return layout;
+}
+
 TrayFlyoutLayout ComputeTrayFlyout(std::size_t count, int linkTextWidth, unsigned dpi) {
   const int slot = ScaleForDpi(kSlot, dpi);
   const int padding = ScaleForDpi(kFlyoutPadding, dpi);

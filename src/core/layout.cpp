@@ -57,4 +57,55 @@ BarLayout ComputeLayout(const BarMetrics& metrics, std::size_t taskCount) {
   return layout;
 }
 
+BarLayout ComputeVerticalLayout(const BarMetrics& metrics, int clockHeight, int trayHeight,
+                                int bellHeight, std::size_t taskCount) {
+  const int width = metrics.barWidth;
+  const int height = metrics.barHeight;
+  BarLayout layout;
+  layout.startButton = {0, 0, width, width};
+  layout.showDesktop = {0, height - metrics.showDesktopWidth, width, height};
+  layout.notifications = {0, layout.showDesktop.top - bellHeight, width, layout.showDesktop.top};
+  layout.clock = {0, layout.notifications.top - clockHeight, width, layout.notifications.top};
+  layout.tray = {0, layout.clock.top - trayHeight, width, layout.clock.top};
+
+  const int areaTop = layout.startButton.bottom + metrics.spacing;
+  const int areaBottom = layout.tray.top - metrics.spacing;
+  // Square buttons, as wide as the bar less its inset.
+  const int buttonHeight = width - 2 * metrics.padding;
+  if (taskCount == 0 || buttonHeight <= 0 || areaBottom <= areaTop) return layout;
+
+  const int step = buttonHeight + metrics.spacing;
+  const int fitting = (areaBottom - areaTop + metrics.spacing) / step;
+  const int shown = static_cast<int>(std::min<std::size_t>(taskCount, std::max(fitting, 0)));
+  for (int i = 0; i < shown; ++i) {
+    const int top = areaTop + i * step;
+    layout.taskButtons.push_back(
+        {metrics.padding, top, width - metrics.padding, top + buttonHeight});
+  }
+  return layout;
+}
+
+Point PlacePopup(const Rect& anchor, int width, int height, Edge barEdge, int gap,
+                 const Rect& screen) {
+  const auto clampX = [&](int x) {
+    return std::clamp(x, screen.left, std::max(screen.left, screen.right - width));
+  };
+  const auto clampY = [&](int y) {
+    return std::clamp(y, screen.top, std::max(screen.top, screen.bottom - height));
+  };
+  const int centeredX = clampX((anchor.left + anchor.right - width) / 2);
+  const int centeredY = clampY((anchor.top + anchor.bottom - height) / 2);
+  switch (barEdge) {
+    case Edge::Top:
+      return {centeredX, anchor.bottom + gap};
+    case Edge::Bottom:
+      return {centeredX, anchor.top - gap - height};
+    case Edge::Left:
+      return {anchor.right + gap, centeredY};
+    case Edge::Right:
+      return {anchor.left - gap - width, centeredY};
+  }
+  return {centeredX, anchor.top - gap - height};
+}
+
 }  // namespace throwback

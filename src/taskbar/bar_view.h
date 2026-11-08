@@ -35,11 +35,13 @@ struct TrayIconModel {
 // Everything shown on the bar for one frame.
 struct BarModel {
   Rect bounds;
-  bool top = false;  // docked to the top edge
+  bool top = false;       // docked to the top edge
+  bool vertical = false;  // docked to the left or right edge
   Rect startButton;
   bool startHovered = false;
   bool startOpen = false;
-  bool drawOrb = true;  // false while an OrbWindow shows the orb
+  bool drawOrb = true;     // false while an OrbWindow shows the orb
+  bool chosenOrb = false;  // an orb the user chose stands in for the style's button
   StartStyle startStyle = StartStyle::Win7;
   BarFamily family = BarFamily::Win7;
   bool labels = true;    // task buttons show titles
@@ -55,6 +57,8 @@ struct BarModel {
   std::wstring_view date;
   Rect showDesktop;
   bool showDesktopHovered = false;
+  Rect notifications;  // upright bars only
+  bool notificationsHovered = false;
 };
 
 // Draws the bar using UI kit components only.

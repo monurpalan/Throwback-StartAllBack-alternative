@@ -35,7 +35,7 @@ class TrayOverflow {
   TrayOverflow& operator=(const TrayOverflow&) = delete;
 
   // Opens next to the arrow (screen pixels), toward the rest of the screen.
-  void Show(const RECT& arrow, bool barAtTop, unsigned dpi);
+  void Show(const RECT& arrow, Edge barEdge, unsigned dpi);
   void Hide();
   bool IsOpen() const;
   // The icons changed: resizes or closes when none are left.
@@ -60,7 +60,7 @@ class TrayOverflow {
   std::vector<Item> items_;
   TrayFlyoutLayout layout_;
   RECT arrow_{};
-  bool barAtTop_ = false;
+  Edge barEdge_ = Edge::Bottom;
   unsigned dpi_ = 96;
   int hovered_ = kHitNone;
   bool tracking_ = false;

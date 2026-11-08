@@ -13,10 +13,32 @@ APPBARDATA MakeData(HWND hwnd) {
 }
 
 void ApplyThickness(RECT& rect, Edge edge, int thickness) {
-  if (edge == Edge::Top) {
-    rect.bottom = rect.top + thickness;
-  } else {
-    rect.top = rect.bottom - thickness;
+  switch (edge) {
+    case Edge::Top:
+      rect.bottom = rect.top + thickness;
+      break;
+    case Edge::Bottom:
+      rect.top = rect.bottom - thickness;
+      break;
+    case Edge::Left:
+      rect.right = rect.left + thickness;
+      break;
+    case Edge::Right:
+      rect.left = rect.right - thickness;
+      break;
+  }
+}
+
+UINT AppBarEdge(Edge edge) {
+  switch (edge) {
+    case Edge::Top:
+      return ABE_TOP;
+    case Edge::Left:
+      return ABE_LEFT;
+    case Edge::Right:
+      return ABE_RIGHT;
+    default:
+      return ABE_BOTTOM;
   }
 }
 
@@ -43,7 +65,7 @@ void AppBar::Dock(Edge edge, int thickness, HMONITOR target) {
   GetMonitorInfoW(target ? target : MonitorFromPoint({0, 0}, MONITOR_DEFAULTTOPRIMARY), &monitor);
 
   APPBARDATA data = MakeData(hwnd_);
-  data.uEdge = edge == Edge::Top ? ABE_TOP : ABE_BOTTOM;
+  data.uEdge = AppBarEdge(edge);
   data.rc = monitor.rcMonitor;
   ApplyThickness(data.rc, edge, thickness);
 

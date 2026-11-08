@@ -85,5 +85,48 @@ TEST(LayoutTest, ScalesForDpi) {
   EXPECT_EQ(ScaleMetrics(TestMetrics(), 192).clockWidth, 200);
 }
 
+TEST(VerticalLayoutTest, StacksSquareButtonsBetweenStartAndClock) {
+  BarMetrics m;
+  m.barWidth = 48;
+  m.barHeight = 400;
+  m.showDesktopWidth = 10;
+  m.spacing = 2;
+  m.padding = 2;
+  const BarLayout layout = ComputeVerticalLayout(m, 40, 30, 20, 3);
+  EXPECT_EQ(layout.startButton, (Rect{0, 0, 48, 48}));
+  EXPECT_EQ(layout.showDesktop, (Rect{0, 390, 48, 400}));
+  EXPECT_EQ(layout.notifications, (Rect{0, 370, 48, 390}));
+  EXPECT_EQ(layout.clock, (Rect{0, 330, 48, 370}));
+  EXPECT_EQ(layout.tray, (Rect{0, 300, 48, 330}));
+  ASSERT_EQ(layout.taskButtons.size(), 3u);
+  EXPECT_EQ(layout.taskButtons[0], (Rect{2, 50, 46, 94}));
+  EXPECT_EQ(layout.taskButtons[1].top, 96);
+}
+
+TEST(VerticalLayoutTest, DropsButtonsThatDoNotFit) {
+  BarMetrics m;
+  m.barWidth = 48;
+  m.barHeight = 240;
+  const BarLayout layout = ComputeVerticalLayout(m, 40, 0, 0, 10);
+  // 48 px for the start button and 40 for the clock leave three 48 px rows.
+  EXPECT_EQ(layout.taskButtons.size(), 3u);
+}
+
+TEST(PlacePopupTest, OpensAwayFromTheBar) {
+  const Rect screen{0, 0, 1000, 800};
+  const Rect button{100, 760, 160, 800};
+  EXPECT_EQ(PlacePopup(button, 200, 100, Edge::Bottom, 4, screen), (Point{30, 656}));
+  EXPECT_EQ(PlacePopup({100, 0, 160, 40}, 200, 100, Edge::Top, 4, screen), (Point{30, 44}));
+  EXPECT_EQ(PlacePopup({0, 300, 62, 340}, 200, 100, Edge::Left, 4, screen), (Point{66, 270}));
+  EXPECT_EQ(PlacePopup({938, 300, 1000, 340}, 200, 100, Edge::Right, 4, screen),
+            (Point{734, 270}));
+}
+
+TEST(PlacePopupTest, StaysOnScreen) {
+  const Rect screen{0, 0, 1000, 800};
+  EXPECT_EQ(PlacePopup({0, 760, 40, 800}, 200, 100, Edge::Bottom, 0, screen).x, 0);
+  EXPECT_EQ(PlacePopup({0, 0, 62, 40}, 200, 100, Edge::Left, 0, screen).y, 0);
+}
+
 }  // namespace
 }  // namespace throwback

@@ -43,5 +43,17 @@ TEST(TrayLayoutTest, FlyoutIsWideEnoughForTheLink) {
   EXPECT_EQ(one.icons[0].left + one.icons[0].right, one.frame.Width());
 }
 
+TEST(VerticalTrayAreaTest, FillsRowsUnderTheArrow) {
+  // 62 px wide: two 24 px slots fit beside the 4 px insets.
+  EXPECT_EQ(VerticalTrayAreaHeight(3, true, 62, 96), 2 * 24 + 20 + 8);
+  EXPECT_EQ(VerticalTrayAreaHeight(0, false, 62, 96), 0);
+  const TrayAreaLayout layout = ComputeVerticalTrayArea({0, 100, 62, 176}, 3, true, 96);
+  EXPECT_EQ(layout.arrow, (Rect{0, 104, 62, 124}));
+  ASSERT_EQ(layout.icons.size(), 3u);
+  EXPECT_EQ(layout.icons[0], (Rect{7, 124, 31, 148}));
+  EXPECT_EQ(layout.icons[1], (Rect{31, 124, 55, 148}));
+  EXPECT_EQ(layout.icons[2], (Rect{7, 148, 31, 172}));
+}
+
 }  // namespace
 }  // namespace throwback

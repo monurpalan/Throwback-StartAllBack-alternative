@@ -17,6 +17,9 @@ void ShowWindowMenu(HWND owner, HWND task, POINT screenPoint);
 
 // Toggles "show desktop" the way the system taskbar does.
 void ToggleDesktop();
+// Windows' calendar flyout (Win+Alt+D) and notification center (Win+N).
+void OpenClockFlyout();
+void OpenNotifications();
 
 // Makes native popup menus of this process follow the bar's theme.
 void ApplyMenuTheme(bool dark);

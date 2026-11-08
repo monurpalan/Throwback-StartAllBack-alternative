@@ -72,7 +72,8 @@ LRESULT CALLBACK ThumbnailPopup::WindowProc(HWND hwnd, UINT message, WPARAM wPar
   return DefWindowProcW(hwnd, message, wParam, lParam);
 }
 
-void ThumbnailPopup::Show(const Content& content, const RECT& anchor, bool below, unsigned dpi) {
+void ThumbnailPopup::Show(const Content& content, const RECT& anchor, Edge barEdge,
+                          unsigned dpi) {
   Hide();
   content_ = content;
   canvas_->SetDpi(dpi);
@@ -94,15 +95,14 @@ void ThumbnailPopup::Show(const Content& content, const RECT& anchor, bool below
                padding + (titleHeight - iconSize) / 2 + iconSize};
   titleRect_ = {iconRect_.right + padding, padding, width - padding, padding + titleHeight};
 
-  // Center on the button, but stay on its monitor.
+  // Beside the button, away from the bar, but on its monitor.
   MONITORINFO monitor{};
   monitor.cbSize = sizeof(monitor);
   GetMonitorInfoW(MonitorFromRect(&anchor, MONITOR_DEFAULTTONEAREST), &monitor);
-  const int centered = (anchor.left + anchor.right - width) / 2;
-  const int x = std::clamp(centered, static_cast<int>(monitor.rcMonitor.left),
-                           static_cast<int>(monitor.rcMonitor.right) - width);
-  const int y = below ? anchor.bottom + padding : anchor.top - padding - height;
-  SetWindowPos(hwnd_, HWND_TOPMOST, x, y, width, height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+  const RECT& m = monitor.rcMonitor;
+  const Point at = PlacePopup({anchor.left, anchor.top, anchor.right, anchor.bottom}, width, height,
+                              barEdge, padding, {m.left, m.top, m.right, m.bottom});
+  SetWindowPos(hwnd_, HWND_TOPMOST, at.x, at.y, width, height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
   canvas_->Resize(static_cast<UINT>(width), static_cast<UINT>(height));
 
   if (thumbnail_ && preview.cy > 0) {

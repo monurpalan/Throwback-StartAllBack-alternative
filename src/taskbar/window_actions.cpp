@@ -1,5 +1,8 @@
 #include "taskbar/window_actions.h"
 
+#include <initializer_list>
+#include <vector>
+
 #include <array>
 #include <string>
 
@@ -15,16 +18,26 @@ using shell::BringToFront;
 // Explorer's command for the "show desktop" button.
 constexpr WPARAM kShowDesktopCommand = 407;
 
-void PressWinD() {
-  INPUT inputs[4] = {};
-  const WORD keys[4] = {VK_LWIN, 'D', 'D', VK_LWIN};
-  for (int i = 0; i < 4; ++i) {
-    inputs[i].type = INPUT_KEYBOARD;
-    inputs[i].ki.wVk = keys[i];
-    inputs[i].ki.dwFlags = i >= 2 ? KEYEVENTF_KEYUP : 0;
+// Presses the keys in order and releases them in reverse.
+void PressHotkey(std::initializer_list<WORD> keys) {
+  std::vector<INPUT> inputs;
+  for (WORD key : keys) {
+    INPUT input{};
+    input.type = INPUT_KEYBOARD;
+    input.ki.wVk = key;
+    inputs.push_back(input);
   }
-  SendInput(4, inputs, sizeof(INPUT));
+  for (auto it = keys.end(); it != keys.begin();) {
+    INPUT input{};
+    input.type = INPUT_KEYBOARD;
+    input.ki.wVk = *--it;
+    input.ki.dwFlags = KEYEVENTF_KEYUP;
+    inputs.push_back(input);
+  }
+  SendInput(static_cast<UINT>(inputs.size()), inputs.data(), sizeof(INPUT));
 }
+
+void PressWinD() { PressHotkey({VK_LWIN, 'D'}); }
 
 void AllowToActivate(HWND window) {
   DWORD processId = 0;
@@ -176,6 +189,10 @@ void ToggleDesktop() {
     PressWinD();
   }
 }
+
+void OpenClockFlyout() { PressHotkey({VK_LWIN, VK_MENU, 'D'}); }
+
+void OpenNotifications() { PressHotkey({VK_LWIN, 'N'}); }
 
 void ApplyMenuTheme(bool dark) {
   // Undocumented uxtheme exports (ordinals 135 and 136) that every dark-mode

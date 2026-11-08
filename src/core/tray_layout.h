@@ -18,6 +18,12 @@ int TrayAreaWidth(std::size_t shownCount, bool hasHidden, unsigned dpi);
 TrayAreaLayout ComputeTrayArea(const Rect& area, std::size_t shownCount, bool hasHidden,
                                unsigned dpi);
 
+// The same on an upright bar of the given width: the arrow is a row across
+// the top, the icons fill rows under it.
+int VerticalTrayAreaHeight(std::size_t shownCount, bool hasHidden, int width, unsigned dpi);
+TrayAreaLayout ComputeVerticalTrayArea(const Rect& area, std::size_t shownCount, bool hasHidden,
+                                       unsigned dpi);
+
 // The flyout with the hidden icons: a near-square grid of them, and a strip
 // with the "Customize..." link under it. Rects are relative to the flyout.
 struct TrayFlyoutLayout {
