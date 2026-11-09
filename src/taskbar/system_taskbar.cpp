@@ -2,6 +2,7 @@
 
 #include <shellapi.h>
 
+#include <string>
 #include <vector>
 
 #include "taskbar/explorer_tray.h"
@@ -54,6 +55,23 @@ void Restore(LPARAM state) {
   ShowAll(true);
 }
 
+void StartWatchdog() {
+  static bool started = false;  // one per run is enough
+  if (started) return;
+  wchar_t path[MAX_PATH] = {};
+  if (GetModuleFileNameW(nullptr, path, MAX_PATH) == 0) return;
+  std::wstring command = L"\"" + std::wstring(path) + L"\" " + SystemTaskbar::kWatchdogArgument +
+                         std::to_wstring(GetCurrentProcessId());
+  STARTUPINFOW startup{sizeof(startup)};
+  PROCESS_INFORMATION process{};
+  if (CreateProcessW(path, command.data(), nullptr, nullptr, FALSE, DETACHED_PROCESS, nullptr,
+                     nullptr, &startup, &process)) {
+    CloseHandle(process.hThread);
+    CloseHandle(process.hProcess);
+    started = true;
+  }
+}
+
 }  // namespace
 
 SystemTaskbar::SystemTaskbar() {
@@ -62,6 +80,7 @@ SystemTaskbar::SystemTaskbar() {
   originalState_ = GetState(tray);
   WriteRecovery(originalState_);
   applied_ = true;
+  StartWatchdog();
   Enforce();
 }
 
@@ -89,6 +108,17 @@ void SystemTaskbar::RecoverFromCrash() {
   }
   Restore(static_cast<LPARAM>(state));
   ClearRecovery();
+}
+
+int SystemTaskbar::RunWatchdog(DWORD processId) {
+  HANDLE process = OpenProcess(SYNCHRONIZE, FALSE, processId);
+  if (!process) return 0;
+  WaitForSingleObject(process, INFINITE);
+  CloseHandle(process);
+  // A run that exited normally has restored the taskbar and cleared the
+  // recovery value already; then this does nothing.
+  RecoverFromCrash();
+  return 0;
 }
 
 }  // namespace throwback

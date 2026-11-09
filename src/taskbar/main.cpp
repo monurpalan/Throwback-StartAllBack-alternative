@@ -2,8 +2,10 @@
 #include <objbase.h>
 #include <shellapi.h>
 
+#include <cwchar>
 #include <exception>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "core/options.h"
@@ -12,6 +14,7 @@
 #include "shell/settings_store.h"
 #include "startmenu/start_menu_window.h"
 #include "taskbar/bar_manager.h"
+#include "taskbar/system_taskbar.h"
 #include "ui/strings.h"
 
 // Themed common controls (version 6) for the properties dialog, as Windows
@@ -44,6 +47,13 @@ int RunMessageLoop() {
 }  // namespace
 
 int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int) {
+  // The watchdog that brings the Windows taskbar back after a killed run.
+  const std::wstring_view watchdog = throwback::SystemTaskbar::kWatchdogArgument;
+  if (const auto args = CommandLineArgs(); args.size() == 1 && args[0].starts_with(watchdog)) {
+    const auto processId = std::wcstoul(args[0].c_str() + watchdog.size(), nullptr, 10);
+    return throwback::SystemTaskbar::RunWatchdog(static_cast<DWORD>(processId));
+  }
+
   // Two bars would fight over the same screen edge.
   HANDLE singleInstance = CreateMutexW(nullptr, TRUE, L"Local\\Throwback.SingleInstance");
   if (GetLastError() == ERROR_ALREADY_EXISTS) return 0;

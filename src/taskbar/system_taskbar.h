@@ -24,6 +24,12 @@ class SystemTaskbar {
   // Undoes what a crashed run left behind; safe to call when nothing is.
   static void RecoverFromCrash();
 
+  // A run that is killed (Task Manager, a crash) cannot restore anything
+  // itself, so hiding the taskbar also starts a watchdog: the same exe with
+  // kWatchdogArgument, which waits for this process to end and then recovers.
+  static constexpr wchar_t kWatchdogArgument[] = L"--restore-taskbar-after=";
+  static int RunWatchdog(DWORD processId);
+
  private:
   bool applied_ = false;
   LPARAM originalState_ = 0;
