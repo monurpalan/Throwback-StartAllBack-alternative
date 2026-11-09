@@ -8,9 +8,9 @@ görev çubuğu. Reklam yok, deneme süresi yok, hesap yok; Explorer'ın içine 
 edilmez.</p>
 
 <p align="center">
-<a href="https://github.com/monurpalan/startallback-alternative/releases/latest/download/throwback.exe"><b>⬇ Windows için indir (x64)</b></a>
+<a href="https://github.com/monurpalan/Throwback-StartAllBack-alternative/releases/latest/download/throwback.exe"><b>⬇ Windows için indir (x64)</b></a>
 &nbsp;·&nbsp;
-<a href="https://github.com/monurpalan/startallback-alternative/releases/latest/download/throwback-arm64.exe">ARM64</a>
+<a href="https://github.com/monurpalan/Throwback-StartAllBack-alternative/releases/latest/download/throwback-arm64.exe">ARM64</a>
 &nbsp;·&nbsp;
 <a href="README.md">English</a>
 </p>
@@ -110,7 +110,7 @@ hiçbir şeyi değiştirmez.
 *Throwback'ten çık*'ı seç (Windows görev çubuğu geri gelir) ve `throwback.exe`'yi sil.
 
 **Bir şey çalışmıyor.** Ne yaptığını ve ne olduğunu yazarak bir
-[issue aç](https://github.com/monurpalan/startallback-alternative/issues).
+[issue aç](https://github.com/monurpalan/Throwback-StartAllBack-alternative/issues).
 
 ## Komut satırı
 

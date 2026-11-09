@@ -7,9 +7,9 @@ Every Windows start menu from 98 to 11, and a classic taskbar you can put on any
 screen. No ads, no trial, no account, and nothing injected into Explorer.</p>
 
 <p align="center">
-<a href="https://github.com/monurpalan/startallback-alternative/releases/latest/download/throwback.exe"><b>⬇ Download for Windows (x64)</b></a>
+<a href="https://github.com/monurpalan/Throwback-StartAllBack-alternative/releases/latest/download/throwback.exe"><b>⬇ Download for Windows (x64)</b></a>
 &nbsp;·&nbsp;
-<a href="https://github.com/monurpalan/startallback-alternative/releases/latest/download/throwback-arm64.exe">ARM64</a>
+<a href="https://github.com/monurpalan/Throwback-StartAllBack-alternative/releases/latest/download/throwback-arm64.exe">ARM64</a>
 &nbsp;·&nbsp;
 <a href="README.tr.md">Türkçe</a>
 </p>
@@ -110,7 +110,7 @@ nothing in Windows' own files.
 *Exit Throwback* (the Windows taskbar comes back), and delete `throwback.exe`.
 
 **Something does not work.** Please
-[open an issue](https://github.com/monurpalan/startallback-alternative/issues) with what you did
+[open an issue](https://github.com/monurpalan/Throwback-StartAllBack-alternative/issues) with what you did
 and what happened.
 
 ## Command line
