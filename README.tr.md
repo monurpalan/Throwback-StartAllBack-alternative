@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/logo.png" width="96" alt=""></p>
+
 <h1 align="center">Throwback (StartAllBack alternatifi)</h1>
 
 <p align="center"><b>Windows 11 için ücretsiz, açık kaynak bir StartAllBack alternatifi.</b><br>

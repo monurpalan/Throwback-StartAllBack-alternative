@@ -2,6 +2,10 @@
 // CMake defines THROWBACK_ASSETS_<FOLDER> for each folder that is present.
 #include "ui/skin_ids.h"
 
+// Throwback's own icon, the first one in the file, so Explorer shows it for
+// the exe. Built from the four eras' logos by tools/make-logo.py.
+1 ICON "app/throwback.ico"
+
 #ifdef THROWBACK_ASSETS_WIN7
 #include "win7.rc"
 #endif

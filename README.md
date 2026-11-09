@@ -1,4 +1,6 @@
-﻿<h1 align="center">Throwback (StartAllBack alternative)</h1>
+<p align="center"><img src="docs/logo.png" width="96" alt=""></p>
+
+<h1 align="center">Throwback (StartAllBack alternative)</h1>
 
 <p align="center"><b>A free, open-source StartAllBack alternative for Windows 11.</b><br>
 Every Windows start menu from 98 to 11, and a classic taskbar you can put on any edge of the
