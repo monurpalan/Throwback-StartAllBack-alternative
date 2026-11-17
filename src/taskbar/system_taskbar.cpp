@@ -23,6 +23,30 @@ std::vector<HWND> ExplorerTaskbars() {
   return bars;
 }
 
+// Explorer's edge input windows: a thin strip along each side where its
+// auto-hidden taskbar may be, which reveals that taskbar (and its Start) when
+// the mouse touches the edge. The top strip is left alone: Windows 11's snap
+// layouts flyout uses it.
+std::vector<HWND> ExplorerEdgeWindows() {
+  std::vector<HWND> edges;
+  HWND edge = nullptr;
+  while ((edge = FindWindowExW(nullptr, edge, L"EdgeUiInputWndClass", nullptr))) {
+    edges.push_back(edge);
+  }
+  return edges;
+}
+
+// Lets the mouse through a window (an empty region) or gives its shape back.
+void SetPassThrough(HWND window, bool passThrough) {
+  RECT box{};
+  const bool empty = GetWindowRgnBox(window, &box) == NULLREGION;
+  if (!passThrough) {
+    SetWindowRgn(window, nullptr, TRUE);
+  } else if (!empty) {
+    SetWindowRgn(window, CreateRectRgn(0, 0, 0, 0), TRUE);
+  }
+}
+
 LPARAM GetState(HWND tray) {
   APPBARDATA data{sizeof(data)};
   data.hWnd = tray;
@@ -43,14 +67,10 @@ void ShowAll(bool show) {
     // shell event) before Enforce() hides it. With an empty window region
     // it stays invisible and lets clicks through to ours meanwhile, so its
     // Start and Search buttons never open by mistake.
-    RECT box{};
-    const bool empty = GetWindowRgnBox(bar, &box) == NULLREGION;
-    if (show) {
-      SetWindowRgn(bar, nullptr, TRUE);
-    } else if (!empty) {
-      SetWindowRgn(bar, CreateRectRgn(0, 0, 0, 0), TRUE);
-    }
+    SetPassThrough(bar, !show);
   }
+  // And the edge strips that would reveal it never catch the mouse.
+  for (HWND edge : ExplorerEdgeWindows()) SetPassThrough(edge, !show);
 }
 
 void WriteRecovery(LPARAM state) {
