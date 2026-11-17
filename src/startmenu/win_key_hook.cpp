@@ -19,6 +19,11 @@ constexpr ULONG_PTR kOwnInputMarker = 0x5448424B;
 // The hook procedure has no context parameter; there is one hook per process.
 std::atomic<HWND> g_target = nullptr;
 std::atomic<UINT> g_message = 0;
+HHOOK g_hook = nullptr;  // only touched on the hook thread
+// Windows calls low-level hooks newest first. Other tools (StartAllBack, a
+// restarted Explorer) may hook the keyboard after us and open their own
+// start menu before ours sees the key, so the hook is set again regularly.
+constexpr UINT kRehookMs = 5000;
 WinKeyTracker g_tracker;  // only touched on the hook thread
 
 void ReleaseWinWithMask(WORD winKey) {
@@ -57,6 +62,15 @@ LRESULT CALLBACK KeyboardProc(int code, WPARAM wParam, LPARAM lParam) {
   return CallNextHookEx(nullptr, code, wParam, lParam);
 }
 
+void InstallHook() {
+  // The old hook goes first: with both in place every key would reach
+  // KeyboardProc twice.
+  if (g_hook) UnhookWindowsHookEx(g_hook);
+  g_hook = SetWindowsHookExW(WH_KEYBOARD_LL, KeyboardProc, GetModuleHandleW(nullptr), 0);
+}
+
+void CALLBACK OnRehookTimer(HWND, UINT, UINT_PTR, DWORD) { InstallHook(); }
+
 }  // namespace
 
 WinKeyHook::WinKeyHook(HWND target, UINT message) {
@@ -68,10 +82,13 @@ WinKeyHook::WinKeyHook(HWND target, UINT message) {
     MSG msg;
     // Creates this thread's message queue before anyone posts to it.
     PeekMessageW(&msg, nullptr, 0, 0, PM_NOREMOVE);
-    HHOOK hook = SetWindowsHookExW(WH_KEYBOARD_LL, KeyboardProc, GetModuleHandleW(nullptr), 0);
+    InstallHook();
+    const UINT_PTR timer = SetTimer(nullptr, 0, kRehookMs, OnRehookTimer);
     started.set_value(GetCurrentThreadId());
     while (GetMessageW(&msg, nullptr, 0, 0) > 0) DispatchMessageW(&msg);
-    if (hook) UnhookWindowsHookEx(hook);
+    KillTimer(nullptr, timer);
+    if (g_hook) UnhookWindowsHookEx(g_hook);
+    g_hook = nullptr;
   });
   threadId_ = threadId.get();
 }
