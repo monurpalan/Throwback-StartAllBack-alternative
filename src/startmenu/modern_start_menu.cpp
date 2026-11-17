@@ -23,7 +23,6 @@ using Page = ModernModel::Page;
 
 constexpr wchar_t kClassName[] = L"ThrowbackModernMenu";
 constexpr UINT kIconsReady = WM_APP + 1;
-constexpr ULONGLONG kCatalogMaxAgeMs = 30'000;
 constexpr size_t kFrequent = 6;
 constexpr size_t kRecent = 6;
 constexpr size_t kMaxResults = 100;
@@ -162,11 +161,8 @@ void ModernStartMenu::Hide(bool restoreFocus) {
 }
 
 void ModernStartMenu::LoadData() {
-  const ULONGLONG now = GetTickCount64();
-  if (!catalog_ || now - catalogLoadedAt_ > kCatalogMaxAgeMs) {
-    catalog_ = LoadPrograms();
-    catalogLoadedAt_ = now;
-  }
+  catalogs_.Adopt(catalog_);
+  catalogs_.RefreshIfStale();
   account_ = LoadAccount();
   frequent_.clear();
   for (const auto& program : LoadFrequentPrograms(*catalog_, kFrequent)) {

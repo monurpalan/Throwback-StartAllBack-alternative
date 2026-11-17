@@ -75,6 +75,7 @@ add_executable(throwback WIN32
   src/shell/recent_items.cpp
   src/shell/settings_store.cpp
   src/shell/shell_icons.cpp
+  src/startmenu/catalog_cache.cpp
   src/startmenu/classic_menu.cpp
   src/startmenu/classic_start_menu.cpp
   src/startmenu/frequent.cpp

@@ -9,6 +9,7 @@
 
 #include "core/settings.h"
 #include "shell/async_icons.h"
+#include "startmenu/catalog_cache.h"
 #include "startmenu/frequent.h"
 #include "startmenu/modern_view.h"
 #include "startmenu/places.h"
@@ -31,6 +32,7 @@ class ModernStartMenu : public StartMenuWindow {
   void Open(const MenuAnchor& anchor) override;
   void Close() override { Hide(/*restoreFocus=*/true); }
   bool IsOpen() const override;
+  void Preload() override { catalogs_.Preload(); }
 
  private:
   struct Entry {
@@ -68,7 +70,7 @@ class ModernStartMenu : public StartMenuWindow {
   Rect frame_;
 
   std::unique_ptr<ProgramCatalog> catalog_;
-  ULONGLONG catalogLoadedAt_ = 0;
+  CatalogCache catalogs_;
   Account account_;
   std::vector<Entry> tiles_;
   std::vector<Entry> frequent_;

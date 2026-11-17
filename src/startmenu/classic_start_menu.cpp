@@ -28,7 +28,6 @@ constexpr int kTaskbarIcon = 40;
 constexpr int kLogOffIcon = 45;
 constexpr int kUpdateIcon = 47;
 
-constexpr ULONGLONG kCatalogMaxAgeMs = 30'000;
 constexpr size_t kRecentDocuments = 15;
 
 std::wstring Text(StringId id) { return std::wstring(ui::Tr(id)); }
@@ -106,11 +105,8 @@ ClassicStartMenu::~ClassicStartMenu() {
 }
 
 void ClassicStartMenu::Open(const MenuAnchor& anchor) {
-  const ULONGLONG now = GetTickCount64();
-  if (!catalog_ || now - catalogLoadedAt_ > kCatalogMaxAgeMs) {
-    catalog_ = LoadPrograms();
-    catalogLoadedAt_ = now;
-  }
+  catalogs_.Adopt(catalog_);
+  catalogs_.RefreshIfStale();
   account_ = LoadAccount();
   host_.dpi = anchor.dpi;
   root_->ShowRoot(RootEntries(), anchor);

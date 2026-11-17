@@ -36,6 +36,9 @@ class StartMenuWindow {
   // Dismisses the menu and gives focus back to the window that had it.
   virtual void Close() = 0;
   virtual bool IsOpen() const = 0;
+  // Gets the program list ready in the background, so the first click
+  // doesn't wait for it.
+  virtual void Preload() {}
 };
 
 // The menu is owned by the bar, so closing requests reach the bar. onClosed

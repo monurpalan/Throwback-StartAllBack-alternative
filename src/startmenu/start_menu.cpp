@@ -21,7 +21,6 @@ constexpr wchar_t kClassName[] = L"ThrowbackStartMenu";
 constexpr UINT kIconsReady = WM_APP + 1;
 // The program list is read again when the menu opens after this long, so
 // newly installed programs show up.
-constexpr ULONGLONG kCatalogMaxAgeMs = 30'000;
 constexpr int kCompactRowHeight = ui::kSpace24;
 constexpr int kLargeIcon = 32;
 constexpr int kSmallIcon = 16;
@@ -165,11 +164,8 @@ void StartMenu::Hide(bool restoreFocus) {
 bool StartMenu::IsOpen() const { return IsWindowVisible(hwnd_) != FALSE; }
 
 void StartMenu::LoadData() {
-  const ULONGLONG now = GetTickCount64();
-  if (!catalog_ || now - catalogLoadedAt_ > kCatalogMaxAgeMs) {
-    catalog_ = LoadPrograms();
-    catalogLoadedAt_ = now;
-  }
+  catalogs_.Adopt(catalog_);
+  catalogs_.RefreshIfStale();
   frequent_ = LoadFrequentPrograms(*catalog_, static_cast<size_t>(settings_.menuRows));
   // The places follow the settings, which the user may have changed since.
   const auto placesKey = std::make_pair(settings_.placesShown, settings_.placesHidden);

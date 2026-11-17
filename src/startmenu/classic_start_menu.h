@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "shell/async_icons.h"
+#include "startmenu/catalog_cache.h"
 #include "startmenu/classic_menu.h"
 #include "startmenu/places.h"
 #include "startmenu/programs.h"
@@ -33,6 +34,7 @@ class ClassicStartMenu : public StartMenuWindow {
   void Open(const MenuAnchor& anchor) override;
   void Close() override;
   bool IsOpen() const override;
+  void Preload() override { catalogs_.Preload(); }
 
  private:
   std::vector<ClassicEntry> RootEntries();
@@ -48,7 +50,7 @@ class ClassicStartMenu : public StartMenuWindow {
   std::unique_ptr<ClassicMenu> root_;
   std::unique_ptr<shell::AsyncIconCache> icons_;
   std::unique_ptr<ProgramCatalog> catalog_;
-  ULONGLONG catalogLoadedAt_ = 0;
+  CatalogCache catalogs_;
   Account account_;
   // The style's own icons, by shell32 ID and size.
   std::map<std::pair<int, int>, HICON> classicIcons_;

@@ -13,6 +13,7 @@
 #include "core/start_menu_layout.h"
 #include "shell/async_icons.h"
 #include "shell/recent_items.h"
+#include "startmenu/catalog_cache.h"
 #include "startmenu/classic_menu.h"
 #include "startmenu/frequent.h"
 #include "startmenu/places.h"
@@ -43,6 +44,7 @@ class StartMenu : public StartMenuWindow {
   // Dismisses the menu and gives focus back to the window that had it.
   void Close() override { Hide(/*restoreFocus=*/true); }
   bool IsOpen() const override;
+  void Preload() override { catalogs_.Preload(); }
 
  private:
   // restoreFocus is false when something else is taking focus anyway: the
@@ -130,7 +132,7 @@ class StartMenu : public StartMenuWindow {
   unsigned dpi_ = 96;
 
   std::unique_ptr<ProgramCatalog> catalog_;
-  ULONGLONG catalogLoadedAt_ = 0;
+  CatalogCache catalogs_;
   std::vector<FrequentProgram> frequent_;
   std::vector<Place> places_;
   // The settings places_ were loaded for.

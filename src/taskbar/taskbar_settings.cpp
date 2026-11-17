@@ -131,6 +131,7 @@ void TaskbarWindow::CreateStartMenuForStyle() {
   startMenu_ = CreateStartMenu(
       module_, hwnd_, settings_, [this] { InvalidateRect(hwnd_, nullptr, FALSE); },
       [this] { manager_.SavePinned(); });
+  startMenu_->Preload();
 }
 
 void TaskbarWindow::OnSettingsChanged(bool moved) {
