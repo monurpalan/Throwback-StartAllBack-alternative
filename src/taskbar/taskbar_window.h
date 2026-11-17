@@ -155,6 +155,9 @@ class TaskbarWindow {
   int pressedHit_ = kHitNone;
   bool draggingBar_ = false;
   bool fullscreen_ = false;
+  // What the last repaint showed, so the refresh timer repaints only changes.
+  HWND paintedForeground_ = nullptr;
+  std::wstring paintedClock_;
   std::map<HWND, std::wstring> appIds_;  // cached for badges
   HWND pressedTask_ = nullptr;
   TaskClickState pressedState_;

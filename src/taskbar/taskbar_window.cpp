@@ -337,6 +337,7 @@ LRESULT TaskbarWindow::OnShellHook(WPARAM code, LPARAM param) {
       tracker_->SetFlashing(window, false);
       break;
   }
+  InvalidateRect(hwnd_, nullptr, FALSE);
   return 0;
 }
 
@@ -372,9 +373,17 @@ void TaskbarWindow::Dock() {
 
 void TaskbarWindow::RefreshTasks() {
   if (!tracker_) return;
-  if (tracker_->Refresh()) UpdateLayout();
-  // Repaint even without list changes: the active window and clock may differ.
-  InvalidateRect(hwnd_, nullptr, FALSE);
+  const bool changed = tracker_->Refresh();
+  if (changed) UpdateLayout();
+  // Otherwise repaint only when the active window or the clock's minute
+  // moved on: drawing the bar every second was most of its idle CPU.
+  const HWND foreground = GetForegroundWindow();
+  std::wstring clock = FormatTime() + FormatDate();
+  if (changed || foreground != paintedForeground_ || clock != paintedClock_) {
+    paintedForeground_ = foreground;
+    paintedClock_ = std::move(clock);
+    InvalidateRect(hwnd_, nullptr, FALSE);
+  }
 }
 
 void TaskbarWindow::UpdateLayout() {
