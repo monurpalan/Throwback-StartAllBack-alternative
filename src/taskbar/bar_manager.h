@@ -7,7 +7,9 @@
 #include <string>
 
 #include "core/settings.h"
+#include "shell/badge_store.h"
 #include "shell/settings_store.h"
+#include "taskbar/fullscreen_watch.h"
 #include "taskbar/task_status.h"
 
 namespace throwback {
@@ -39,6 +41,9 @@ class BarManager {
   // ITaskbarList3 messages, which reach the main bar only; true if handled.
   bool HandleTaskbarList(UINT message, WPARAM wParam, LPARAM lParam);
   const TaskStatus* StatusOf(HWND window) const { return status_.Find(window); }
+  // App badges (WhatsApp's unread count) for the task buttons.
+  const shell::BadgeStore& Badges() const { return badges_; }
+  void RefreshBadges();
   void PruneStatus() { status_.Prune(); }
 
  private:
@@ -46,6 +51,8 @@ class BarManager {
   Settings settings_;
   shell::SettingsStore store_;
   TaskStatusStore status_;
+  shell::BadgeStore badges_;
+  std::unique_ptr<FullscreenWatch> fullscreen_;
   std::unique_ptr<TaskbarWindow> main_;
   std::map<std::wstring, std::unique_ptr<TaskbarWindow>> secondary_;
 };

@@ -27,6 +27,7 @@ target_compile_options(throwback_options INTERFACE /W4 /WX /permissive- /utf-8)
 
 # Pure logic with no Win32 dependencies: easy to unit test.
 add_library(throwback_core STATIC
+  src/core/badge.cpp
   src/core/bar_style.cpp
   src/core/layout.cpp
   src/core/monitor_diff.cpp
@@ -69,6 +70,7 @@ target_link_libraries(throwback_ui
 add_executable(throwback WIN32
   src/shell/async_icons.cpp
   src/shell/autostart.cpp
+  src/shell/badge_store.cpp
   src/shell/launch.cpp
   src/shell/recent_items.cpp
   src/shell/settings_store.cpp
@@ -106,6 +108,8 @@ add_executable(throwback WIN32
   src/taskbar/dialog_controls.cpp
   src/taskbar/start_menu_customize.cpp
   src/taskbar/taskbar_menu.cpp
+  src/taskbar/taskbar_status.cpp
+  src/taskbar/fullscreen_watch.cpp
   src/taskbar/task_status.cpp
   src/taskbar/taskband_hook.cpp
   src/taskbar/taskbar_settings.cpp
@@ -117,7 +121,7 @@ add_executable(throwback WIN32
   src/taskbar/window_actions.cpp
   src/taskbar/window_tracker.cpp)
 target_link_libraries(throwback PRIVATE
-  throwback_ui throwback_options dwmapi shell32 shlwapi ole32 secur32 powrprof)
+  throwback_ui throwback_options dwmapi shell32 shlwapi ole32 secur32 powrprof winsqlite3)
 
 # The original Windows images (assets/<folder>) are embedded for every folder
 # that is there; without one, the UI kit draws its own version of its parts.

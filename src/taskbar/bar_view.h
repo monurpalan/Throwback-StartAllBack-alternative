@@ -2,6 +2,7 @@
 
 #include <windows.h>
 
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -23,6 +24,8 @@ struct TaskButtonModel {
   ProgressState progress = ProgressState::None;
   float progressFraction = 0.0f;
   HICON overlay = nullptr;  // a small status icon over the button's icon
+  bool badge = false;       // the app's badge: a count, or a dot when empty
+  std::wstring badgeText;
 };
 
 // The Search and Task View buttons beside the start button.

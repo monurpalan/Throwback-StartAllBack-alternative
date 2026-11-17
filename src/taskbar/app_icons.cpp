@@ -1,5 +1,6 @@
 #include "taskbar/app_icons.h"
 
+#include <appmodel.h>
 #include <propsys.h>
 #include <shellapi.h>
 #include <wrl/client.h>
@@ -31,6 +32,20 @@ std::wstring ReadAppUserModelId(HWND hwnd) {
 }
 
 }  // namespace
+
+std::wstring AppIdOf(HWND hwnd) {
+  std::wstring id = ReadAppUserModelId(hwnd);
+  if (!id.empty()) return id;
+  DWORD processId = 0;
+  GetWindowThreadProcessId(hwnd, &processId);
+  HANDLE process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processId);
+  if (!process) return id;
+  wchar_t buffer[APPLICATION_USER_MODEL_ID_MAX_LENGTH] = {};
+  UINT32 length = APPLICATION_USER_MODEL_ID_MAX_LENGTH;
+  if (GetApplicationUserModelId(process, &length, buffer) == ERROR_SUCCESS) id = buffer;
+  CloseHandle(process);
+  return id;
+}
 
 HICON AppIconCache::ForWindow(HWND hwnd) {
   const std::wstring id = ReadAppUserModelId(hwnd);

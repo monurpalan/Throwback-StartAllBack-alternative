@@ -162,6 +162,9 @@ class Canvas {
   // The square behind a window's icon on an upright bar, the same in every
   // style: a light veil on dark bars, a dark one with the light colors.
   void TaskTile(const Rect& rect, bool light, TileState state);
+  // An app's badge on the top right of its icon: a red pill with the count,
+  // or a red dot when text is empty.
+  void TaskBadge(const Rect& icon, std::wstring_view text);
   // A start screen tile in one of Windows 8's colors (by index), or in
   // Windows 10's accent color for a negative index.
   void ModernTile(const Rect& rect, int color, bool hovered);

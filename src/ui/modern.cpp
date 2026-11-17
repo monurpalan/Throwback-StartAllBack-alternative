@@ -130,6 +130,24 @@ void Canvas::TaskTile(const Rect& rect, bool light, TileState state) {
   StrokeRound(inner, radius - 1.0f, FromRgb(0xFFFFFF, light ? 0.55f : 0.22f + lift));
 }
 
+void Canvas::TaskBadge(const Rect& icon, std::wstring_view text) {
+  constexpr unsigned kBadgeRed = 0xE81123;
+  const int height = Scale(text.empty() ? 9 : 15);
+  const int padding = Scale(4);
+  const int width =
+      text.empty() ? height : std::max(height, MeasureText(text, TextStyle::XpBold) + 2 * padding);
+  const int right = icon.right + Scale(5);
+  const int top = icon.top - Scale(5);
+  const Rect pill{right - width, top, right, top + height};
+  const float radius = static_cast<float>(height) / 2.0f;
+  FillRound(pill, radius, FromRgb(kBadgeRed));
+  StrokeRound(pill, radius, FromRgb(0xFFFFFF, 0.85f));
+  if (!text.empty()) {
+    ModernText(pill, text, TextStyle::XpBold, ModernLook::Win11Dark, ModernTone::Primary,
+               TextAlign::Center);
+  }
+}
+
 void Canvas::ModernTile(const Rect& rect, int color, bool hovered) {
   Fill(rect, color < 0 ? modern::kWin10Accent : kTiles[static_cast<size_t>(color) % kTiles.size()]);
   if (hovered) Fill(rect, modern::kTileHover);

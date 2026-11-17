@@ -54,7 +54,8 @@ screen. No ads, no trial, no account, and nothing injected into Explorer.</p>
 - **One button per window** with its icon and title, never combined; click the active one to
   minimize.
 - **Live previews** on hover, the classic window menu on right-click, flashing buttons for
-  windows that need you, and the progress and overlay icons programs set.
+  windows that need you, the progress and overlay icons programs set, and app badges such as
+  WhatsApp's unread count.
 - **The notification area** with every program's icons; drag an icon off the bar to hide it
   behind the arrow, or back onto it.
 - **Clock and calendar:** click the clock for the calendar.

@@ -38,9 +38,15 @@ BarManager::BarManager(HINSTANCE instance, const Settings& settings, shell::Sett
     : instance_(instance), settings_(settings), store_(std::move(store)) {
   main_ = std::make_unique<TaskbarWindow>(instance_, *this, nullptr);
   Reconcile();
+  fullscreen_ = std::make_unique<FullscreenWatch>([this] {
+    if (main_) main_->UpdateFullscreen();
+    for (const auto& [name, bar] : secondary_) bar->UpdateFullscreen();
+  });
+  badges_.Refresh();
 }
 
 BarManager::~BarManager() {
+  fullscreen_.reset();
   secondary_.clear();
   main_.reset();
 }
@@ -103,6 +109,12 @@ bool BarManager::HandleTaskbarList(UINT message, WPARAM wParam, LPARAM lParam) {
     for (const auto& [name, bar] : secondary_) InvalidateRect(bar->Hwnd(), nullptr, FALSE);
   }
   return true;
+}
+
+void BarManager::RefreshBadges() {
+  if (!badges_.Refresh()) return;
+  if (main_) InvalidateRect(main_->Hwnd(), nullptr, FALSE);
+  for (const auto& [name, bar] : secondary_) InvalidateRect(bar->Hwnd(), nullptr, FALSE);
 }
 
 void BarManager::RequestRefresh() {

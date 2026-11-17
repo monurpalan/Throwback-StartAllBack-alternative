@@ -96,6 +96,11 @@ BarLayout ComputeVerticalLayout(const BarMetrics& metrics, int clockHeight, int 
   return layout;
 }
 
+bool CoversMonitor(const Rect& window, const Rect& monitor) {
+  return window.left <= monitor.left && window.top <= monitor.top &&
+         window.right >= monitor.right && window.bottom >= monitor.bottom;
+}
+
 Edge NearestEdge(const Point& point, const Rect& screen) {
   const int toTop = point.y - screen.top;
   const int toBottom = screen.bottom - point.y;

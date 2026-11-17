@@ -9,6 +9,7 @@ set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 add_executable(throwback_tests
+  badge_test.cpp
   bar_style_test.cpp
   layout_test.cpp
   monitor_diff_test.cpp

@@ -81,6 +81,10 @@ struct Point {
   bool operator==(const Point&) const = default;
 };
 
+// Whether a window covers its whole monitor, as a fullscreen video or game
+// does; the bar steps aside for it.
+bool CoversMonitor(const Rect& window, const Rect& monitor);
+
 // The screen edge nearest a point: where a bar dragged there docks.
 Edge NearestEdge(const Point& point, const Rect& screen);
 

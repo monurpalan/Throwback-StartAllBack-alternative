@@ -202,6 +202,7 @@ void DrawTaskButton(ui::Canvas& canvas, const BarModel& model, const TaskButtonM
                  icon.right + canvas.Scale(ui::kSpace4), icon.bottom},
                 button.overlay);
   }
+  if (button.badge) canvas.TaskBadge(icon, button.badgeText);
   if (!model.labels) return;
   DrawTaskLabel(
       canvas, model, button,

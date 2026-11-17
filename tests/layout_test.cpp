@@ -157,5 +157,12 @@ TEST(NearestEdgeTest, PicksTheClosestEdge) {
   EXPECT_EQ(NearestEdge({990, 400}, screen), Edge::Right);
 }
 
+TEST(CoversMonitorTest, OnlyAWholeMonitor) {
+  const Rect monitor{0, 0, 1920, 1080};
+  EXPECT_TRUE(CoversMonitor({0, 0, 1920, 1080}, monitor));
+  EXPECT_TRUE(CoversMonitor({-8, -8, 1928, 1088}, monitor));  // a maximized frame
+  EXPECT_FALSE(CoversMonitor({0, 0, 1920, 1040}, monitor));   // above a bar
+}
+
 }  // namespace
 }  // namespace throwback

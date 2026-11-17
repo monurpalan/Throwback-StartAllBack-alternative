@@ -2,6 +2,7 @@
 
 #include <windows.h>
 
+#include <map>
 #include <memory>
 
 #include "core/layout.h"
@@ -73,6 +74,12 @@ class TaskbarWindow {
   void OpenSettings();
   // The bar's own right-click menu: start menu choices, properties, exit.
   void ShowBarMenu(POINT screenPoint);
+  // taskbar_status.cpp: stepping aside for fullscreen apps, app badges.
+ public:
+  void UpdateFullscreen();
+
+ private:
+  void AddBadges(BarModel& model);
   // The Search and Task View buttons (taskbar_menu.cpp).
   enum class QuickButton { Search, TaskView };
   std::vector<QuickButton> QuickButtons() const;
@@ -147,6 +154,8 @@ class TaskbarWindow {
   bool trackingMouse_ = false;
   int pressedHit_ = kHitNone;
   bool draggingBar_ = false;
+  bool fullscreen_ = false;
+  std::map<HWND, std::wstring> appIds_;  // cached for badges
   HWND pressedTask_ = nullptr;
   TaskClickState pressedState_;
   // Set while Windows swaps a window: HSHELL_WINDOWREPLACING names the new

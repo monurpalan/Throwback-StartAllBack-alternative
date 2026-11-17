@@ -310,7 +310,7 @@ LRESULT TaskbarWindow::OnShellHook(WPARAM code, LPARAM param) {
     }
     case kShellFullscreenEnter:
     case kShellFullscreenExit:
-      if (appBar_) appBar_->SetFullscreenActive(code == kShellFullscreenEnter);
+      UpdateFullscreen();  // Explorer's hint; the window itself decides
       return 0;
     case kShellWindowReplacing:
       replacingWindow_ = window;
@@ -350,6 +350,7 @@ void TaskbarWindow::OnTimer(UINT_PTR timer) {
   RefreshTasks();
   if (systemTaskbar_) systemTaskbar_->Enforce();
   if (IsMain()) manager_.PruneStatus();
+  if (IsMain()) manager_.RefreshBadges();
   if (tray_) {
     tray_->Prune();
     PlaceTray();  // Explorer's taskbar may have come above ours
@@ -454,6 +455,7 @@ void TaskbarWindow::Paint() {
   }
   AddTrayIcons(model);
   AddQuickButtons(model);
+  AddBadges(model);
   canvas_->SetSkinSet(settings_.startStyle == StartStyle::Plain8 ? ui::SkinSet::Plain8
                                                                  : ui::SkinSet::Aero);
   canvas_->BeginFrame();

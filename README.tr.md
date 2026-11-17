@@ -54,7 +54,8 @@ edilmez.</p>
 - **Her pencereye bir düğme**, simgesi ve başlığıyla, asla birleştirilmez; etkin olana tıklamak
   küçültür.
 - **Canlı önizlemeler**, sağ tıkta klasik pencere menüsü, ilgi bekleyen pencereler için yanıp
-  sönen düğmeler ve programların gösterdiği ilerleme ile simge rozetleri.
+  sönen düğmeler, programların gösterdiği ilerleme ve simge rozetleri, WhatsApp'ın okunmamış
+  sayısı gibi uygulama rozetleri.
 - **Bildirim alanı** tüm programların simgeleriyle; bir simgeyi çubuktan sürükleyip okun arkasına
   gizle ya da geri getir.
 - **Saat ve takvim:** takvim için saate tıkla.
