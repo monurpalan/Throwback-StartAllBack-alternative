@@ -194,8 +194,6 @@ void OpenClockFlyout() { PressHotkey({VK_LWIN, VK_MENU, 'D'}); }
 
 void OpenNotifications() { PressHotkey({VK_LWIN, 'N'}); }
 
-void OpenSearch() { PressHotkey({VK_LWIN, 'S'}); }
-
 void OpenTaskView() { PressHotkey({VK_LWIN, VK_TAB}); }
 
 void ApplyMenuTheme(bool dark) {

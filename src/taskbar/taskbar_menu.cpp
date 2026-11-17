@@ -196,7 +196,14 @@ void TaskbarWindow::PressQuickButton(int hit) {
   if (index >= buttons.size()) return;
   // Windows' own search and Task View, as their buttons on its taskbar.
   if (buttons[index] == QuickButton::Search) {
-    OpenSearch();
+    // Our own menu's search, so no other start menu answers. The cascading
+    // menus of 98 to 2000 have no search box: Explorer's search window.
+    const StartStyle style = settings_.startStyle;
+    if (style == StartStyle::Win98 || style == StartStyle::WinMe || style == StartStyle::Win2000) {
+      shell::Launch(L"search-ms:");
+    } else if (!startMenu_->IsOpen()) {
+      ToggleStartMenu();
+    }
   } else {
     OpenTaskView();
   }

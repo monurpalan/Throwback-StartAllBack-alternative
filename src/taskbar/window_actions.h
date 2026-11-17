@@ -20,8 +20,7 @@ void ToggleDesktop();
 // Windows' calendar flyout (Win+Alt+D) and notification center (Win+N).
 void OpenClockFlyout();
 void OpenNotifications();
-// Windows' search (Win+S) and Task View (Win+Tab).
-void OpenSearch();
+// Windows' Task View (Win+Tab).
 void OpenTaskView();
 
 // Makes native popup menus of this process follow the bar's theme.
