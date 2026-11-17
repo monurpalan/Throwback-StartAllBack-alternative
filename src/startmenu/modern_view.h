@@ -53,6 +53,7 @@ struct ModernModel {
   std::vector<Item> recent;
   int scroll = 0;  // apps scrolled past the top (or the left, on Windows 8)
   std::wstring_view query;
+  bool caret = false;  // the search box's blinking caret is showing
   std::wstring_view accountName;
   std::wstring_view picturePath;
   ModernHit hover;

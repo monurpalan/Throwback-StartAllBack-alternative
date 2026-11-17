@@ -177,7 +177,7 @@ ModernRegions DrawWin11StartMenu(ui::Canvas& canvas, const ModernModel& model) {
   canvas.ModernSurface(model.frame, model.look);
   canvas.ModernSearchBox(
       {s(kSide), s(kSearchTop), model.frame.right - s(kSide), s(kSearchTop + kSearchHeight)},
-      model.look, model.query, ui::Tr(ui::StringId::ModernSearchPrompt));
+      model.look, model.query, ui::Tr(ui::StringId::ModernSearchPrompt), model.caret);
   switch (model.page) {
     case ModernModel::Page::Home:
       DrawHeader(canvas, model, ui::StringId::ModernPinned, ui::StringId::ModernAllApps, false,

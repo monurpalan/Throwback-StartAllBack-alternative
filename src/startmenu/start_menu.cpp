@@ -116,7 +116,11 @@ LRESULT StartMenu::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam) {
     case WM_MOUSEWHEEL:
       OnWheel(GET_WHEEL_DELTA_WPARAM(wParam));
       return 0;
+    case WM_TIMER:
+      if (caret_.OnTimer(hwnd_, wParam)) return 0;
+      break;
     case WM_CHAR:
+      caret_.Reset(hwnd_);
       OnChar(static_cast<wchar_t>(wParam));
       return 0;
     case WM_KEYDOWN:
@@ -147,6 +151,7 @@ void StartMenu::Open(const MenuAnchor& anchor) {
   previousForeground_ = GetForegroundWindow();
   shell::BringToFront(hwnd_);
   SetFocus(hwnd_);
+  caret_.Start(hwnd_);
   InvalidateRect(hwnd_, nullptr, FALSE);
 }
 
@@ -157,6 +162,7 @@ void StartMenu::Hide(bool restoreFocus) {
   // the bar, and the user's window loses the keyboard.
   if (restoreFocus && IsWindow(previousForeground_)) SetForegroundWindow(previousForeground_);
   ShowWindow(hwnd_, SW_HIDE);
+  caret_.Stop(hwnd_);
   previousForeground_ = nullptr;
   if (onClosed_) onClosed_();
 }
@@ -321,6 +327,7 @@ void StartMenu::Paint() {
   model.allProgramsHovered = hover_.kind == Hit::Kind::AllPrograms;
   model.allProgramsFresh = catalog_ && catalog_->hasFresh;
   model.query = query_;
+  model.caret = caret_.Visible(hwnd_);
   model.noResults = mode_ == Mode::Search && rows_.empty();
   model.accountName = account_.name;
   model.picturePath = account_.picturePath;

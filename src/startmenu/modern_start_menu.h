@@ -9,6 +9,7 @@
 
 #include "core/settings.h"
 #include "shell/async_icons.h"
+#include "startmenu/caret_blink.h"
 #include "startmenu/catalog_cache.h"
 #include "startmenu/frequent.h"
 #include "startmenu/modern_view.h"
@@ -71,6 +72,7 @@ class ModernStartMenu : public StartMenuWindow {
 
   std::unique_ptr<ProgramCatalog> catalog_;
   CatalogCache catalogs_;
+  CaretBlink caret_;
   Account account_;
   std::vector<Entry> tiles_;
   std::vector<Entry> frequent_;

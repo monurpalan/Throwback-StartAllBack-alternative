@@ -125,7 +125,7 @@ void DrawVistaStartMenu(ui::Canvas& canvas, const StartMenuModel& model) {
   const int frame = canvas.Scale(2);
   canvas.TextField({layout.search.left + frame, layout.search.top + frame,
                     layout.search.right - frame, layout.search.bottom - frame},
-                   model.query, ui::Tr(ui::StringId::VistaSearchPlaceholder), true, true);
+                   model.query, ui::Tr(ui::StringId::VistaSearchPlaceholder), model.caret, true);
   DrawPlaces(canvas, model);
   DrawPowerButtons(canvas, model);
 }

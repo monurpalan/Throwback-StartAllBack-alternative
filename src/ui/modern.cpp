@@ -20,6 +20,7 @@ constexpr int kW81Logo = 32;
 constexpr int kW11Logo = 24;
 constexpr int kW11HoverInset = 4;
 constexpr wchar_t kSearchGlyph = 0xE721;
+constexpr int kCaretHeight = 16;
 
 bool IsWin11(ModernLook look) {
   return look == ModernLook::Win11Dark || look == ModernLook::Win11Light;
@@ -166,7 +167,7 @@ void Canvas::ModernGlyph(const Rect& rect, wchar_t glyph, ModernLook look, Moder
 }
 
 void Canvas::ModernSearchBox(const Rect& rect, ModernLook look, std::wstring_view query,
-                             std::wstring_view prompt) {
+                             std::wstring_view prompt, bool caret) {
   const bool light = look == ModernLook::Win11Light;
   FillRound(rect, kWin11FieldRadius, light ? modern::kWin11LightField : modern::kWin11DarkField);
   StrokeRound(rect, kWin11FieldRadius,
@@ -180,6 +181,12 @@ void Canvas::ModernSearchBox(const Rect& rect, ModernLook look, std::wstring_vie
   } else {
     ModernText(text, query, TextStyle::Win11Body, look, ModernTone::Primary);
   }
+  if (!caret) return;
+  // A thin caret after the typed text (before the prompt when empty).
+  const int x = text.left + std::min(MeasureText(query, TextStyle::Win11Body), text.Width());
+  const int height = Scale(kCaretHeight);
+  const int top = rect.top + (rect.Height() - height) / 2;
+  Fill({x, top, x + std::max(1, Scale(1)), top + height}, TextOf(look, ModernTone::Primary));
 }
 
 void Canvas::ModernPicture(const Rect& rect, const std::wstring& path, std::wstring_view initial,

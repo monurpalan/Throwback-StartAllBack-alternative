@@ -78,7 +78,8 @@ void DrawLeftPane(ui::Canvas& canvas, const StartMenuModel& model) {
               ui::Tr(model.showBack ? ui::StringId::Back : ui::StringId::AllPrograms),
               ui::TextStyle::Body, ui::TextTone::Dark);
 
-  canvas.TextField(layout.search, model.query, ui::Tr(ui::StringId::SearchPlaceholder), true);
+  canvas.TextField(layout.search, model.query, ui::Tr(ui::StringId::SearchPlaceholder),
+                   model.caret);
 }
 
 void DrawPower(ui::Canvas& canvas, const StartMenuModel& model);

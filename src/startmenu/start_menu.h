@@ -13,6 +13,7 @@
 #include "core/start_menu_layout.h"
 #include "shell/async_icons.h"
 #include "shell/recent_items.h"
+#include "startmenu/caret_blink.h"
 #include "startmenu/catalog_cache.h"
 #include "startmenu/classic_menu.h"
 #include "startmenu/frequent.h"
@@ -133,6 +134,7 @@ class StartMenu : public StartMenuWindow {
 
   std::unique_ptr<ProgramCatalog> catalog_;
   CatalogCache catalogs_;
+  CaretBlink caret_;
   std::vector<FrequentProgram> frequent_;
   std::vector<Place> places_;
   // The settings places_ were loaded for.

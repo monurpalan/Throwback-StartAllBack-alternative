@@ -148,6 +148,7 @@ void ModernStartMenu::Open(const MenuAnchor& anchor) {
   previousForeground_ = GetForegroundWindow();
   shell::BringToFront(hwnd_);
   SetFocus(hwnd_);
+  caret_.Start(hwnd_);
   InvalidateRect(hwnd_, nullptr, FALSE);
   if (onChanged_) onChanged_();
 }
@@ -156,6 +157,7 @@ void ModernStartMenu::Hide(bool restoreFocus) {
   if (!IsOpen()) return;
   if (restoreFocus && IsWindow(previousForeground_)) SetForegroundWindow(previousForeground_);
   ShowWindow(hwnd_, SW_HIDE);
+  caret_.Stop(hwnd_);
   previousForeground_ = nullptr;
   if (onChanged_) onChanged_();
 }
@@ -226,6 +228,7 @@ ModernModel ModernStartMenu::Model() {
   model.page = page_;
   model.scroll = scroll_;
   model.query = query_;
+  model.caret = caret_.Visible(hwnd_);
   model.accountName = account_.name;
   model.picturePath = account_.picturePath;
   model.hover = hover_;
@@ -432,7 +435,11 @@ LRESULT ModernStartMenu::HandleMessage(UINT message, WPARAM wParam, LPARAM lPara
     case WM_MOUSEWHEEL:
       OnWheel(GET_WHEEL_DELTA_WPARAM(wParam));
       return 0;
+    case WM_TIMER:
+      if (caret_.OnTimer(hwnd_, wParam)) return 0;
+      break;
     case WM_CHAR:
+      caret_.Reset(hwnd_);
       OnChar(static_cast<wchar_t>(wParam));
       return 0;
     case WM_KEYDOWN:

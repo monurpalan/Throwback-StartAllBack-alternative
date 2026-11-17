@@ -172,8 +172,9 @@ class Canvas {
                   ModernTone tone, TextAlign align = TextAlign::Leading);
   // A symbol of the look's icon font, by its code point.
   void ModernGlyph(const Rect& rect, wchar_t glyph, ModernLook look, ModernTone tone);
+  // caret draws the blinking caret after the text.
   void ModernSearchBox(const Rect& rect, ModernLook look, std::wstring_view query,
-                       std::wstring_view prompt);
+                       std::wstring_view prompt, bool caret = false);
   // The account picture in a circle; the initial without a picture.
   void ModernPicture(const Rect& rect, const std::wstring& path, std::wstring_view initial,
                      ModernLook look);

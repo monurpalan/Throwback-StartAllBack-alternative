@@ -14,6 +14,7 @@ namespace throwback {
 
 // Everything the start menu shows for one frame.
 struct StartMenuModel {
+  bool caret = false;  // the search box's blinking caret is showing
   struct Row {
     std::wstring_view name;
     HICON icon = nullptr;
