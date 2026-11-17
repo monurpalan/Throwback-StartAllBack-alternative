@@ -27,17 +27,41 @@ D2D1_ROUNDED_RECT OutlineShape(const Rect& rect, float radius) {
       radius, radius);
 }
 
+// One set of factories for every window. A Direct2D factory per window would
+// bring its own Direct3D device, worth tens of megabytes and a dozen threads
+// each; render targets of one factory share theirs. All windows draw on the
+// UI thread, so the single-threaded factory is enough. Never released: they
+// live as long as the process, and releasing WIC after COM shut down at exit
+// would crash.
+struct Factories {
+  ID2D1Factory* d2d = nullptr;
+  IDWriteFactory* dwrite = nullptr;
+  IWICImagingFactory* wic = nullptr;
+};
+
+const Factories& SharedFactories() {
+  static const Factories factories = [] {
+    Factories f;
+    ThrowIfFailed(D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &f.d2d),
+                  "D2D1CreateFactory");
+    ThrowIfFailed(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory),
+                                      reinterpret_cast<IUnknown**>(&f.dwrite)),
+                  "DWriteCreateFactory");
+    ThrowIfFailed(CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER,
+                                   IID_PPV_ARGS(&f.wic)),
+                  "CoCreateInstance(WICImagingFactory)");
+    return f;
+  }();
+  return factories;
+}
+
 }  // namespace
 
 Canvas::Canvas(HWND hwnd) : hwnd_(hwnd) {
-  ThrowIfFailed(D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, factory_.GetAddressOf()),
-                "D2D1CreateFactory");
-  ThrowIfFailed(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory),
-                                    reinterpret_cast<IUnknown**>(dwrite_.GetAddressOf())),
-                "DWriteCreateFactory");
-  ThrowIfFailed(CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER,
-                                 IID_PPV_ARGS(wic_.GetAddressOf())),
-                "CoCreateInstance(WICImagingFactory)");
+  const Factories& shared = SharedFactories();
+  factory_ = shared.d2d;
+  dwrite_ = shared.dwrite;
+  wic_ = shared.wic;
   fonts_ = std::make_unique<Fonts>(dwrite_.Get());
 }
 
