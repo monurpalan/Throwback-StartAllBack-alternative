@@ -39,6 +39,17 @@ void SetState(HWND tray, LPARAM state) {
 void ShowAll(bool show) {
   for (HWND bar : ExplorerTaskbars()) {
     if ((IsWindowVisible(bar) != FALSE) != show) ShowWindow(bar, show ? SW_SHOWNA : SW_HIDE);
+    // Explorer shows its bar again now and then (an auto-hide reveal, a
+    // shell event) before Enforce() hides it. With an empty window region
+    // it stays invisible and lets clicks through to ours meanwhile, so its
+    // Start and Search buttons never open by mistake.
+    RECT box{};
+    const bool empty = GetWindowRgnBox(bar, &box) == NULLREGION;
+    if (show) {
+      SetWindowRgn(bar, nullptr, TRUE);
+    } else if (!empty) {
+      SetWindowRgn(bar, CreateRectRgn(0, 0, 0, 0), TRUE);
+    }
   }
 }
 
