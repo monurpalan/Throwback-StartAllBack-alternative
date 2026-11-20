@@ -95,8 +95,14 @@ void StartWatchdog() {
                          std::to_wstring(GetCurrentProcessId());
   STARTUPINFOW startup{sizeof(startup)};
   PROCESS_INFORMATION process{};
-  if (CreateProcessW(path, command.data(), nullptr, nullptr, FALSE, DETACHED_PROCESS, nullptr,
-                     nullptr, &startup, &process)) {
+  // Out of our job if it allows: a terminal or script that ends its whole
+  // job would otherwise take the watchdog down with us.
+  constexpr DWORD kFlags = DETACHED_PROCESS | CREATE_BREAKAWAY_FROM_JOB;
+  const auto launch = [&](DWORD flags) {
+    return CreateProcessW(path, command.data(), nullptr, nullptr, FALSE, flags, nullptr, nullptr,
+                          &startup, &process) != FALSE;
+  };
+  if (launch(kFlags) || launch(DETACHED_PROCESS)) {
     CloseHandle(process.hThread);
     CloseHandle(process.hProcess);
     started = true;
