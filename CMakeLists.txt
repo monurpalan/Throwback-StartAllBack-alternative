@@ -41,6 +41,7 @@ add_library(throwback_core STATIC
   src/core/task_click.cpp
   src/core/tray_layout.cpp
   src/core/user_assist.cpp
+  src/core/volume_math.cpp
   src/core/win_key.cpp
   src/core/window_filter.cpp
   src/core/window_menu.cpp)
@@ -74,6 +75,7 @@ add_executable(throwback WIN32
   src/shell/launch.cpp
   src/shell/recent_items.cpp
   src/shell/settings_store.cpp
+  src/shell/volume.cpp
   src/shell/shell_icons.cpp
   src/startmenu/catalog_cache.cpp
   src/startmenu/classic_menu.cpp
@@ -110,6 +112,8 @@ add_executable(throwback WIN32
   src/taskbar/start_menu_customize.cpp
   src/taskbar/taskbar_menu.cpp
   src/taskbar/taskbar_status.cpp
+  src/taskbar/taskbar_volume.cpp
+  src/taskbar/volume_flyout.cpp
   src/taskbar/fullscreen_watch.cpp
   src/taskbar/task_status.cpp
   src/taskbar/taskband_hook.cpp

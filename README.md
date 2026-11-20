@@ -58,6 +58,8 @@ screen. No ads, no trial, no account, and nothing injected into Explorer.</p>
   WhatsApp's unread count.
 - **The notification area** with every program's icons; drag an icon off the bar to hide it
   behind the arrow, or back onto it.
+- **Volume** in the notification area, as on Windows 7: click it for a slider and mute, right-click
+  for the volume mixer and sound settings, or scroll over it.
 - **Clock and calendar:** click the clock for the calendar.
 - **A bar on every monitor**, each with the windows on that monitor.
 - **Search and Task View buttons** beside the Start button, and Explorer's own taskbar menu:

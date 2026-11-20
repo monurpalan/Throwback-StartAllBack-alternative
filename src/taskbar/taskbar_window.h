@@ -8,6 +8,7 @@
 #include "core/layout.h"
 #include "core/settings.h"
 #include "core/task_click.h"
+#include "shell/volume.h"
 #include "startmenu/start_menu_window.h"
 #include "startmenu/win_key_hook.h"
 #include "taskbar/appbar.h"
@@ -17,6 +18,7 @@
 #include "taskbar/thumbnail_popup.h"
 #include "taskbar/tray_host.h"
 #include "taskbar/tray_overflow.h"
+#include "taskbar/volume_flyout.h"
 #include "taskbar/window_tracker.h"
 #include "ui/canvas.h"
 #include "ui/orb_window.h"
@@ -74,6 +76,15 @@ class TaskbarWindow {
   void OpenSettings();
   // The bar's own right-click menu: start menu choices, properties, exit.
   void ShowBarMenu(POINT screenPoint);
+  // taskbar_volume.cpp: the notification area's volume icon.
+  static constexpr UINT kVolumeMessage = WM_APP + 20;
+  void CreateVolume();
+  bool HasVolume() const;
+  wchar_t VolumeGlyph() const;
+  int VolumeHit() const;
+  bool HandleVolumeMessage(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* result);
+  void OnVolumeMouse(TrayHost::Mouse mouse, const Rect& slot);
+  void ShowVolumeMenu(POINT at);
   // taskbar_status.cpp: stepping aside for fullscreen apps, app badges.
  public:
   void UpdateFullscreen();
@@ -177,6 +188,9 @@ class TaskbarWindow {
   std::unique_ptr<TaskbandHook> taskbandHook_;  // main bar only
   std::unique_ptr<TrayHost> tray_;              // main bar only
   std::unique_ptr<TrayOverflow> trayOverflow_;  // main bar only
+  std::unique_ptr<shell::Volume> volume_;       // main bar only
+  std::unique_ptr<VolumeFlyout> volumeFlyout_;
+  ULONGLONG volumeClosedAt_ = 0;
   POINT trayPress_{};
   int lastTrayClick_ = kHitNone;
   DWORD lastTrayClickTime_ = 0;

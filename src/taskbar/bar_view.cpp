@@ -287,6 +287,12 @@ void DrawTrayArrow(ui::Canvas& canvas, const BarModel& model) {
   }
 }
 
+// Light glyphs on dark bars, dark ones on the classic grey and light bars.
+ui::ModernLook GlyphLook(const BarModel& model) {
+  if (IsClassic(model.family)) return ui::ModernLook::Win11Light;
+  return IsModern(model.family) ? ModernLookOf(model) : ui::ModernLook::Win11Dark;
+}
+
 void DrawTrayIcons(ui::Canvas& canvas, const BarModel& model) {
   for (const auto& icon : model.trayIcons) {
     switch (model.family) {
@@ -303,7 +309,11 @@ void DrawTrayIcons(ui::Canvas& canvas, const BarModel& model) {
       default:
         break;  // the older notification areas had no hover
     }
-    canvas.Icon(icon.icon, icon.handle);
+    if (icon.glyph) {
+      canvas.ModernGlyph(icon.slot, icon.glyph, GlyphLook(model), ui::ModernTone::Primary);
+    } else {
+      canvas.Icon(icon.icon, icon.handle);
+    }
   }
 }
 
@@ -468,10 +478,7 @@ void DrawStartButton(ui::Canvas& canvas, const BarModel& model) {
 }
 
 void DrawQuickButtons(ui::Canvas& canvas, const BarModel& model) {
-  // Light glyphs on dark bars, dark ones on the classic grey and light bars.
-  const ui::ModernLook look = IsClassic(model.family)  ? ui::ModernLook::Win11Light
-                              : IsModern(model.family) ? ModernLookOf(model)
-                                                       : ui::ModernLook::Win11Dark;
+  const ui::ModernLook look = GlyphLook(model);
   for (const auto& button : model.quickButtons) {
     if (button.hovered) {
       if (IsModern(model.family)) {

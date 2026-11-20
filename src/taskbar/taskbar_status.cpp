@@ -1,9 +1,10 @@
 // The bar's reactions to what other apps do: stepping aside for a fullscreen
-// window, and the badges apps put on their buttons.
+// window, the badges apps put on their buttons, and window previews.
 #include "taskbar/app_icons.h"
 #include "taskbar/bar_manager.h"
 #include "taskbar/fullscreen_watch.h"
 #include "taskbar/taskbar_window.h"
+#include "taskbar/thumbnail_popup.h"
 
 namespace throwback {
 
@@ -38,6 +39,15 @@ void TaskbarWindow::AddBadges(BarModel& model) {
     if (!id.empty()) seen[window] = std::move(id);
   }
   appIds_ = std::move(seen);
+}
+
+void TaskbarWindow::ShowThumbnail(int index) {
+  const auto& items = tracker_->Items();
+  if (index < 0 || static_cast<size_t>(index) >= items.size()) return;
+  const TaskItem& item = items[static_cast<size_t>(index)];
+  RECT anchor{};
+  if (!ButtonScreenRect(item.hwnd, &anchor)) return;
+  thumbnail_->Show({item.hwnd, item.title, item.icon}, anchor, settings_.edge, dpi_);
 }
 
 }  // namespace throwback

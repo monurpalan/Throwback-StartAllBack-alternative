@@ -25,24 +25,28 @@ TaskbarWindow::TrayIcons TaskbarWindow::SplitTrayIcons() const {
   return split;
 }
 
+// The icons on the bar: the programs' shown ones, then our volume icon last,
+// next to the clock as on Windows.
 TrayAreaLayout TaskbarWindow::TrayArea() const {
   const TrayIcons split = SplitTrayIcons();
+  const size_t slots = split.shown.size() + (HasVolume() ? 1 : 0);
   if (IsVertical(settings_.edge)) {
-    return ComputeVerticalTrayArea(layout_.tray, split.shown.size(), !split.hidden.empty(), dpi_);
+    return ComputeVerticalTrayArea(layout_.tray, slots, !split.hidden.empty(), dpi_);
   }
-  return ComputeTrayArea(layout_.tray, split.shown.size(), !split.hidden.empty(), dpi_);
+  return ComputeTrayArea(layout_.tray, slots, !split.hidden.empty(), dpi_);
 }
 
 int TaskbarWindow::TrayWidth() const {
   if (!tray_) return 0;
   const TrayIcons split = SplitTrayIcons();
-  return TrayAreaWidth(split.shown.size(), !split.hidden.empty(), dpi_);
+  return TrayAreaWidth(split.shown.size() + (HasVolume() ? 1 : 0), !split.hidden.empty(), dpi_);
 }
 
 int TaskbarWindow::TrayHeight(int barWidth) const {
   if (!tray_) return 0;
   const TrayIcons split = SplitTrayIcons();
-  return VerticalTrayAreaHeight(split.shown.size(), !split.hidden.empty(), barWidth, dpi_);
+  return VerticalTrayAreaHeight(split.shown.size() + (HasVolume() ? 1 : 0), !split.hidden.empty(),
+                                barWidth, dpi_);
 }
 
 int TaskbarWindow::TrayHit(int x, int y) const {
@@ -60,6 +64,10 @@ void TaskbarWindow::SendTrayMouse(int hit, TrayHost::Mouse mouse) {
   const auto place = static_cast<size_t>(kHitTrayFirst - hit);
   const TrayIcons split = SplitTrayIcons();
   const TrayAreaLayout area = TrayArea();
+  if (HasVolume() && place == split.shown.size() && place < area.icons.size()) {
+    OnVolumeMouse(mouse, area.icons[place]);
+    return;
+  }
   if (place >= split.shown.size() || place >= area.icons.size()) return;
   // Programs place their menus and balloons at the icon.
   const Rect& rect = area.icons[place];
@@ -99,12 +107,18 @@ void TaskbarWindow::AddTrayIcons(BarModel& model) const {
     model.trayIcons.push_back({slot, CenteredSquare(slot, size), icons[split.shown[i]].icon,
                                hovered_ == kHitTrayFirst - static_cast<int>(i)});
   }
+  if (HasVolume() && split.shown.size() < area.icons.size()) {
+    const Rect& slot = area.icons[split.shown.size()];
+    model.trayIcons.push_back(
+        {slot, CenteredSquare(slot, size), nullptr, hovered_ == VolumeHit(), VolumeGlyph()});
+  }
   model.trayArrow = area.arrow;
   model.trayArrowHovered = hovered_ == kHitTrayArrow;
   model.trayOpen = trayOverflow_ && trayOverflow_->IsOpen();
 }
 
 void TaskbarWindow::CreateTrayOverflow() {
+  CreateVolume();
   TrayOverflow::Callbacks callbacks;
   callbacks.items = [this] {
     std::vector<TrayOverflow::Item> items;

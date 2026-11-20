@@ -155,6 +155,11 @@ enum class StringId {
   ShowTheDesktop,
   TaskManager,
   LockTaskbar,
+  VolumeMixerLink,
+  OpenVolumeMixer,
+  SoundSettings,
+  MuteSound,
+  UnmuteSound,
   kCount,
 };
 

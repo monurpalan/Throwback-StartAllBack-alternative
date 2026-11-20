@@ -40,6 +40,7 @@ struct TrayIconModel {
   Rect icon;
   HICON handle = nullptr;
   bool hovered = false;
+  wchar_t glyph = 0;  // our own icons (volume) are icon font glyphs
 };
 
 // Everything shown on the bar for one frame.

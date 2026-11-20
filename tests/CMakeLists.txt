@@ -27,6 +27,7 @@ add_executable(throwback_tests
   theme_test.cpp
   tray_layout_test.cpp
   user_assist_test.cpp
+  volume_math_test.cpp
   win_key_test.cpp
   window_filter_test.cpp
   window_menu_test.cpp)

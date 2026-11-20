@@ -198,6 +198,7 @@ bool TaskbarWindow::HandleShellMessage(UINT message, WPARAM wParam, LPARAM lPara
 
 LRESULT TaskbarWindow::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam) {
   if (LRESULT result = 0; HandleShellMessage(message, wParam, lParam, &result)) return result;
+  if (LRESULT result = 0; HandleVolumeMessage(message, wParam, lParam, &result)) return result;
 
   switch (message) {
     case kAppBarCallback:
@@ -535,6 +536,8 @@ void TaskbarWindow::OnMouseLeave() {
 void TaskbarWindow::OnButtonDown(int x, int y) {
   HideThumbnail();
   pressedHit_ = HitTest(x, y);
+  // The bar never takes focus, so the flyout can't see this click itself.
+  if (volumeFlyout_ && pressedHit_ != VolumeHit()) volumeFlyout_->Hide();
   pressedTask_ = nullptr;
   OnTrayPressed(x, y);
   BeginBarDrag(pressedHit_);
@@ -581,15 +584,6 @@ void TaskbarWindow::OnContextMenu(int x, int y) {
   }
 
   ShowBarMenu(point);
-}
-
-void TaskbarWindow::ShowThumbnail(int index) {
-  const auto& items = tracker_->Items();
-  if (index < 0 || static_cast<size_t>(index) >= items.size()) return;
-  const TaskItem& item = items[static_cast<size_t>(index)];
-  RECT anchor{};
-  if (!ButtonScreenRect(item.hwnd, &anchor)) return;
-  thumbnail_->Show({item.hwnd, item.title, item.icon}, anchor, settings_.edge, dpi_);
 }
 
 void TaskbarWindow::HideThumbnail() {

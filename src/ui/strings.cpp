@@ -160,6 +160,11 @@ constexpr std::array<Translation, kStringCount> kTable = {{
     {StringId::ShowTheDesktop, L"Show the desktop", L"Masaüstünü göster"},
     {StringId::TaskManager, L"Task Manager", L"Görev Yöneticisi"},
     {StringId::LockTaskbar, L"Lock the taskbar", L"Görev çubuğunu kilitle"},
+    {StringId::VolumeMixerLink, L"Mixer", L"Karıştırıcı"},
+    {StringId::OpenVolumeMixer, L"Open Volume mixer", L"Ses karıştırıcısını aç"},
+    {StringId::SoundSettings, L"Sound settings", L"Ses ayarları"},
+    {StringId::MuteSound, L"Mute", L"Sesi kapat"},
+    {StringId::UnmuteSound, L"Unmute", L"Sesi aç"},
 }};
 
 // A missing or misplaced translation fails the build, not the user.

@@ -58,6 +58,8 @@ edilmez.</p>
   sayısı gibi uygulama rozetleri.
 - **Bildirim alanı** tüm programların simgeleriyle; bir simgeyi çubuktan sürükleyip okun arkasına
   gizle ya da geri getir.
+- **Ses** bildirim alanında, Windows 7'deki gibi: tıklayınca kaydırıcı ve sessiz düğmesi, sağ tıklayınca
+  ses karıştırıcısı ve ses ayarları; üzerinde tekerleği çevirerek de değişir.
 - **Saat ve takvim:** takvim için saate tıkla.
 - **Her monitörde bir çubuk**, her biri o monitördeki pencerelerle.
 - **Arama ve Görev Görünümü düğmeleri** Başlat'ın yanında ve Explorer'ın kendi sağ tık menüsü:

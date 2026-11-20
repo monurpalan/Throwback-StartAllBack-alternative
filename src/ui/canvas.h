@@ -165,6 +165,9 @@ class Canvas {
   // An app's badge on the top right of its icon: a red pill with the count,
   // or a red dot when text is empty.
   void TaskBadge(const Rect& icon, std::wstring_view text);
+  // The volume flyout's vertical slider: the track filled up to the thumb
+  // (grey while muted) and the thumb at thumbY.
+  void VolumeSlider(const Rect& track, int thumbY, bool muted, bool hot);
   // A start screen tile in one of Windows 8's colors (by index), or in
   // Windows 10's accent color for a negative index.
   void ModernTile(const Rect& rect, int color, bool hovered);

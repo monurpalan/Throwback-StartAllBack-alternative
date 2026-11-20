@@ -131,6 +131,22 @@ void Canvas::TaskTile(const Rect& rect, bool light, TileState state) {
   StrokeRound(inner, radius - 1.0f, FromRgb(0xFFFFFF, light ? 0.55f : 0.22f + lift));
 }
 
+void Canvas::VolumeSlider(const Rect& track, int thumbY, bool muted, bool hot) {
+  const int center = (track.left + track.right) / 2;
+  const int rail = std::max(2, Scale(4));
+  const Rect full{center - rail / 2, track.top, center - rail / 2 + rail, track.bottom};
+  const float radius = static_cast<float>(rail) / 2.0f;
+  FillRound(full, radius, FromRgb(0xFFFFFF, 0.25f));
+  FillRound({full.left, thumbY, full.right, full.bottom}, radius,
+            muted ? FromRgb(0xA0A0A0) : modern::kWin11DarkAccent);
+  const int thumbWidth = Scale(18);
+  const int thumbHeight = Scale(9);
+  const Rect thumb{center - thumbWidth / 2, thumbY - thumbHeight / 2, center + thumbWidth / 2,
+                   thumbY - thumbHeight / 2 + thumbHeight};
+  FillRound(thumb, static_cast<float>(Scale(3)), FromRgb(hot ? 0xFFFFFF : 0xE6E6E6));
+  StrokeRound(thumb, static_cast<float>(Scale(3)), FromRgb(0x000000, 0.45f));
+}
+
 void Canvas::TaskBadge(const Rect& icon, std::wstring_view text) {
   constexpr unsigned kBadgeRed = 0xE81123;
   const int height = Scale(text.empty() ? 9 : 15);
